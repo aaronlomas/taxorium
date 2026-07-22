@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "taxor",
+  "productName": "taxorium",
   "version": "0.1.0",
-  "identifier": "com.taxor.app",
+  "identifier": "com.taxorium.app",
   "build": {
     "frontendDist": "../build",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Taxor — Sistema de Facturación",
+        "title": "Taxorium — Sistema de Facturación",
         "width": 1280,
         "height": 800,
         "minWidth": 900,
