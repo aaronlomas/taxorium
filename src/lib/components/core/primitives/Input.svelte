@@ -44,7 +44,7 @@
   <!-- Base Container -->
   <div
     class="
-      grid items-center gap-2 px-3
+      grid items-center gap-2 px-1
       {variants[variant]}
       {error
       ? 'border-danger focus-within:ring-danger focus-within:border-danger'

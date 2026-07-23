@@ -1,5 +1,7 @@
 {
 	"files.associations": {
 		"*.css": "tailwindcss"
-	}
+	},
+	"deno.enable": true,
+	"deno.enablePaths": ["supabase/functions"]
 }

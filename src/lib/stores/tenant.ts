@@ -40,7 +40,7 @@ function createTenantStore() {
 		async create(userId: string, data: Partial<Tenant>) {
 			update((s) => ({ ...s, loading: true, error: null }));
 			const { data: created, error } = await (supabase.from('tenants') as any)
-				.insert({ ...data, user_id: userId })
+				.insert(data)
 				.select()
 				.single();
 

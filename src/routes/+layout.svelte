@@ -6,16 +6,18 @@
 	import { page } from '$app/state';
 	import { auth, isAuthenticated } from '$lib/stores/auth';
 	import { tenantStore, isConfigured } from '$lib/stores/tenant';
+	import { licenseStore, licenseValid } from '$lib/stores/license';
 
 	let { children } = $props();
 
 	// Rutas que no requieren autenticación
-	const PUBLIC_ROUTES = ['/login', '/register'];
+	const PUBLIC_ROUTES = ['/login', '/register', '/customers'];
+	const RUTAS_SIN_LICENCIA = ['/activate'];
 
 	onMount(async () => {
+		// Inicializar licencia (lee lease local y renueva silenciosamente si hay internet)
+		licenseStore.init();
 		await auth.init();
-
-		// Escuchar cambios reactivos para redireccionar
 	});
 
 	// Guard reactivo
@@ -24,8 +26,21 @@
 		const authed = $isAuthenticated;
 		const configured = $isConfigured;
 		const authReady = $auth.initialized;
+		const licValid = $licenseValid;
 
 		if (!authReady) return;
+
+		// Sin licencia válida → solo puede estar en /activate
+		if (!licValid && !RUTAS_SIN_LICENCIA.includes(pathname)) {
+			goto('/activate');
+			return;
+		}
+
+		// Con licencia válida no debe estar en /activate
+		if (licValid && RUTAS_SIN_LICENCIA.includes(pathname)) {
+			goto(authed ? (configured ? '/' : '/setup') : '/login');
+			return;
+		}
 
 		if (!authed && !PUBLIC_ROUTES.includes(pathname)) {
 			goto('/login');
