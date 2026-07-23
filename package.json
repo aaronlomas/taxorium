@@ -39,6 +39,7 @@
 	},
 	"dependencies": {
 		"@supabase/supabase-js": "^2.110.8",
+		"@tabler/icons-svelte": "^3.45.0",
 		"@tauri-apps/api": "^2.5.0",
 		"@tauri-apps/plugin-log": "^2.5.0"
 	}
