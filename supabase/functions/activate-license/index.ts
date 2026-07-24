@@ -2,26 +2,39 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const LEASE_DURATION_DAYS = 7;
 
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...CORS },
+  });
+}
+
 Deno.serve(async (req: Request) => {
-  // Solo POST
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: CORS });
+  }
+
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Método no permitido' }), { status: 405 });
+    return json({ error: 'Método no permitido' }, 405);
   }
 
   let body: { license_key?: string; device_id?: string; device_name?: string };
   try {
     body = await req.json();
   } catch {
-    return new Response(JSON.stringify({ error: 'JSON inválido' }), { status: 400 });
+    return json({ error: 'JSON inválido' }, 400);
   }
 
   const { license_key, device_id, device_name } = body;
 
   if (!license_key || !device_id) {
-    return new Response(
-      JSON.stringify({ error: 'license_key y device_id son requeridos' }),
-      { status: 400 }
-    );
+    return json({ error: 'license_key y device_id son requeridos' }, 400);
   }
 
   const supabase = createClient(
@@ -37,33 +50,19 @@ Deno.serve(async (req: Request) => {
     .maybeSingle();
 
   if (licenseError || !license) {
-    return new Response(
-      JSON.stringify({ error: 'Licencia no encontrada' }),
-      { status: 404 }
-    );
+    return json({ error: 'Licencia no encontrada' }, 404);
   }
 
   if (license.revocada) {
-    return new Response(
-      JSON.stringify({ error: 'Esta licencia ha sido revocada. Contacta al soporte.' }),
-      { status: 403 }
-    );
+    return json({ error: 'Esta licencia ha sido revocada. Contacta al soporte.' }, 403);
   }
 
-  // Verificar expiración de la licencia
   if (license.expiry_at && new Date(license.expiry_at) < new Date()) {
-    return new Response(
-      JSON.stringify({ error: 'Esta licencia ha vencido. Renueva tu suscripción.' }),
-      { status: 403 }
-    );
+    return json({ error: 'Esta licencia ha vencido. Renueva tu suscripción.' }, 403);
   }
 
-  // Si la licencia está activa y ya tiene un device_id distinto, verificar
   if (license.activa && license.device_id && license.device_id !== device_id) {
-    return new Response(
-      JSON.stringify({ error: 'Esta licencia ya está activada en otro dispositivo.' }),
-      { status: 409 }
-    );
+    return json({ error: 'Esta licencia ya está activada en otro dispositivo.' }, 409);
   }
 
   // Marcar licencia como activa y registrar dispositivo
@@ -79,10 +78,7 @@ Deno.serve(async (req: Request) => {
     .eq('id', license.id);
 
   if (updateError) {
-    return new Response(
-      JSON.stringify({ error: 'Error al activar la licencia' }),
-      { status: 500 }
-    );
+    return json({ error: 'Error al activar la licencia' }, 500);
   }
 
   // Crear registro de lease
@@ -91,36 +87,25 @@ Deno.serve(async (req: Request) => {
 
   const { error: leaseError } = await supabase
     .from('license_leases')
-    .insert({
-      license_id: license.id,
-      device_id,
-      expires_at: expiresAt.toISOString(),
-    });
+    .insert({ license_id: license.id, device_id, expires_at: expiresAt.toISOString() });
 
   if (leaseError) {
     console.error('Error al crear lease:', leaseError.message);
   }
 
-  // Generar token de lease (JWT simple firmado con el service role secret)
-  const leasePayload = {
+  const leaseToken = btoa(JSON.stringify({
     license_id: license.id,
     tenant_id: license.tenant_id,
     device_id,
     expires_at: expiresAt.toISOString(),
     issued_at: new Date().toISOString(),
-  };
+  }));
 
-  // Encodificar como base64 (el frontend lo almacena localmente)
-  const leaseToken = btoa(JSON.stringify(leasePayload));
-
-  return new Response(
-    JSON.stringify({
-      success: true,
-      tenant_id: license.tenant_id,
-      lease_token: leaseToken,
-      expires_at: expiresAt.toISOString(),
-      message: `Licencia activada. Válida por ${LEASE_DURATION_DAYS} días sin internet.`,
-    }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
-  );
+  return json({
+    success: true,
+    tenant_id: license.tenant_id,
+    lease_token: leaseToken,
+    expires_at: expiresAt.toISOString(),
+    message: `Licencia activada. Válida por ${LEASE_DURATION_DAYS} días sin internet.`,
+  });
 });

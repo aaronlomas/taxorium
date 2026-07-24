@@ -18,10 +18,10 @@
 	}
 
 	async function activar() {
-		if (licenseKey.length < 19) return; // TAXO-XXXX-XXXX-XXXX = 19 chars
+		if (licenseKey.length < 19) return;
 		const ok = await licenseStore.activar(licenseKey);
 		if (ok) {
-			goto('/setup');
+			goto('/');
 		}
 	}
 

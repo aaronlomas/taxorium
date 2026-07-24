@@ -12,12 +12,16 @@
 
 	// Rutas que no requieren autenticación
 	const PUBLIC_ROUTES = ['/login', '/register', '/customers'];
-	const RUTAS_SIN_LICENCIA = ['/activate'];
+	const RUTAS_SIN_LICENCIA = ['/activate', '/setup'];
 
 	onMount(async () => {
 		// Inicializar licencia (lee lease local y renueva silenciosamente si hay internet)
 		licenseStore.init();
 		await auth.init();
+		// Cargar datos del tenant si el usuario ya está autenticado
+		if ($auth.user) {
+			await tenantStore.load();
+		}
 	});
 
 	// Guard reactivo
@@ -27,37 +31,46 @@
 		const configured = $isConfigured;
 		const authReady = $auth.initialized;
 		const licValid = $licenseValid;
+		const licenseReady = $licenseStore.initialized;
+		const tenantCargando = $tenantStore.loading;
 
-		if (!authReady) return;
+		// Esperar a que tanto auth como licencia estén inicializados
+		if (!authReady || !licenseReady) return;
+		if (authed && tenantCargando) return;
 
-		// Sin licencia válida → solo puede estar en /activate
-		if (!licValid && !RUTAS_SIN_LICENCIA.includes(pathname)) {
-			goto('/activate');
-			return;
-		}
+		const tenantExiste = !!$tenantStore.tenant;
 
-		// Con licencia válida no debe estar en /activate
-		if (licValid && RUTAS_SIN_LICENCIA.includes(pathname)) {
-			goto(authed ? (configured ? '/' : '/setup') : '/login');
-			return;
-		}
-
+		// 1. Si no está autenticado y no está en ruta pública -> login
 		if (!authed && !PUBLIC_ROUTES.includes(pathname)) {
 			goto('/login');
 			return;
 		}
 
+		// 2. Si está autenticado y en ruta pública -> sacarlo de ahí
 		if (authed && PUBLIC_ROUTES.includes(pathname)) {
-			goto(configured ? '/' : '/setup');
+			goto(tenantExiste ? (licValid ? '/' : '/activate') : '/setup');
 			return;
 		}
 
-		if (authed && !configured && pathname !== '/setup') {
-			tenantStore.load().then((tenant) => {
-				if (!tenant || !tenant.configurado) {
-					goto('/setup');
-				}
-			});
+		// 3. Flujo para usuarios autenticados:
+		if (authed) {
+			if (!tenantExiste) {
+				// Si no tiene tenant, FORZAR a /setup
+				if (pathname !== '/setup') goto('/setup');
+				return;
+			}
+
+			// Si tiene tenant, pero no tiene licencia válida, FORZAR a /activate
+			if (!licValid) {
+				if (pathname !== '/activate') goto('/activate');
+				return;
+			}
+
+			// Si tiene tenant y licencia válida, no debe estar ni en /setup ni en /activate
+			if (licValid && RUTAS_SIN_LICENCIA.includes(pathname)) {
+				goto('/');
+				return;
+			}
 		}
 	});
 </script>

@@ -2,25 +2,39 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const LEASE_DURATION_DAYS = 7;
 
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...CORS },
+  });
+}
+
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: CORS });
+  }
+
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Método no permitido' }), { status: 405 });
+    return json({ error: 'Método no permitido' }, 405);
   }
 
   let body: { lease_token?: string; device_id?: string };
   try {
     body = await req.json();
   } catch {
-    return new Response(JSON.stringify({ error: 'JSON inválido' }), { status: 400 });
+    return json({ error: 'JSON inválido' }, 400);
   }
 
   const { lease_token, device_id } = body;
 
   if (!lease_token || !device_id) {
-    return new Response(
-      JSON.stringify({ error: 'lease_token y device_id son requeridos' }),
-      { status: 400 }
-    );
+    return json({ error: 'lease_token y device_id son requeridos' }, 400);
   }
 
   // Decodificar el lease token
@@ -34,15 +48,11 @@ Deno.serve(async (req: Request) => {
   try {
     leasePayload = JSON.parse(atob(lease_token));
   } catch {
-    return new Response(JSON.stringify({ error: 'Token inválido' }), { status: 400 });
+    return json({ error: 'Token inválido' }, 400);
   }
 
-  // Verificar que el device_id coincide
   if (leasePayload.device_id !== device_id) {
-    return new Response(
-      JSON.stringify({ error: 'Token no corresponde a este dispositivo' }),
-      { status: 403 }
-    );
+    return json({ error: 'Token no corresponde a este dispositivo' }, 403);
   }
 
   const supabase = createClient(
@@ -59,24 +69,15 @@ Deno.serve(async (req: Request) => {
     .maybeSingle();
 
   if (licenseError || !license) {
-    return new Response(
-      JSON.stringify({ error: 'Licencia no encontrada para este dispositivo' }),
-      { status: 404 }
-    );
+    return json({ error: 'Licencia no encontrada para este dispositivo' }, 404);
   }
 
   if (license.revocada || !license.activa) {
-    return new Response(
-      JSON.stringify({ error: 'Licencia revocada o desactivada. Contacta al soporte.' }),
-      { status: 403 }
-    );
+    return json({ error: 'Licencia revocada o desactivada. Contacta al soporte.' }, 403);
   }
 
   if (license.expiry_at && new Date(license.expiry_at) < new Date()) {
-    return new Response(
-      JSON.stringify({ error: 'Licencia vencida. Renueva tu suscripción.' }),
-      { status: 403 }
-    );
+    return json({ error: 'Licencia vencida. Renueva tu suscripción.' }, 403);
   }
 
   // Actualizar heartbeat
@@ -89,22 +90,17 @@ Deno.serve(async (req: Request) => {
   const newExpiresAt = new Date();
   newExpiresAt.setDate(newExpiresAt.getDate() + LEASE_DURATION_DAYS);
 
-  const newLeasePayload = {
+  const newLeaseToken = btoa(JSON.stringify({
     license_id: leasePayload.license_id,
     tenant_id: leasePayload.tenant_id,
     device_id,
     expires_at: newExpiresAt.toISOString(),
     issued_at: new Date().toISOString(),
-  };
+  }));
 
-  const newLeaseToken = btoa(JSON.stringify(newLeasePayload));
-
-  return new Response(
-    JSON.stringify({
-      success: true,
-      lease_token: newLeaseToken,
-      expires_at: newExpiresAt.toISOString(),
-    }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
-  );
+  return json({
+    success: true,
+    lease_token: newLeaseToken,
+    expires_at: newExpiresAt.toISOString(),
+  });
 });

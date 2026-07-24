@@ -14,6 +14,7 @@ interface LeasePayload {
 
 interface LicenseState {
 	valid: boolean;
+	initialized: boolean;
 	expiresAt: Date | null;
 	tenantId: string | null;
 	leaseToken: string | null;
@@ -24,6 +25,7 @@ interface LicenseState {
 function createLicenseStore() {
 	const { subscribe, set, update } = writable<LicenseState>({
 		valid: false,
+		initialized: false,
 		expiresAt: null,
 		tenantId: null,
 		leaseToken: null,
@@ -57,7 +59,7 @@ function createLicenseStore() {
 		init() {
 			const lease = leerLeaseLocal();
 			if (!lease) {
-				set({ valid: false, expiresAt: null, tenantId: null, leaseToken: null, activating: false, error: null });
+				set({ valid: false, initialized: true, expiresAt: null, tenantId: null, leaseToken: null, activating: false, error: null });
 				return;
 			}
 
@@ -66,6 +68,7 @@ function createLicenseStore() {
 
 			set({
 				valid,
+				initialized: true,
 				expiresAt,
 				tenantId: lease.payload.tenant_id,
 				leaseToken: lease.token,
