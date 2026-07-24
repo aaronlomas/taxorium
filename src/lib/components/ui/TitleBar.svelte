@@ -1,52 +1,50 @@
 <script lang="ts">
-  import { IconMinus, IconMaximize, IconX } from '@tabler/icons-svelte';
-  
-  // En Tauri v2, importamos getCurrentWindow para interactuar con la ventana actual
-  import { getCurrentWindow } from '@tauri-apps/api/window';
+	import { IconMinus, IconMaximize, IconX } from '@tabler/icons-svelte';
+	import { getCurrentWindow } from '@tauri-apps/api/window';
 
-  const ventanaApp = getCurrentWindow();
+	const ventanaApp = getCurrentWindow();
 
-  async function minimizar() {
-    try { await ventanaApp.minimize(); } catch(e) { console.error(e); }
-  }
+	async function minimizar() {
+		try {
+			await ventanaApp.minimize();
+		} catch (e) {
+			console.error(e);
+		}
+	}
 
-  async function alternarMaximizar() {
-    try { await ventanaApp.toggleMaximize(); } catch(e) { console.error(e); }
-  }
+	async function alternarMaximizar() {
+		try {
+			await ventanaApp.toggleMaximize();
+		} catch (e) {
+			console.error(e);
+		}
+	}
 
-  async function cerrar() {
-    try { await ventanaApp.close(); } catch(e) { console.error(e); }
-  }
-  
-  async function iniciarArrastre(e: MouseEvent) {
-    // Solo arrastrar si es el click izquierdo
-    if (e.button === 0) {
-      try { await ventanaApp.startDragging(); } catch(e) { console.error(e); }
-    }
-  }
+	async function cerrar() {
+		try {
+			await ventanaApp.close();
+		} catch (e) {
+			console.error(e);
+		}
+	}
 </script>
 
 <div
-  class="h-8 flex justify-between items-center bg-neutral-950 select-none border-b border-neutral-900 shrink-0"
+	class="flex h-8 shrink-0 select-none items-center justify-between border-b border-neutral-900 bg-neutral-950"
 >
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div 
-    class="px-4 flex items-center gap-2 h-full cursor-default" 
-    on:mousedown={iniciarArrastre}
-  >
-    <div class="w-4 h-4 rounded-sm bg-blue-600 flex items-center justify-center pointer-events-none">
-      <span class="text-[9px] font-bold text-white">TX</span>
-    </div>
-    <span class="text-xs font-medium text-neutral-400 pointer-events-none tracking-wide">
-      Taxorium
-    </span>
-  </div>
-  
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div 
-    class="flex-1 h-full cursor-default" 
-    on:mousedown={iniciarArrastre}
-  ></div>
+	<div
+		data-tauri-drag-region
+		class="flex h-full flex-1 cursor-default items-center gap-2 px-4"
+	>
+		<div
+			class="pointer-events-none flex h-4 w-4 items-center justify-center rounded-sm bg-blue-600"
+		>
+			<span class="text-[9px] font-bold text-white">TX</span>
+		</div>
+		<span class="pointer-events-none text-xs font-medium tracking-wide text-neutral-400">
+			Taxorium
+		</span>
+	</div>
   
   <div class="flex h-full">
     <button 
