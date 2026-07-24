@@ -12,6 +12,7 @@
     icon?: Snippet;
     /**Show and hide icon (Required in 'double' and 'triple') */
     action?: Snippet;
+    containerClass?: string;
   }
 
   let {
@@ -22,6 +23,7 @@
     icon,
     action,
     class: className = "",
+    containerClass = "",
     id = crypto.randomUUID(),
     ...rest
   }: Props = $props();
@@ -34,26 +36,26 @@
   };
 </script>
 
-<div class="grid gap-1 w-full">
+<div class="grid w-full {containerClass}">
   {#if label}
-    <label for={id} class="text-sm font-medium">
-      {label}
+    <label for={id} class="mb-1 block text-xs font-medium text-neutral-400">
+      {@html label}
     </label>
   {/if}
 
   <!-- Base Container -->
   <div
     class="
-      grid items-center gap-2 px-1
+      grid w-full items-center gap-2 border border-neutral-700 bg-neutral-900 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500
       {variants[variant]}
       {error
-      ? 'border-danger focus-within:ring-danger focus-within:border-danger'
+      ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500'
       : ''} 
       {className}
     "
   >
     {#if variant === "triple" && icon}
-      <div class="flex items-center justify-center shrink-0">
+      <div class="flex shrink-0 items-center justify-center text-neutral-400">
         {@render icon()}
       </div>
     {/if}
@@ -62,19 +64,19 @@
     <input
       {id}
       bind:value
-      class="w-full bg-transparent border-none outline-none focus:ring-0 focus:outline-none"
+      class="border-none bg-transparent text-neutral-200 outline-none focus:ring-0"
       {...rest}
     />
 
     <!-- Action icon (Variants 'double' and 'triple') -->
     {#if (variant === "double" || variant === "triple") && action}
-      <div class="flex items-center justify-center shrink-0">
+      <div class="flex shrink-0 items-center justify-center text-neutral-400">
         {@render action()}
       </div>
     {/if}
   </div>
 
   {#if error}
-    <span class="text-xs text-danger">{error}</span>
+    <span class="mt-1 text-xs text-red-500">{error}</span>
   {/if}
 </div>

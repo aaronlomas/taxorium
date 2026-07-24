@@ -4,7 +4,7 @@
 
 <div class="m-4 grid grid-rows-[40px_auto_1fr] border border-neutral-800">
 	<div class="flex items-center justify-center font-extrabold text-white">
-		<p>Lista de Productos</p>
+		<p>Reportes de Ventas/Compras</p>
 	</div>
 	<div class="flex justify-end p-4 border-t border-t-neutral-800">
 		<div>
@@ -18,20 +18,18 @@
 		<thead>
 			<tr>
 				<th class="align-top">#</th>
-				<th class="align-top">Unidad</th>
-				<th class="align-top">Descripción</th>
+				<th class="align-top">Producto</th>
+				<th class="align-top">Precio</th>
 				<th class="align-top">Stock</th>
-				<th class="align-top">Precio U.</th>
 				<th class="align-top">Acciones</th>
 			</tr>
 		</thead>
 		<tbody>
 			<tr>
 				<td class="align-top">1</td>
-				<td class="align-top">NIU</td>
-				<td class="align-top">Zapatos de cuero</td>
+				<td class="align-top">Producto 1</td>
 				<td class="align-top">10</td>
-				<td class="align-top">s/. 200.00</td>
+				<td class="align-top">10</td>
 				<td class="align-top">
 					<button>Editar</button>
 					<button>Eliminar</button>
