@@ -67,7 +67,7 @@
   $: pestanaActiva = pestanas.find(p => p.activo);
 </script>
 
-<div class="flex h-screen w-full bg-neutral-950 overflow-hidden font-sans text-neutral-300">
+<div class="flex h-full w-full bg-neutral-950 overflow-hidden font-sans text-neutral-300">
   <Sidebar on:seleccionarOpcion={manejarSeleccionSidebar} />
   
   <main class="flex-1 flex flex-col min-w-0 bg-neutral-950">

@@ -7,6 +7,7 @@
 	import { auth, isAuthenticated } from '$lib/stores/auth';
 	import { tenantStore, isConfigured } from '$lib/stores/tenant';
 	import { licenseStore, licenseValid } from '$lib/stores/license';
+	import TitleBar from '$lib/components/ui/TitleBar.svelte';
 
 	let { children } = $props();
 
@@ -77,4 +78,9 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-{@render children()}
+<div class="flex flex-col h-screen w-full overflow-hidden bg-neutral-950">
+	<TitleBar />
+	<div class="flex-1 w-full h-full relative overflow-hidden">
+		{@render children()}
+	</div>
+</div>
