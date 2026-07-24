@@ -99,7 +99,8 @@
 						class="text-neutral-700"
 					/>
 					<p class="text-sm">
-						El módulo <span class="text-neutral-400 font-medium">{pestanaActiva?.titulo}</span> está en desarrollo.
+						El módulo <span class="font-medium text-neutral-400">{pestanaActiva?.titulo}</span> está en
+						desarrollo.
 					</p>
 				</div>
 			{/if}

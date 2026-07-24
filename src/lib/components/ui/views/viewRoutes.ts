@@ -1,7 +1,8 @@
-import type { ComponentType } from 'svelte';
+import type { Component } from 'svelte';
 
 import DashboardView from './dashboard/Dashboard.svelte';
 import ProductsView from './products/Products.svelte';
+import ReportsView from './reports/Reports.svelte';
 
 /**
  * Mapa central de rutas de vistas de la aplicación.
@@ -13,12 +14,13 @@ import ProductsView from './products/Products.svelte';
  *   2. Importalo aquí
  *   3. Añade la entrada al mapa
  */
-export const viewRoutes: Record<string, ComponentType> = {
+export const viewRoutes: Record<string, Component<any>> = {
 	Dashboard: DashboardView,
-	Productos: ProductsView
+	Productos: ProductsView,
+	Reportes: ReportsView
 };
 
 /** Devuelve el componente para un id de pestaña, o null si no existe */
-export function resolveView(tabId: string): ComponentType | null {
+export function resolveView(tabId: string): Component<any> | null {
 	return viewRoutes[tabId] ?? null;
 }
