@@ -48,7 +48,7 @@
 
 		// 2. Si está autenticado y en ruta pública -> sacarlo de ahí
 		if (authed && PUBLIC_ROUTES.includes(pathname)) {
-			goto(tenantExiste ? (licValid ? '/' : '/activate') : '/setup');
+			goto(tenantExiste ? (licValid ? '/app' : '/activate') : '/setup');
 			return;
 		}
 
@@ -67,8 +67,8 @@
 			}
 
 			// Si tiene tenant y licencia válida, no debe estar ni en /setup ni en /activate
-			if (licValid && RUTAS_SIN_LICENCIA.includes(pathname)) {
-				goto('/');
+			if (licValid && (RUTAS_SIN_LICENCIA.includes(pathname) || pathname === '/')) {
+				goto('/app');
 				return;
 			}
 		}

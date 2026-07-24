@@ -4,6 +4,9 @@
     IconUsers,
     IconPackage
   } from '@tabler/icons-svelte';
+  import { createEventDispatcher } from 'svelte';
+
+  const dispatch = createEventDispatcher();
 
   let anchoBarraLateral = 260;
   let estaRedimensionando = false;
@@ -52,9 +55,10 @@
 
   <nav class="flex-1 overflow-y-auto py-4 px-2 flex flex-col gap-2">
     {#each elementosNavegacion as elemento}
-      <a
-        href={elemento.ruta}
-        class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-neutral-800 hover:text-white transition-colors cursor-pointer group"
+      <button
+        type="button"
+        on:click={() => dispatch('seleccionarOpcion', elemento)}
+        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-neutral-800 hover:text-white transition-colors cursor-pointer group"
       >
         <svelte:component
           this={elemento.icono}
@@ -63,7 +67,7 @@
           class="text-neutral-400 group-hover:text-blue-400 transition-colors"
         />
         <span class="text-sm font-medium">{elemento.nombre}</span>
-      </a>
+      </button>
     {/each}
   </nav>
 
