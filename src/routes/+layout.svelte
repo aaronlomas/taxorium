@@ -8,6 +8,7 @@
 	import { tenantStore, isConfigured } from '$lib/stores/tenant';
 	import { licenseStore, licenseValid } from '$lib/stores/license';
 	import TitleBar from '$lib/components/ui/TitleBar.svelte';
+	import ResizeBorder from '$lib/components/ui/ResizeBorder.svelte';
 
 	let { children } = $props();
 
@@ -79,6 +80,7 @@
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
 <div class="flex flex-col h-screen w-full overflow-hidden bg-neutral-950">
+	<ResizeBorder />
 	<TitleBar />
 	<div class="flex-1 w-full h-full relative overflow-hidden">
 		{@render children()}

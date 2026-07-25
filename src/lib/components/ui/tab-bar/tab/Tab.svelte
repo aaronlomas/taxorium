@@ -20,7 +20,7 @@
 </script>
 
 <div
-	class="group flex max-w-48 min-w-32 cursor-pointer items-center gap-2 border-t-2 border-r border-r-neutral-800 px-3 py-2 transition-colors last:border-r-0"
+	class="group flex max-w-48 min-w-32 cursor-pointer items-center gap-2 border-t border-r border-r-neutral-800 px-3 py-1 transition-colors last:border-r-0"
 	class:bg-neutral-950={active}
 	class:border-t-blue-500={active}
 	class:text-white={active}

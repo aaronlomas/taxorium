@@ -2,7 +2,7 @@
 	import { IconSearch } from '@tabler/icons-svelte';
 </script>
 
-<div class="m-4 grid grid-rows-[40px_auto_1fr] border border-neutral-800">
+<div class="m-4 grid grid-rows-[40px_auto_1fr] border border-neutral-800 text-sm">
 	<div class="flex items-center justify-center font-extrabold text-white">
 		<p>Lista de Productos</p>
 	</div>

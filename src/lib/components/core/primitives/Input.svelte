@@ -1,82 +1,80 @@
 <script lang="ts">
-  import type { HTMLInputAttributes } from "svelte/elements";
-  import type { Snippet } from "svelte";
+	import type { HTMLInputAttributes } from 'svelte/elements';
+	import type { Snippet } from 'svelte';
 
-  interface Props extends HTMLInputAttributes {
-    label?: string;
-    error?: string;
-    value?: string;
-    /** Input structure type */
-    variant?: "simple" | "double" | "triple";
-    /** Initial icon (Required only in 'triple') */
-    icon?: Snippet;
-    /**Show and hide icon (Required in 'double' and 'triple') */
-    action?: Snippet;
-    containerClass?: string;
-  }
+	interface Props extends HTMLInputAttributes {
+		label?: string;
+		error?: string;
+		value?: string;
+		/** Input structure type */
+		variant?: 'simple' | 'double' | 'triple';
+		/** Initial icon (Required only in 'triple') */
+		icon?: Snippet;
+		/**Show and hide icon (Required in 'double' and 'triple') */
+		action?: Snippet;
+		containerClass?: string;
+	}
 
-  let {
-    label,
-    error,
-    value = $bindable(""),
-    variant = "simple",
-    icon,
-    action,
-    class: className = "",
-    containerClass = "",
-    id = crypto.randomUUID(),
-    ...rest
-  }: Props = $props();
+	let {
+		label,
+		error,
+		value = $bindable(''),
+		variant = 'simple',
+		icon,
+		action,
+		class: className = '',
+		containerClass = '',
+		id = crypto.randomUUID(),
+		...rest
+	}: Props = $props();
 
-  // Layout: Mapping based on the variant chosen
-  const variants = {
-    simple: "grid-cols-1",
-    double: "grid-cols-[1fr_auto]",
-    triple: "grid-cols-[auto_1fr_auto]",
-  };
+	// Layout: Mapping based on the variant chosen
+	const variants = {
+		simple: 'grid-cols-1',
+		double: 'grid-cols-[1fr_auto]',
+		triple: 'grid-cols-[auto_1fr_auto]'
+	};
 </script>
 
 <div class="grid w-full {containerClass}">
-  {#if label}
-    <label for={id} class="mb-1 block text-xs font-medium text-neutral-400">
-      {@html label}
-    </label>
-  {/if}
+	{#if label}
+		<label for={id} class="mb-1 block text-xs text-neutral-400">
+			{@html label}
+		</label>
+	{/if}
 
-  <!-- Base Container -->
-  <div
-    class="
+	<!-- Base Container -->
+	<div
+		class="
       grid w-full items-center gap-2 border border-neutral-700 bg-neutral-900 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500
       {variants[variant]}
-      {error
-      ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500'
-      : ''} 
+      {error ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500' : ''} 
       {className}
     "
-  >
-    {#if variant === "triple" && icon}
-      <div class="flex shrink-0 items-center justify-center text-neutral-400">
-        {@render icon()}
-      </div>
-    {/if}
+	>
+		{#if variant === 'triple' && icon}
+			<div class="flex shrink-0 items-center justify-center text-neutral-400">
+				{@render icon()}
+			</div>
+		{/if}
 
-    <!-- 2. Simple input, to collect only informational data -->
-    <input
-      {id}
-      bind:value
-      class="border-none bg-transparent text-neutral-200 outline-none focus:ring-0"
-      {...rest}
-    />
+		<!-- 2. Simple input, to collect only informational data -->
+		<input
+			{id}
+			bind:value
+			class="border-none bg-transparent text-neutral-200 outline-none focus:ring-0 text-sm"
+			{...rest}
+		/>
 
-    <!-- Action icon (Variants 'double' and 'triple') -->
-    {#if (variant === "double" || variant === "triple") && action}
-      <div class="flex shrink-0 items-center justify-center text-neutral-400">
-        {@render action()}
-      </div>
-    {/if}
-  </div>
+		<!-- Action icon (Variants 'double' and 'triple') -->
+		{#if (variant === 'double' || variant === 'triple') && action}
+			<div class="flex shrink-0 items-center justify-center text-neutral-400">
+				{@render action()}
+			</div>
+		{/if}
+	</div>
 
-  {#if error}
-    <span class="mt-1 text-xs text-red-500">{error}</span>
-  {/if}
+	{#if error}
+		<span class="mt-1 text-xs text-red-500">{error}</span>
+	{/if}
 </div>

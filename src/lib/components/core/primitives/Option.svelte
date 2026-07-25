@@ -64,7 +64,7 @@
 			type="button"
 			{id}
 			onclick={toggle}
-			class="flex h-10 w-full items-center justify-between border border-neutral-700 bg-neutral-900 px-3 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 {error
+			class="flex w-full items-center justify-between border border-neutral-700 bg-neutral-900 px-2 py-1 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 {error
 				? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500'
 				: ''} {className}"
 		>
@@ -72,7 +72,7 @@
 				{selectedLabel}
 			</span>
 			<svg
-				class="h-4 w-4 text-neutral-400 transition-transform {isOpen ? 'rotate-180' : ''}"
+				class="size-4 text-neutral-400 transition-transform {isOpen ? 'rotate-180' : ''}"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -83,13 +83,16 @@
 
 		{#if isOpen}
 			<ul
-				class="absolute z-10 mt-1 max-h-60 w-full overflow-auto border border-neutral-700 bg-neutral-900 py-1 text-sm shadow-lg focus:outline-none"
+				class="absolute z-10 mt-1 max-h-60 w-full overflow-auto border border-neutral-700 bg-neutral-900 text-sm shadow-lg focus:outline-none"
 			>
 				{#each options as option}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 					<li
-						class="cursor-pointer px-3 py-2 text-neutral-200 hover:bg-neutral-800 {value === option.value ? 'bg-blue-600/20 text-blue-400' : ''}"
+						class="cursor-pointer px-2 py-1 text-neutral-200 hover:bg-neutral-800 {value ===
+						option.value
+							? 'bg-blue-600/20 text-blue-400'
+							: ''}"
 						onclick={() => selectOption(option.value)}
 					>
 						{option.label}

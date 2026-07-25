@@ -3,6 +3,7 @@ import type { Component } from 'svelte';
 import DashboardView from './dashboard/Dashboard.svelte';
 import ProductsView from './products/Products.svelte';
 import ReportsView from './reports/Reports.svelte';
+import VentasView from './sales/Sales.svelte';
 
 /**
  * Mapa central de rutas de vistas de la aplicación.
@@ -17,7 +18,8 @@ import ReportsView from './reports/Reports.svelte';
 export const viewRoutes: Record<string, Component<any>> = {
 	Dashboard: DashboardView,
 	Productos: ProductsView,
-	Reportes: ReportsView
+	Reportes: ReportsView,
+	Ventas: VentasView
 };
 
 /** Devuelve el componente para un id de pestaña, o null si no existe */

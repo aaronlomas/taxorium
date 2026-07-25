@@ -53,7 +53,7 @@
 	class="relative grid h-full grid-rows-[auto_1fr_auto_auto] border-r border-neutral-800 bg-neutral-950 text-neutral-300"
 	style="width: {anchoBarraLateral}px;"
 >
-	<div class="flex items-center gap-3 border-b border-neutral-800 p-2 text-sm font-bold text-white">
+	<div class="flex items-center gap-3 border-b border-neutral-800 px-2 py-1 text-sm font-bold text-white">
 		<span class="tracking-wide">Explorar</span>
 	</div>
 
