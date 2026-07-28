@@ -34,6 +34,40 @@
 		if (min !== undefined && current <= min) return;
 		value = current - step;
 	}
+
+	// Filtra la entrada del teclado en tiempo real
+	function handleInput(e: Event) {
+		const target = e.target as HTMLInputElement;
+		let rawValue = target.value;
+
+		// Permite números, un solo punto decimal y un solo signo menos al inicio
+		rawValue = rawValue
+			.replace(/[^0-9.-]/g, '') // Elimina caracteres no válidos
+			.replace(/(\..*?)\..*/g, '$1') // Deja solo el primer punto decimal
+			.replace(/(?!^)-/g, ''); // Deja el signo menos solo si está al principio
+
+		let numValue = Number(rawValue);
+
+		// Valida los límites si es un número válido
+		if (!isNaN(numValue) && rawValue !== '' && rawValue !== '-') {
+			if (max !== undefined && numValue > max) rawValue = String(max);
+			if (min !== undefined && numValue < min) rawValue = String(min);
+		}
+
+		// Actualiza el estado y la vista del input
+		value = rawValue;
+		target.value = rawValue;
+	}
+
+	// Convierte a número válido al perder el foco (ej: si quedó un "-" solo o vacío)
+	function handleBlur() {
+		let current = Number(value);
+		if (isNaN(current) || value === '') {
+			value = min !== undefined ? min : 0;
+		} else {
+			value = current;
+		}
+	}
 </script>
 
 <div class="flex w-full flex-col {containerClass}">
@@ -48,12 +82,17 @@
 			? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500'
 			: ''}"
 	>
-		<div
+		<!-- Usamos type="text" con inputmode="decimal" para teclados móviles -->
+		<input
 			{id}
-			class="flex h-full w-full items-center bg-transparent px-3 text-sm text-neutral-200 {className}"
-		>
-			{value}
-		</div>
+			type="text"
+			inputmode="decimal"
+			value={value}
+			oninput={handleInput}
+			onblur={handleBlur}
+			class="h-full w-full bg-transparent px-3 text-sm text-neutral-200 outline-none border-none focus:ring-0 focus:outline-none {className}"
+		/>
+		
 		<div class="flex flex-col border-l border-neutral-700">
 			<button
 				aria-label="Incrementar"

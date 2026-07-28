@@ -62,7 +62,7 @@
 		<input
 			{id}
 			bind:value
-			class="border-none bg-transparent text-neutral-200 outline-none focus:ring-0 text-sm"
+			class="border-none bg-transparent text-sm text-neutral-200 outline-none focus:ring-0 h-8"
 			{...rest}
 		/>
 

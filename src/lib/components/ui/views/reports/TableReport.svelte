@@ -14,27 +14,32 @@
 			</div>
 		</div>
 	</div>
-	<table class="bg-neutral-900">
-		<thead>
-			<tr>
-				<th class="align-top">#</th>
-				<th class="align-top">Producto</th>
-				<th class="align-top">Precio</th>
-				<th class="align-top">Stock</th>
-				<th class="align-top">Acciones</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td class="align-top">1</td>
-				<td class="align-top">Producto 1</td>
-				<td class="align-top">10</td>
-				<td class="align-top">10</td>
-				<td class="align-top">
-					<button>Editar</button>
-					<button>Eliminar</button>
-				</td>
-			</tr>
-		</tbody>
-	</table>
+
+  <!-- Tabla de reportes -->
+
+  <div class="text-sm border border-neutral-800">
+    <table class="bg-neutral-900 table-auto w-full">
+      <thead class="border-b border-neutral-800">
+        <tr>
+          <th class="align-top">#</th>
+          <th class="align-top">Producto</th>
+          <th class="align-top">Precio</th>
+          <th class="align-top">Stock</th>
+          <th class="align-top">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="text-center border-b border-blue-700">
+        <tr>
+          <td class="align-top">1</td>
+          <td class="align-top">Producto 1</td>
+          <td class="align-top">10</td>
+          <td class="align-top">10</td>
+          <td class="align-top">
+            <button>Editar</button>
+            <button>Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>

@@ -5,7 +5,8 @@
 		IconPackage,
 		IconLogout,
 		IconSettings,
-		IconReport
+		IconReport,
+    IconUsers
 	} from '@tabler/icons-svelte';
 	import { createEventDispatcher } from 'svelte';
 	import { auth, currentUser } from '$lib/stores/auth';
@@ -45,7 +46,8 @@
 		{ nombre: 'Dashboard', icono: IconLayoutDashboard, ruta: '/dashboard' },
 		{ nombre: 'Ventas', icono: IconReportMoney, ruta: '/sales' },
 		{ nombre: 'Productos', icono: IconPackage, ruta: '/productos' },
-		{ nombre: 'Reportes', icono: IconReport, ruta: '/reportes' }
+		{ nombre: 'Reportes', icono: IconReport, ruta: '/reportes' },
+		{ nombre: 'Clientes', icono: IconUsers, ruta: '/customers' }
 	];
 </script>
 

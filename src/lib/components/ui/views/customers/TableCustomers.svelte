@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { IconSearch } from '@tabler/icons-svelte';
+  //sitio para pedir los customers de la base de datos y mostrarlos en la tabla, solo # y nombre
 </script>
 
-<div class="m-4 grid grid-rows-[40px_auto_1fr] border border-neutral-800 text-sm">
+<div class="m-4 grid grid-rows-[40px_auto_1fr] border border-neutral-800">
 	<div class="flex items-center justify-center font-extrabold text-white">
-		<p>Lista de Productos</p>
+		<p>Lista de Clientes</p>
 	</div>
 	<div class="flex justify-end p-4 border-t border-t-neutral-800">
 		<div>
@@ -14,35 +15,20 @@
 			</div>
 		</div>
 	</div>
-
-  <!-- TABLA DE PRODUCTOS -->
-
-  <div>
-    <table class="w-full bg-neutral-900 text-center">
-
-      <!-- cabecera -->
-
+  <div class="text-sm border border-neutral-800">
+    <table class="bg-neutral-900 w-full">
       <thead class="border-b border-neutral-800">
         <tr>
-          <th>#</th>
-          <th>Unidad</th>
-          <th>Descripción</th>
-          <th>Stock</th>
-          <th>Precio U.</th>
-          <th>Acciones</th>
+          <th class="align-top">#</th>
+          <th class="align-top">Nombre</th>
+          <th class="align-top">Acciones</th>
         </tr>
       </thead>
-
-      <!-- contenido -->
-
-      <tbody class="border-b border-blue-700">
+      <tbody class="text-center border-b border-blue-700">
         <tr>
-          <td>1</td>
-          <td>NIU</td>
-          <td>Zapatos de cuero</td>
-          <td>10</td>
-          <td>s/. 200.00</td>
-          <td>
+          <td class="align-top">1</td>
+          <td class="align-top">Elisa</td>
+          <td class="align-top">
             <button>Editar</button>
             <button>Eliminar</button>
           </td>
@@ -51,3 +37,4 @@
     </table>
   </div>
 </div>
+

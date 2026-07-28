@@ -1,5 +1,6 @@
 <script lang="ts">
 	import PanelVentas from '$lib/components/ui/views/sales/SalesPanel.svelte';
+  import SalesModal from '$lib/components/ui/views/sales/SalesModal.svelte';
 	let isModalOpen = $state(false);
 </script>
 
@@ -12,15 +13,17 @@
 		<button
 			onclick={() => (isModalOpen = true)}
 			class="cursor-pointer border-r border-r-neutral-800 px-2 transition-colors hover:bg-neutral-900 whitespace-nowrap"
-			>Agregar Cliente</button
+			>+ Nueva Venta</button
 		>
 		<button
-			class="cursor-pointer border-r border-r-neutral-800 px-2 transition-colors hover:bg-neutral-900"
-			>Importar</button
+			class="cursor-pointer border-r border-r-neutral-800 px-2 transition-colors hover:bg-neutral-900 whitespace-nowrap"
+			>+ Nuevo Cliente</button
 		>
 		<button
-			class="cursor-pointer border-r border-r-neutral-800 px-2 transition-colors hover:bg-neutral-900"
-			>Exportar</button
+			class="cursor-pointer border-r border-r-neutral-800 px-2 transition-colors hover:bg-neutral-900 whitespace-nowrap"
+			>Refrescar</button
 		>
 	</footer>
+
+  <SalesModal bind:isOpen={isModalOpen} onClose={() => isModalOpen = false} />
 </main>

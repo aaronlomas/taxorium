@@ -23,8 +23,18 @@
 	let viewMonth = $state(new Date().getMonth()); // 0-indexed
 
 	const MONTHS = [
-		'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-		'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+		'Enero',
+		'Febrero',
+		'Marzo',
+		'Abril',
+		'Mayo',
+		'Junio',
+		'Julio',
+		'Agosto',
+		'Septiembre',
+		'Octubre',
+		'Noviembre',
+		'Diciembre'
 	];
 	const DAYS = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
 
@@ -47,23 +57,29 @@
 	}
 
 	function prevMonth() {
-		if (viewMonth === 0) { viewMonth = 11; viewYear -= 1; }
-		else viewMonth -= 1;
+		if (viewMonth === 0) {
+			viewMonth = 11;
+			viewYear -= 1;
+		} else viewMonth -= 1;
 	}
 
 	function nextMonth() {
-		if (viewMonth === 11) { viewMonth = 0; viewYear += 1; }
-		else viewMonth += 1;
+		if (viewMonth === 11) {
+			viewMonth = 0;
+			viewYear += 1;
+		} else viewMonth += 1;
 	}
 
 	// Genera las celdas del mes (con huecos iniciales)
-	let cells = $derived((() => {
-		const firstDay = new Date(viewYear, viewMonth, 1).getDay(); // 0=Dom
-		const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-		const result: (number | null)[] = Array(firstDay).fill(null);
-		for (let d = 1; d <= daysInMonth; d++) result.push(d);
-		return result;
-	})());
+	let cells = $derived(
+		(() => {
+			const firstDay = new Date(viewYear, viewMonth, 1).getDay(); // 0=Dom
+			const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+			const result: (number | null)[] = Array(firstDay).fill(null);
+			for (let d = 1; d <= daysInMonth; d++) result.push(d);
+			return result;
+		})()
+	);
 
 	function selectDay(day: number | null) {
 		if (!day) return;
@@ -74,14 +90,16 @@
 	}
 
 	// Día actualmente seleccionado para resaltarlo
-	let selectedDay = $derived((() => {
-		if (!value) return null;
-		const parts = value.split('/');
-		if (parts.length !== 3) return null;
-		const [d, m, y] = parts;
-		if (Number(m) - 1 === viewMonth && Number(y) === viewYear) return Number(d);
-		return null;
-	})());
+	let selectedDay = $derived(
+		(() => {
+			if (!value) return null;
+			const parts = value.split('/');
+			if (parts.length !== 3) return null;
+			const [d, m, y] = parts;
+			if (Number(m) - 1 === viewMonth && Number(y) === viewYear) return Number(d);
+			return null;
+		})()
+	);
 </script>
 
 <svelte:window onclick={handleWindowClick} />
@@ -93,11 +111,13 @@
 		</label>
 	{/if}
 
-	<!-- Campo visible -->
+	<!-- Input Fecha -->
 	<div
-		class="flex h-10 w-full items-center overflow-hidden border border-neutral-700 bg-neutral-900 text-sm {isOpen ? 'border-blue-500 ring-1 ring-blue-500' : ''} {className}"
+		class="flex  w-full items-center overflow-hidden border border-neutral-700 bg-neutral-900 text-sm {isOpen
+			? 'border-blue-500 ring-1 ring-blue-500'
+			: ''} {className}"
 	>
-		<span {id} class="flex-1 select-none px-3 text-neutral-200">{value}</span>
+		<span {id} class="flex-1 text-neutral-200 select-none px-2 py-1">{value}</span>
 
 		<button
 			type="button"
@@ -105,14 +125,14 @@
 			aria-label="Abrir calendario"
 			class="flex h-full items-center justify-center border-l border-neutral-700 bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white"
 		>
-			<svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path
+			<svg fill="none" stroke="currentColor" class="size-4" viewBox="0 0 24 24"
+				><path
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					stroke-width="2"
-					d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-				/>
-			</svg>
+					d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2"
+				/></svg
+			>
 		</button>
 	</div>
 
@@ -129,12 +149,23 @@
 					aria-label="Mes anterior"
 					class="flex size-6 items-center justify-center text-neutral-400 hover:text-white"
 				>
-					<svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-					</svg>
+					<svg
+						fill="none"
+						stroke="currentColor"
+						aria-hidden="true"
+						class="size-4"
+						viewBox="0 0 24 24"
+						><path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="m15 19-7-7 7-7"
+						/></svg
+					>
 				</button>
 				<span class="text-xs font-semibold text-neutral-200">
-					{MONTHS[viewMonth]} {viewYear}
+					{MONTHS[viewMonth]}
+					{viewYear}
 				</span>
 				<button
 					type="button"
@@ -142,9 +173,19 @@
 					aria-label="Mes siguiente"
 					class="flex size-6 items-center justify-center text-neutral-400 hover:text-white"
 				>
-					<svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-					</svg>
+					<svg
+						fill="none"
+						stroke="currentColor"
+						aria-hidden="true"
+						class="size-4"
+						viewBox="0 0 24 24"
+						><path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="m9 5 7 7-7 7"
+						/></svg
+					>
 				</button>
 			</div>
 
@@ -165,9 +206,7 @@
 							type="button"
 							onclick={() => selectDay(cell)}
 							class="flex h-7 w-full items-center justify-center rounded text-xs transition-colors
-								{cell === selectedDay
-									? 'bg-blue-600 text-white'
-									: 'text-neutral-300 hover:bg-neutral-700'}"
+								{cell === selectedDay ? 'bg-blue-600 text-white' : 'text-neutral-300 hover:bg-neutral-700'}"
 						>
 							{cell}
 						</button>

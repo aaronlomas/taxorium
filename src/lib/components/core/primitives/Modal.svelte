@@ -27,7 +27,7 @@
 	>
 		<!-- Contenedor principal del Modal -->
 		<div
-			class="relative flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden border border-neutral-800 bg-neutral-950 text-slate-100 shadow-2xl"
+			class="relative flex h-auto w-auto max-w-4xl flex-col overflow-hidden border border-neutral-800 bg-neutral-950 text-slate-100 shadow-2xl"
 		>
 			{@render children?.()}
 		</div>

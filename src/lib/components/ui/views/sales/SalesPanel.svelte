@@ -2,6 +2,8 @@
 	import Option from '$lib/components/core/primitives/Option.svelte';
 	import Input from '$lib/components/core/primitives/Input.svelte';
 	import Fecha from '$lib/components/core/primitives/Fecha.svelte';
+	import TableSales from './TableSales.svelte';
+	import SalesSummary from './SalesSummary.svelte';
 
 	// TIPOS DE COMPROBANTE SEGUN SUNAT
 	const tipoDeComprobante = [
@@ -49,7 +51,7 @@
 
 <div class="m-4">
 	<div>
-		<h1>Generar Nueva Venta</h1>
+		<h1 class="font-extrabold">Configurar Nueva Venta</h1>
 	</div>
 	<form class="grid grid-cols-2 border border-neutral-800 text-sm">
 
@@ -69,7 +71,7 @@
 			<label for="tipoPago">Tipo de Pago</label>
 			<Option id="tipoPago" options={tipoDePago} bind:value={pagoSeleccionado}/>
 
-			<label for="infoAdicional">Informacón Adicional</label>
+			<label for="infoAdicional">Información Adicional</label>
 			<Input id="infoAdicional"/>
 		</div>
 
@@ -110,4 +112,12 @@
 			</div>
 		</div>
 	</form>
+
+  <div>
+    <h1 class="font-extrabold">Detalles de Venta</h1>
+    <TableSales/>
+  </div>
+  <div>
+    <SalesSummary/>
+  </div>
 </div>
