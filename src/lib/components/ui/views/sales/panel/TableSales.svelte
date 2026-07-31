@@ -1,6 +1,6 @@
 <div class="grid grid-rows-[40px_auto_1fr] border border-neutral-800 text-sm">
 	<table class="w-full bg-neutral-900 table-auto">
-		<thead>
+		<thead class="bg-blue-900">
 			<!-- cabecera -->
 			<tr class="border-neutral-800 border-b">
 				<th class="align-top font-semibold">#</th>

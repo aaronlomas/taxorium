@@ -64,7 +64,7 @@
 			type="button"
 			{id}
 			onclick={toggle}
-			class="flex w-full items-center justify-between border border-neutral-700 bg-neutral-900 px-2 py-1 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 {error
+			class="flex w-full items-center justify-between border border-neutral-700 bg-neutral-900 px-2 py-2 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 {error
 				? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500'
 				: ''} {className}"
 		>

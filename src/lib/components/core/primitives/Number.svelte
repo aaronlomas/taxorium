@@ -78,7 +78,7 @@
 	{/if}
 
 	<div
-		class="flex h-10 w-full overflow-hidden border border-neutral-700 bg-neutral-900 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 {error
+		class="flex w-full overflow-hidden border border-neutral-700 bg-neutral-900 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 {error
 			? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500'
 			: ''}"
 	>
@@ -102,7 +102,7 @@
 				onclick={increment}
 				class="flex flex-1 items-center justify-center bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white"
 			>
-				<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
 				</svg>
 			</button>
@@ -114,7 +114,7 @@
 				onclick={decrement}
 				class="flex flex-1 items-center justify-center border-t border-neutral-700 bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white"
 			>
-				<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"

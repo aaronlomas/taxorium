@@ -1,26 +1,19 @@
 <script lang="ts">
-	import { getCurrentWindow } from '@tauri-apps/api/window';
-
-	const win = getCurrentWindow();
+	// Redimensionado de ventana desactivado temporalmente.
+	// import { getCurrentWindow } from '@tauri-apps/api/window';
+	// const win = getCurrentWindow();
 
 	// Tauri v2 ResizeDirection values
 	type Direction =
-		| 'North'
-		| 'South'
-		| 'East'
-		| 'West'
-		| 'NorthWest'
-		| 'NorthEast'
-		| 'SouthWest'
-		| 'SouthEast';
+		'North' | 'South' | 'East' | 'West' | 'NorthWest' | 'NorthEast' | 'SouthWest' | 'SouthEast';
 
-	async function startResize(direction: Direction) {
-		try {
-			await win.startResizeDragging(direction as any);
-		} catch (e) {
-			console.error('resize error:', e);
-		}
-	}
+	// async function startResize(direction: Direction) {
+	// 	try {
+	// 		await win.startResizeDragging(direction as any);
+	// 	} catch (e) {
+	// 		console.error('resize error:', e);
+	// 	}
+	// }
 
 	const handles: { dir: Direction; style: string; cursor: string }[] = [
 		// Bordes
@@ -74,8 +67,5 @@
 -->
 {#each handles as h}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div
-		class="fixed z-9999 select-none {h.style} {h.cursor}"
-		onmousedown={() => startResize(h.dir)}
-	></div>
+	<div class="fixed z-9999 select-none {h.style} {h.cursor}"></div>
 {/each}

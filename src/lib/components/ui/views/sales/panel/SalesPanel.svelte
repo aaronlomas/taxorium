@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Option from '$lib/components/core/primitives/Option.svelte';
 	import Input from '$lib/components/core/primitives/Input.svelte';
-	import Fecha from '$lib/components/core/primitives/Fecha.svelte';
+	import Fecha from '$lib/components/core/primitives/InputData.svelte';
 	import TableSales from './TableSales.svelte';
 	import SalesSummary from './SalesSummary.svelte';
 
@@ -58,20 +58,20 @@
 		<!-- configuraciones rápidas para venta -->
 
 		<div class="border-r border-r-neutral-800 p-4">
-			<label for="tipoComprobante">Tipo de Comprobante</label>
+			<label for="tipoComprobante" class="select-none">Tipo de Comprobante</label>
 			<Option
 				id="tipoComprobante"
 				options={tipoDeComprobante}
 				bind:value={comprobanteSeleccionado}
 			/>
 
-			<label for="seleccionarCliente">Seleccionar Cliente</label>
+			<label for="seleccionarCliente" class="select-none">Seleccionar Cliente</label>
 			<Option id="seleccionarCliente" />
 
-			<label for="tipoPago">Tipo de Pago</label>
+			<label for="tipoPago" class="select-none">Tipo de Pago</label>
 			<Option id="tipoPago" options={tipoDePago} bind:value={pagoSeleccionado}/>
 
-			<label for="infoAdicional">Información Adicional</label>
+			<label for="infoAdicional" class="select-none">Información Adicional</label>
 			<Input id="infoAdicional"/>
 		</div>
 
@@ -79,27 +79,27 @@
 
 		<div class="grid grid-cols-2 gap-4 p-4">
 			<div class="flex flex-col">
-				<label for="serie">Serie</label>
+				<label for="serie" class="select-none">Serie</label>
 				<Option id="serie" options={series} bind:value={serieSeleccionada} />
 
-				<label for="tipoOperacion">Tipo de Operación</label>
+				<label for="tipoOperacion" class="select-none">Tipo de Operación</label>
 				<Option id="tipoOperacion" options={tiposDeOperacion} bind:value={operacionSeleccionada} />
 
-        <label for="moneda">Moneda</label>
+        <label for="moneda" class="select-none">Moneda</label>
         <Option id="moneda" options={tipoDeMoneda} bind:value={monedaSeleccionada}/>
 
-				<label for="tipoCambio">Orden de Compra</label>
+				<label for="tipoCambio" class="select-none">Orden de Compra</label>
 				<Input id="tipoCambio" />
 			</div>
 
 			<div class="grid">
-				<label for="fechaEmision">F. Emisión</label>
+				<label for="fechaEmision" class="select-none">F. Emisión</label>
 				<Fecha id="fechaEmision" />
 
-				<label for="fechaVencimiento">F. Vencimiento</label>
+				<label for="fechaVencimiento" class="select-none">F. Vencimiento</label>
 				<Fecha id="fechaVencimiento" />
 
-				<label for="establecimiento">Establecimiento</label>
+				<label for="establecimiento" class="select-none">Establecimiento</label>
 				<Option
 					id="establecimiento"
 					options={establecimientos}
@@ -107,7 +107,7 @@
 				/>
 
 
-				<label for="tipoCambio">Tipo de Cambio</label>
+				<label for="tipoCambio" class="select-none">Tipo de Cambio</label>
 				<Input id="tipoCambio" />
 			</div>
 		</div>

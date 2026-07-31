@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Sidebar from '$lib/components/ui/Sidebar.svelte';
+	import Sidebar from '$lib/components/ui/sidebar/Sidebar.svelte';
 	import TabBar from '$lib/components/ui/tab-bar/TabBar.svelte';
 	import Tab from '$lib/components/ui/tab-bar/tab/Tab.svelte';
 	import { resolveView } from '$lib/components/ui/views/viewRoutes';

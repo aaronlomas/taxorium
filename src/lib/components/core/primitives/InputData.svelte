@@ -113,16 +113,16 @@
 
 	<!-- Input Fecha -->
 	<div
-		class="flex  w-full items-center overflow-hidden border border-neutral-700 bg-neutral-900 text-sm {isOpen
+		class="flex w-full items-center overflow-hidden border border-neutral-700 bg-neutral-900 text-sm {isOpen
 			? 'border-blue-500 ring-1 ring-blue-500'
 			: ''} {className}"
 	>
-		<span {id} class="flex-1 text-neutral-200 select-none px-2 py-1">{value}</span>
+		<span {id} class="flex-1 px-2 py-2 text-neutral-200 select-none">{value}</span>
 
 		<button
 			type="button"
 			onclick={toggle}
-			aria-label="Abrir calendario"
+			title="Abrir calendario"
 			class="flex h-full items-center justify-center border-l border-neutral-700 bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white"
 		>
 			<svg fill="none" stroke="currentColor" class="size-4" viewBox="0 0 24 24"

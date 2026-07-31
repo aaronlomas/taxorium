@@ -3,8 +3,10 @@ import type { Component } from 'svelte';
 import DashboardView from './dashboard/Dashboard.svelte';
 import ProductsView from './products/ProductControls.svelte';
 import ReportsView from './reports/ReportControls.svelte';
-import VentasView from './sales/SalesControls.svelte';
 import CustomersView from './customers/CustomerControls.svelte';
+// SUB OPCIONES EN VENTAS
+import PanelSalesView from './sales/panel/SalesControls.svelte';
+import ComprobantesSalesView from './sales/vouchers/VoucherList.svelte';
 
 /**
  * Mapa central de rutas de vistas de la aplicación.
@@ -20,7 +22,8 @@ export const viewRoutes: Record<string, Component<any>> = {
 	Dashboard: DashboardView,
 	Productos: ProductsView,
 	Reportes: ReportsView,
-	Ventas: VentasView,
+	'Panel de Ventas': PanelSalesView,
+	'Lista de Comprobantes': ComprobantesSalesView,
 	Clientes: CustomersView
 };
 

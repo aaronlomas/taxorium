@@ -1,5 +1,5 @@
 <script lang="ts">
-	import PanelVentas from '$lib/components/ui/views/sales/SalesPanel.svelte';
+	import PanelVentas from '$lib/components/ui/views/sales/panel/SalesPanel.svelte';
   import SalesModal from '$lib/components/ui/views/sales/SalesModal.svelte';
 	let isModalOpen = $state(false);
 </script>
@@ -21,7 +21,7 @@
 		>
 		<button
 			class="cursor-pointer border-r border-r-neutral-800 px-2 transition-colors hover:bg-neutral-900 whitespace-nowrap"
-			>Refrescar</button
+			>Lista de Comprobantes</button
 		>
 	</footer>
 
