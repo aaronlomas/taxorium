@@ -1,31 +1,11 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import {
-		IconLayoutDashboard,
-		IconReportMoney,
-		IconPackage,
-		IconReport,
-		IconUsers,
-		IconChevronDown,
-		IconChevronRight
-	} from '@tabler/icons-svelte';
+	import { IconChevronDown, IconChevronRight } from '@tabler/icons-svelte';
+
+	// Revizar navegation.ts para agregar nuevos elementos u opciones
+	import { navegacionRegistros } from '../navegation';
 
 	const dispatch = createEventDispatcher();
-
-	const elementosNavegacion = [
-		{ nombre: 'Dashboard', icono: IconLayoutDashboard, ruta: '/dashboard' },
-		{
-			nombre: 'Ventas',
-			icono: IconReportMoney,
-			subitems: [
-				{ nombre: 'Panel de Ventas', ruta: '/sales/panel' },
-				{ nombre: 'Lista de Comprobantes', ruta: '/sales/vouchers' }
-			]
-		},
-		{ nombre: 'Productos', icono: IconPackage, ruta: '/productos' },
-		{ nombre: 'Reportes', icono: IconReport, ruta: '/reportes' },
-		{ nombre: 'Clientes', icono: IconUsers, ruta: '/customers' }
-	];
 
 	let menusAbiertos: Record<string, boolean> = {};
 
@@ -36,7 +16,7 @@
 
 <nav class="flex flex-1 flex-col overflow-y-auto">
 	<p class="p-2 text-sm text-neutral-400 italic">Registros</p>
-	{#each elementosNavegacion as elemento}
+	{#each navegacionRegistros as elemento}
 		{#if elemento.subitems}
 			<button
 				type="button"
