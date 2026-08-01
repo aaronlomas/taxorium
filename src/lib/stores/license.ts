@@ -117,6 +117,7 @@ function createLicenseStore() {
 				const expiresAt = new Date(json.expires_at);
 				set({
 					valid: true,
+					initialized: true,
 					expiresAt,
 					tenantId: json.tenant_id,
 					leaseToken: json.lease_token,
@@ -170,7 +171,15 @@ function createLicenseStore() {
 		/** Limpiar la licencia (cierre de sesión o desactivación) */
 		limpiar() {
 			borrarLeaseLocal();
-			set({ valid: false, expiresAt: null, tenantId: null, leaseToken: null, activating: false, error: null });
+			set({
+				valid: false,
+				initialized: true,
+				expiresAt: null,
+				tenantId: null,
+				leaseToken: null,
+				activating: false,
+				error: null
+			});
 		}
 	};
 }

@@ -54,7 +54,7 @@
 <div class="flex w-full flex-col {containerClass}" bind:this={wrapperElement}>
 	{#if label}
 		<!-- svelte-ignore a11y_label_has_associated_control -->
-		<label class="mb-1 block text-xs font-medium text-neutral-400">
+		<label class="block text-sm font-medium text-neutral-400">
 			{label}
 		</label>
 	{/if}

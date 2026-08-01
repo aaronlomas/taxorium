@@ -35,7 +35,7 @@
 </script>
 
 <nav class="flex flex-1 flex-col overflow-y-auto">
-	<p class="border-b border-neutral-800 p-2 text-sm text-neutral-400 italic">Registros</p>
+	<p class="p-2 text-sm text-neutral-400 italic">Registros</p>
 	{#each elementosNavegacion as elemento}
 		{#if elemento.subitems}
 			<button

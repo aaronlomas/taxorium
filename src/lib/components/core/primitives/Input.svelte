@@ -38,7 +38,7 @@
 
 <div class="grid w-full {containerClass}">
 	{#if label}
-		<label for={id} class="mb-1 block text-xs text-neutral-400">
+		<label for={id} class="block text-sm text-neutral-400">
 			{@html label}
 		</label>
 	{/if}

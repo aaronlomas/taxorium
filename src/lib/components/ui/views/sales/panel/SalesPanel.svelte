@@ -55,64 +55,57 @@
 	</div>
 	<form class="grid grid-cols-2 border border-neutral-800 text-sm">
 
+    <!-- COLUMNA 1 -->
 		<!-- configuraciones rápidas para venta -->
 
 		<div class="border-r border-r-neutral-800 p-4">
-			<label for="tipoComprobante" class="select-none">Tipo de Comprobante</label>
 			<Option
 				id="tipoComprobante"
 				options={tipoDeComprobante}
+        label="Tipo de Comprobante"
 				bind:value={comprobanteSeleccionado}
 			/>
 
-			<label for="seleccionarCliente" class="select-none">Seleccionar Cliente</label>
-			<Option id="seleccionarCliente" />
+			<Option id="seleccionarCliente" label="Seleccionar Cliente" />
 
-			<label for="tipoPago" class="select-none">Tipo de Pago</label>
-			<Option id="tipoPago" options={tipoDePago} bind:value={pagoSeleccionado}/>
+			<Option id="tipoPago" label="Tipo de Pago" options={tipoDePago} bind:value={pagoSeleccionado}/>
 
-			<label for="infoAdicional" class="select-none">Información Adicional</label>
-			<Input id="infoAdicional"/>
+			<Input id="infoAdicional" label="Información Adicional"/>
 		</div>
 
+    <!-- COLUMNA 2 -->
 		<!-- Otras configuraciones -->
 
 		<div class="grid grid-cols-2 gap-4 p-4">
 			<div class="flex flex-col">
-				<label for="serie" class="select-none">Serie</label>
-				<Option id="serie" options={series} bind:value={serieSeleccionada} />
+				<Option id="serie" label="Serie" options={series} bind:value={serieSeleccionada} />
 
-				<label for="tipoOperacion" class="select-none">Tipo de Operación</label>
-				<Option id="tipoOperacion" options={tiposDeOperacion} bind:value={operacionSeleccionada} />
+				<Option id="tipoOperacion" label="Tipo de Operación" options={tiposDeOperacion} bind:value={operacionSeleccionada} />
 
-        <label for="moneda" class="select-none">Moneda</label>
-        <Option id="moneda" options={tipoDeMoneda} bind:value={monedaSeleccionada}/>
+        <Option id="moneda" label="Moneda" options={tipoDeMoneda} bind:value={monedaSeleccionada}/>
 
-				<label for="tipoCambio" class="select-none">Orden de Compra</label>
-				<Input id="tipoCambio" />
+				<Input id="tipoCambio" label="Orden de Compra"/>
 			</div>
 
 			<div class="grid">
-				<label for="fechaEmision" class="select-none">F. Emisión</label>
-				<Fecha id="fechaEmision" />
+				<Fecha id="fechaEmision" label="Fecha de Emisión"/>
 
-				<label for="fechaVencimiento" class="select-none">F. Vencimiento</label>
-				<Fecha id="fechaVencimiento" />
+				<Fecha id="fechaVencimiento" label="Fecha de Vencimiento"/>
 
-				<label for="establecimiento" class="select-none">Establecimiento</label>
 				<Option
 					id="establecimiento"
+          label="Establecimiento"
 					options={establecimientos}
 					bind:value={establecimientoPrincipal}
 				/>
 
-
-				<label for="tipoCambio" class="select-none">Tipo de Cambio</label>
-				<Input id="tipoCambio" />
+				<Input id="tipoCambio" label="Tipo de Cambio"/>
 			</div>
 		</div>
 	</form>
 
+  <!-- RESUMENES -->
+   
   <div>
     <h1 class="font-extrabold">Detalles de Venta</h1>
     <TableSales/>

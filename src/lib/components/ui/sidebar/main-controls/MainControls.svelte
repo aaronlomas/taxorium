@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import { IconBook2, IconPlus } from '@tabler/icons-svelte';
+	import { IconBook2, IconCalculator } from '@tabler/icons-svelte';
 
 	export let seccionActiva: 'vender' | 'registros' | null;
 
@@ -15,32 +15,32 @@
 	<!-- ACCIÓN DE VENDER -->
 	<button
 		type="button"
-		class="flex cursor-pointer justify-center p-2 hover:bg-neutral-800 {seccionActiva === 'vender'
-			? 'bg-neutral-800'
+		class="flex cursor-pointer justify-center p-2 text-neutral-400 hover:text-white {seccionActiva === 'vender'
+			? 'border-l-2 border-l-blue-500 bg-blue-500/15'
 			: ''}"
-		title={seccionActiva === 'vender' ? 'Ocultar Venta Rápida' : 'Venta Rápida'}
+		title={seccionActiva === 'vender' ? 'Venta Rápida' : 'Venta Rápida'}
 		aria-label="Toggle Panel Vender"
 		on:click={() => cambiarSeccion('vender')}
 	>
-		<IconPlus
-			size={20}
-			class="pointer-events-none text-neutral-400 {seccionActiva === 'vender' ? 'text-white' : ''}"
+		<IconCalculator
+			size={28}
+			class="pointer-events-none {seccionActiva === 'vender' ? 'text-white' : ''}"
 		/>
 	</button>
 
 	<!-- REGISTROS GENERALES -->
-	<button
+	<button 
 		type="button"
-		class="flex cursor-pointer justify-center p-2 hover:bg-neutral-800 {seccionActiva === 'registros'
-			? 'bg-neutral-800'
+		class="flex cursor-pointer justify-center p-2 text-neutral-400 hover:text-white {seccionActiva === 'registros'
+			? 'border-l-2 border-l-blue-500 bg-blue-500/15'
 			: ''}"
-		title={seccionActiva === 'registros' ? 'Ocultar Registros' : 'Mostrar Registros'}
+		title={seccionActiva === 'registros' ? 'Registros' : 'Registros'}
 		aria-label="Toggle Panel Registros"
 		on:click={() => cambiarSeccion('registros')}
 	>
 		<IconBook2
-			size={20}
-			class="pointer-events-none text-neutral-400 {seccionActiva === 'registros'
+			size={28}
+			class="pointer-events-none {seccionActiva === 'registros'
 				? 'text-white'
 				: ''}"
 		/>
