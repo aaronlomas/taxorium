@@ -78,16 +78,17 @@
 			<!-- Barra Superior / Header para arrastrar -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
-				class="flex cursor-grab items-center justify-between border-b border-neutral-800 bg-neutral-900 px-4 py-2.5 select-none active:cursor-grabbing"
+				class="flex cursor-grab items-center justify-between border-b border-neutral-800 bg-neutral-900 px-2 py-1 select-none active:cursor-grabbing"
 				onpointerdown={handlePointerDown}
 				onpointermove={handlePointerMove}
 				onpointerup={handlePointerUp}
 			>
-				<span class="text-sm font-medium text-slate-200">{title}</span>
+				<span class="text-sm font-medium text-blue-400">{title}</span>
 				<button
 					type="button"
 					onclick={onClose}
-					class="rounded p-1 text-slate-400 transition-colors hover:bg-neutral-800 hover:text-slate-100"
+          onpointerdown={(e) => e.stopPropagation()}
+					class="rounded text-white transition-colors hover:text-red-700"
 					aria-label="Cerrar modal"
 				>
 					✕
@@ -95,7 +96,7 @@
 			</div>
 
 			<!-- Contenido principal -->
-			<div class="p-4">
+			<div>
 				{@render children?.()}
 			</div>
 		</div>
