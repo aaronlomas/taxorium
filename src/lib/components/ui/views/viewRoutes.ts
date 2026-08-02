@@ -7,6 +7,7 @@ import CustomersView from './customers/CustomerControls.svelte';
 // SUB OPCIONES EN VENTAS
 import PanelSalesView from './sales/panel/SalesControls.svelte';
 import ComprobantesSalesView from './sales/vouchers/VoucherList.svelte';
+import SalesSummaryView from './sales/summary/SalesSummary.svelte';
 
 /**
  * Mapa central de rutas de vistas de la aplicación.
@@ -19,12 +20,18 @@ import ComprobantesSalesView from './sales/vouchers/VoucherList.svelte';
  *   3. Añade la entrada al mapa
  */
 export const viewRoutes: Record<string, Component<any>> = {
+
+	//SECCIÓN DE REGISTROS GENERALES
 	Dashboard: DashboardView,
 	Productos: ProductsView,
 	Reportes: ReportsView,
-	'Panel de Ventas': PanelSalesView,
+	Clientes: CustomersView,
+	// Sub Opciones de Registros/ventas/
 	'Lista de Comprobantes': ComprobantesSalesView,
-	Clientes: CustomersView
+	'Lista de Resúmenes': SalesSummaryView,
+
+	//SECCIÓN DE OPERACIONES
+	'Panel de Ventas': PanelSalesView,
 };
 
 /** Devuelve el componente para un id de pestaña, o null si no existe */

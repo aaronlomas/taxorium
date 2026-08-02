@@ -55,8 +55,7 @@
           <td>s/. 200.00</td>
           <td>s/. 200.00</td>
           <td>
-            <button>Editar</button>
-            <button>Eliminar</button>
+            <button>Consultar</button>
           </td>
         </tr>
       </tbody>

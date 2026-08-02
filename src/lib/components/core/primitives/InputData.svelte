@@ -113,7 +113,7 @@
 
 	<!-- Input Fecha -->
 	<div
-		class="flex w-full items-center overflow-hidden border border-neutral-700 bg-neutral-900 text-sm {isOpen
+		class="relative flex w-full overflow-hidden border border-neutral-700 bg-neutral-900 text-sm {isOpen
 			? 'border-blue-500 ring-1 ring-blue-500'
 			: ''} {className}"
 	>
@@ -123,7 +123,7 @@
 			type="button"
 			onclick={toggle}
 			title="Abrir calendario"
-			class="flex h-full items-center justify-center border-l border-neutral-700 bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white"
+			class="absolute bottom-0 right-0 top-0 flex h-full items-center border-l border-neutral-700 bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white"
 		>
 			<svg fill="none" stroke="currentColor" class="size-4" viewBox="0 0 24 24"
 				><path

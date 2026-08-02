@@ -7,19 +7,19 @@
   import { auth, currentUser } from '$lib/stores/auth';
   import { currentTenant } from '$lib/stores/tenant';
 
-  type Seccion = 'vender' | 'registros';
+  type Seccion = 'operaciones' | 'registros';
 
   // Configuración centralizada de paneles
   const PANELS = {
-    vender: OptionSales,
+    operaciones: OptionSales,
     registros: OptionRecords
   };
 
   const dispatch = createEventDispatcher();
 
-  let anchoBarraLateral = 220;
+  let anchoBarraLateral = 240;
   let estaRedimensionando = false;
-  let seccionActiva: Seccion | null = 'vender';
+  let seccionActiva: Seccion | null = 'operaciones';
 
   function cambiarSeccion(seccion: Seccion) {
     seccionActiva = seccionActiva === seccion ? null : seccion;
@@ -36,7 +36,7 @@
 
     if (nuevoAncho < 100) {
       seccionActiva = null;
-      anchoBarraLateral = 220;
+      anchoBarraLateral = 240;
       detenerRedimension();
       return;
     }

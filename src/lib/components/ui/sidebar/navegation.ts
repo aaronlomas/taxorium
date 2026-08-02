@@ -28,8 +28,8 @@ export const navegacionRegistros: ElementoNavegacion[] = [
     nombre: 'Ventas',
     icono: IconReportMoney,
     subitems: [
-      { nombre: 'Panel de Ventas', ruta: '/sales/panel' },
-      { nombre: 'Lista de Comprobantes', ruta: '/sales/vouchers' }
+      { nombre: 'Lista de Comprobantes', ruta: '/sales/vouchers' },
+      { nombre: 'Lista de Resúmenes', ruta: '/sales/summary' }
     ]
   },
   { nombre: 'Productos', icono: IconPackage, ruta: '/productos' },
@@ -37,8 +37,8 @@ export const navegacionRegistros: ElementoNavegacion[] = [
   { nombre: 'Clientes', icono: IconUsers, ruta: '/customers' }
 ];
 
-// Opciones para el panel de Venta Rápida
+// Opciones para el panel de Operaciones
 export const navegacionVentas: ElementoNavegacion[] = [
-  { nombre: 'Nueva Factura', icono: IconFileInvoice, ruta: '/sales/invoice/new' },
-  { nombre: 'Nueva Boleta', icono: IconReceipt, ruta: '/sales/receipt/new' }
+  { nombre: 'Panel de Ventas', icono: IconFileInvoice, ruta: '/sales/panel' },
+  { nombre: 'Panel de Compras', icono: IconReceipt, ruta: '/sales/receipt/new' }
 ];

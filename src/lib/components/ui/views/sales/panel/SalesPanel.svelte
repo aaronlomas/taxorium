@@ -3,7 +3,7 @@
 	import Input from '$lib/components/core/primitives/Input.svelte';
 	import Fecha from '$lib/components/core/primitives/InputData.svelte';
 	import TableSales from './TableSales.svelte';
-	import SalesSummary from './SalesSummary.svelte';
+	import SalesSummary from './SalesDetails.svelte';
 
 	// TIPOS DE COMPROBANTE SEGUN SUNAT
 	const tipoDeComprobante = [

@@ -22,7 +22,7 @@
 				type="button"
 				aria-expanded={Boolean(menusAbiertos[elemento.nombre])}
 				on:click={() => toggleMenu(elemento.nombre)}
-				class="group flex w-full cursor-pointer items-center justify-between p-2 transition-colors hover:bg-neutral-800 hover:text-white"
+				class="group flex w-full items-center justify-between p-2 transition-colors hover:bg-neutral-800 hover:text-white"
 			>
 				<div class="flex items-center gap-2">
 					<svelte:component
@@ -46,7 +46,7 @@
 						<button
 							type="button"
 							on:click={() => dispatch('seleccionarOpcion', subitem)}
-							class="flex cursor-pointer items-center truncate px-2 py-1 text-sm font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
+							class="block w-full text-left truncate px-2 py-1 text-sm font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
 						>
 							{subitem.nombre}
 						</button>
@@ -57,7 +57,7 @@
 			<button
 				type="button"
 				on:click={() => dispatch('seleccionarOpcion', elemento)}
-				class="group flex w-full cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-neutral-800 hover:text-white"
+				class="group flex w-full items-center gap-2 p-2 transition-colors hover:bg-neutral-800 hover:text-white"
 			>
 				<svelte:component
 					this={elemento.icono}
