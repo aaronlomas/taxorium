@@ -1,3 +1,6 @@
 [workspace]
 members = ["src-tauri"]
 resolver = "2"
+
+[dependencies]
+boveda-core = { path = "/home/us-dala/Escritorio/boveda-pag/src" }
