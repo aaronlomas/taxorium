@@ -13,10 +13,6 @@ export interface TenantRow {
 	distrito: string | null;
 	telefono: string | null;
 	email: string | null;
-	serie_boleta: string;
-	serie_factura: string;
-	correlativo_boleta: number;
-	correlativo_factura: number;
 	configurado: boolean;
 	activo: boolean;
 	created_at: string;

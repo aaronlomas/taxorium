@@ -8,14 +8,19 @@
 	import { onMount } from 'svelte';
 	import { IconLayoutDashboard } from '@tabler/icons-svelte';
 
-	onMount(async () => {
+	$effect(() => {
 		if ($currentUser) {
-			await tenantStore.load();
+			// Solo cargamos si no tenemos los datos en memoria para este usuario
+			if (!$currentTenant || $currentTenant.user_id !== $currentUser.id) {
+				tenantStore.load();
+			}
+		} else {
+			tenantStore.clear();
 		}
 	});
 
 	// Inicializamos solo con el Dashboard
-	let pestanas = [
+	let pestanas = $state([
 		{
 			id: 'Dashboard',
 			titulo: 'Dashboard',
@@ -23,7 +28,7 @@
 			colorIcono: 'text-blue-500',
 			activo: true
 		}
-	];
+	]);
 
 	function seleccionarPestana(id: string) {
 		pestanas = pestanas.map((p) => ({ ...p, activo: p.id === id }));
@@ -59,10 +64,10 @@
 	}
 
 	// Obtenemos la pestaña activa para renderizar el contenido correcto
-	$: pestanaActiva = pestanas.find((p) => p.activo);
+	let pestanaActiva = $derived(pestanas.find((p) => p.activo));
 
 	// El componente resuelto para la pestaña activa (null = no registrada)
-	$: vistaActiva = pestanaActiva ? resolveView(pestanaActiva.id) : null;
+	let vistaActiva = $derived(pestanaActiva ? resolveView(pestanaActiva.id) : null);
 </script>
 
 <div class="flex h-full w-full overflow-hidden bg-neutral-950 font-sans text-neutral-300">

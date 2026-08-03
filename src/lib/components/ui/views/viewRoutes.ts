@@ -9,6 +9,10 @@ import PanelSalesView from './sales/panel/SalesControls.svelte';
 import ComprobantesSalesView from './sales/vouchers/VoucherList.svelte';
 import SalesSummaryView from './sales/summary/SalesSummary.svelte';
 
+// CONFIGURACIÓN
+import SettingsView from './settings/SettingsView.svelte';
+import CuentaView from './account/CuentaView.svelte';
+
 /**
  * Mapa central de rutas de vistas de la aplicación.
  * Cada clave corresponde al `id` de una pestaña (el mismo valor
@@ -32,6 +36,10 @@ export const viewRoutes: Record<string, Component<any>> = {
 
 	//SECCIÓN DE OPERACIONES
 	'Panel de Ventas': PanelSalesView,
+
+	//CONFIGURACIÓN
+	'Configuración': SettingsView,
+	'Cuenta': CuentaView,
 };
 
 /** Devuelve el componente para un id de pestaña, o null si no existe */

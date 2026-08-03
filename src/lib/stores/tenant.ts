@@ -64,6 +64,23 @@ function createTenantStore() {
 			}));
 		},
 
+		/** Actualizar datos del tenant */
+		async updateTenant(tenantId: string, data: Partial<Tenant>) {
+			update((s) => ({ ...s, loading: true, error: null }));
+			const { data: updated, error } = await (supabase.from('tenants') as any)
+				.update(data)
+				.eq('id', tenantId)
+				.select()
+				.single();
+
+			if (error) {
+				update((s) => ({ ...s, loading: false, error: error.message }));
+				throw error;
+			}
+			update((s) => ({ ...s, tenant: updated, loading: false }));
+			return updated;
+		},
+
 		clear() {
 			set({ tenant: null, loading: false, error: null });
 		}

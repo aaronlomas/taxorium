@@ -75,6 +75,8 @@ function createAuthStore() {
 export const auth = createAuthStore();
 
 // Derivados útiles
-export const isAuthenticated = derived(auth, ($auth) => !!$auth.user && !$auth.loading);
+// isAuthenticated solo depende de si hay usuario, NO del estado loading,
+// para que las peticiones en curso no causen re-navegación
+export const isAuthenticated = derived(auth, ($auth) => !!$auth.user);
 export const isLoading = derived(auth, ($auth) => $auth.loading);
 export const currentUser = derived(auth, ($auth) => $auth.user);
