@@ -1,15 +1,21 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import { IconBook2, IconCalculator, IconUserCircle, IconSettings, IconLogin, IconUserPlus, IconLogout } from '@tabler/icons-svelte';
+	import {
+		IconBook2,
+		IconCalculator,
+		IconUserCircle,
+		IconSettings,
+		IconLogin,
+		IconUserPlus,
+		IconLogout,
+		IconUserSquare
+	} from '@tabler/icons-svelte';
 	import { isAuthenticated, isLoading, auth } from '$lib/stores/auth';
 	import { currentTenant, tenantLoading } from '$lib/stores/tenant';
-	import { licenseValid } from '$lib/stores/license';
 	import Modal from '$lib/components/core/primitives/Modal.svelte';
 	import PanelLogin from '$lib/components/setups/PanelLogin.svelte';
 
-	let {
-		seccionActiva
-	}: { seccionActiva: 'operaciones' | 'registros' | null } = $props();
+	let { seccionActiva }: { seccionActiva: 'operaciones' | 'registros' | null } = $props();
 
 	const dispatch = createEventDispatcher();
 
@@ -41,6 +47,11 @@
 		dropdownHovered = false;
 		cuentaHovered = false;
 		modalRegisterOpen = true;
+	}
+	function abrirPerfil() {
+		dropdownHovered = false;
+		cuentaHovered = false;
+		dispatch('seleccionarOpcion', { nombre: 'Panel de Cuenta', icono: IconUserCircle });
 	}
 
 	async function cerrarSesion() {
@@ -76,8 +87,9 @@
 		<button
 			type="button"
 			disabled={cuentaPendiente}
-			class="flex cursor-pointer justify-center p-2 text-neutral-400 transition-colors {cuentaPendiente ? 'opacity-30 cursor-not-allowed' : 'hover:text-white'} {seccionActiva ===
-			'operaciones'
+			class="flex cursor-pointer justify-center p-2 text-neutral-400 transition-colors {cuentaPendiente
+				? 'cursor-not-allowed opacity-30'
+				: 'hover:text-white'} {seccionActiva === 'operaciones'
 				? 'border-l-2 border-l-blue-500 bg-blue-500/15'
 				: ''}"
 			title={cuentaPendiente ? 'Completa tu configuración primero' : 'Venta Rápida'}
@@ -94,8 +106,9 @@
 		<button
 			type="button"
 			disabled={cuentaPendiente}
-			class="flex cursor-pointer justify-center p-2 text-neutral-400 transition-colors {cuentaPendiente ? 'opacity-30 cursor-not-allowed' : 'hover:text-white'} {seccionActiva ===
-			'registros'
+			class="flex cursor-pointer justify-center p-2 text-neutral-400 transition-colors {cuentaPendiente
+				? 'cursor-not-allowed opacity-30'
+				: 'hover:text-white'} {seccionActiva === 'registros'
 				? 'border-l-2 border-l-blue-500 bg-blue-500/15'
 				: ''}"
 			title={cuentaPendiente ? 'Completa tu configuración primero' : 'Registros'}
@@ -110,7 +123,7 @@
 	</div>
 
 	<!-- ACCESO Y CONFIGURACIONES -->
-	<div class="grid justify-center relative">
+	<div class="relative grid justify-center">
 		<!-- CUENTA DE USUARIO con hover-dropdown -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
@@ -121,10 +134,10 @@
 			<button
 				id="mc-btn-cuenta"
 				type="button"
-				class="flex cursor-pointer justify-center p-2 text-neutral-400 hover:text-white transition-colors"
+				class="flex cursor-pointer justify-center p-2 text-neutral-400 transition-colors hover:text-white"
 				title={$isAuthenticated ? 'Mi cuenta' : 'Cuenta'}
 				aria-label="Panel de cuenta"
-				onclick={() => dispatch('seleccionarOpcion', { nombre: 'Cuenta', icono: IconUserCircle })}
+				onclick={() => (cuentaHovered = true)}
 			>
 				<IconUserCircle size={28} class="pointer-events-none" />
 				<!-- Indicador de pendiente -->
@@ -137,26 +150,56 @@
 			{#if dropdownVisible}
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
-					class="account-dropdown absolute bottom-0 left-full z-20 border border-neutral-900 bg-neutral-900 gap-x-2 items-center text-sm"
+					class="account-dropdown absolute bottom-0 left-full z-20 items-center gap-x-2 border border-neutral-900 bg-neutral-900 text-sm"
 					onmouseenter={() => (dropdownHovered = true)}
 					onmouseleave={() => (dropdownHovered = false)}
 				>
 					{#if $isAuthenticated}
-						<!-- Usuario autenticado: solo cerrar sesión -->
-						<button type="button" class="w-full flex items-center hover:bg-red-700 whitespace-nowrap gap-x-2 p-2" onclick={cerrarSesion}>
+						<!-- Usuario autenticado: cuenta y cerrar sesión -->
+						<button
+							type="button"
+							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-neutral-800"
+							onclick={abrirPerfil}
+						>
+							<IconUserCircle size={15} stroke={1.5} />
+							Panel de Cuenta
+						</button>
+						<button
+							type="button"
+							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-red-700"
+							onclick={cerrarSesion}
+						>
 							<IconLogout size={15} stroke={1.5} />
 							Cerrar Sesión
 						</button>
 					{:else}
 						<!-- No autenticado: iniciar sesión o crear cuenta -->
-						<button type="button" class="w-full whitespace-nowrap flex items-center gap-x-2 p-2 hover:bg-neutral-800" onclick={abrirLogin}>
+
+						<button
+							type="button"
+							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-neutral-800"
+							onclick={abrirLogin}
+						>
 							<IconLogin size={15} stroke={1.5} />
 							Iniciar Sesión
 						</button>
 						<div class="dropdown-divider"></div>
-						<button type="button" class="w-full whitespace-nowrap flex items-center gap-x-2 p-2 hover:bg-neutral-800" onclick={abrirRegistro}>
+						<button
+							type="button"
+							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-neutral-800"
+							onclick={abrirRegistro}
+						>
 							<IconUserPlus size={15} stroke={1.5} />
 							Crear Cuenta
+						</button>
+
+						<button
+							type="button"
+							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-neutral-800"
+							onclick={abrirPerfil}
+						>
+							<IconUserSquare size={15} stroke={1.5} />
+							Panel de Cuenta
 						</button>
 					{/if}
 				</div>
@@ -166,7 +209,8 @@
 		<button
 			type="button"
 			class="flex w-full cursor-pointer items-center gap-2 p-2 text-sm text-neutral-400 transition-colors hover:text-white"
-			onclick={() => dispatch('seleccionarOpcion', { nombre: 'Configuración', icono: IconSettings })}
+			onclick={() =>
+				dispatch('seleccionarOpcion', { nombre: 'Configuración', icono: IconSettings })}
 		>
 			<IconSettings size={28} />
 		</button>
@@ -181,7 +225,11 @@
 </Modal>
 
 <!-- Modal: Crear Cuenta -->
-<Modal bind:isOpen={modalRegisterOpen} onClose={() => (modalRegisterOpen = false)} title="Crear Cuenta">
+<Modal
+	bind:isOpen={modalRegisterOpen}
+	onClose={() => (modalRegisterOpen = false)}
+	title="Crear Cuenta"
+>
 	<div class="modal-form-wrap">
 		<PanelLogin initialMode="register" onSuccess={() => (modalRegisterOpen = false)} />
 	</div>
@@ -202,8 +250,15 @@
 	}
 
 	@keyframes pulse-pending {
-		0%, 100% { opacity: 1; transform: scale(1); }
-		50% { opacity: 0.6; transform: scale(0.85); }
+		0%,
+		100% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.6;
+			transform: scale(0.85);
+		}
 	}
 
 	/* Dropdown */
@@ -213,7 +268,13 @@
 	}
 
 	@keyframes dropdown-in {
-		from { opacity: 0; transform: translateX(-4px) scale(0.97); }
-		to   { opacity: 1; transform: translateX(0) scale(1); }
+		from {
+			opacity: 0;
+			transform: translateX(-4px) scale(0.97);
+		}
+		to {
+			opacity: 1;
+			transform: translateX(0) scale(1);
+		}
 	}
 </style>

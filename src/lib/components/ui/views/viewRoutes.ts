@@ -11,7 +11,7 @@ import SalesSummaryView from './sales/summary/SalesSummary.svelte';
 
 // CONFIGURACIÓN
 import SettingsView from './settings/SettingsView.svelte';
-import CuentaView from './account/CuentaView.svelte';
+import CuentaView from './account/accountView.svelte';
 
 /**
  * Mapa central de rutas de vistas de la aplicación.
@@ -39,7 +39,7 @@ export const viewRoutes: Record<string, Component<any>> = {
 
 	//CONFIGURACIÓN
 	'Configuración': SettingsView,
-	'Cuenta': CuentaView,
+	'Panel de Cuenta': CuentaView,
 };
 
 /** Devuelve el componente para un id de pestaña, o null si no existe */
