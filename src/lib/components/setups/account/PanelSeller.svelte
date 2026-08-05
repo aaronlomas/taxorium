@@ -18,9 +18,9 @@
 	let mostrarPassword = $state(false);
 </script>
 
-<div class="border-l border-neutral-700 p-2">
-	<form action="" class="grid gap-2">
-		<h1 class="font-bold">Registrar nuevo vendedor o similar</h1>
+<div class="p-2">
+  <h1 class="font-bold p-2">Registrar nuevo vendedor o similar</h1>
+	<form action="" class="grid gap-2 border border-neutral-800 rounded-md p-2">
 		<Input label="Usuario" variant="triple">
 			{#snippet icon()}
 				<IconUser size={18} />

@@ -46,14 +46,14 @@
 	<!-- Base Container -->
 	<div
 		class="
-      grid w-full items-center border border-neutral-700 bg-neutral-900 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500
+      grid w-full items-center border border-neutral-800 bg-neutral-900 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 rounded-sm
       {variants[variant]}
       {error ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500' : ''} 
       {className}
     "
 	>
 		{#if variant === 'triple' && icon}
-			<div class="flex shrink-0 items-center justify-center text-neutral-400 border-r border-neutral-700 h-full px-2">
+			<div class="flex shrink-0 items-center justify-center text-neutral-400 border-r border-neutral-800 h-full px-2">
 				{@render icon()}
 			</div>
 		{/if}

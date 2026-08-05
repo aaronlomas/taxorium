@@ -113,7 +113,7 @@
 
 	<!-- Input Fecha -->
 	<div
-		class="relative flex w-full overflow-hidden border border-neutral-700 bg-neutral-900 text-sm {isOpen
+		class="relative flex w-full overflow-hidden border border-neutral-800 bg-neutral-900 text-sm rounded-sm {isOpen
 			? 'border-blue-500 ring-1 ring-blue-500'
 			: ''} {className}"
 	>

@@ -2,7 +2,7 @@
 	import { currentUser } from '$lib/stores/auth';
 	import { currentTenant } from '$lib/stores/tenant';
 	import { licenseExpiry } from '$lib/stores/license';
-	import { IconKey, IconMail, IconBuilding } from '@tabler/icons-svelte';
+	import { IconKey, IconMail, IconBuilding, IconEdit } from '@tabler/icons-svelte';
 
 	function formatDate(date: Date | null): string {
 		if (!date) return '—';
@@ -11,26 +11,26 @@
 </script>
 
 <div
-	class="m-5 grid grid-cols-2 items-center justify-center gap-4 rounded-xl border border-neutral-700 p-4 overflow-scroll"
+	class="grid grid-cols-2 gap-2 overflow-scroll rounded-xl border border-neutral-800 p-2"
 >
 	<!-- EMPRESA -->
 	<!-- DETALLES -->
-	<div>
-    {#if $currentTenant}
-      <div class="text-sm">
-        <p class="text-blue-400">Empresa</p>
-        {#if $currentTenant.direccion}
-          <div class="flex w-full items-center gap-x-2">
-            <IconBuilding size={14} />
-            <span class="text-sm">{$currentTenant.direccion}</span>
-          </div>
-        {/if}
-      </div>
-    {/if}
+	<div class="grid">
+		{#if $currentTenant}
+			<div class="text-sm">
+				<p class="text-blue-400">Empresa</p>
+				{#if $currentTenant.direccion}
+					<div class="flex w-full items-center gap-x-2">
+						<IconBuilding size={14} />
+						<span class="text-sm">{$currentTenant.direccion}</span>
+					</div>
+				{/if}
+			</div>
+		{/if}
 		{#if $currentTenant}
 			<div>
 				<div>
-					{($currentTenant.razon_social).charAt(0).toUpperCase()}
+					{$currentTenant.razon_social.charAt(0).toUpperCase()}
 				</div>
 				<div class="text-sm">
 					<p>{$currentTenant.razon_social}</p>
@@ -50,7 +50,6 @@
 				<span>{$currentUser?.email ?? '—'}</span>
 			</div>
 		</div>
-
 
 		<!-- Licencia -->
 		<div class="text-sm">
@@ -78,7 +77,14 @@
 	</div>
 
 	<!-- PERFIL -->
-	<div>
-		<div class="m-auto size-52 rounded-full bg-green-700 text-center">Foto.png</div>
+	<div class="grid h-full justify-center items-center border border-neutral-800 rounded-md overflow-scroll">
+		<div
+			class="flex size-52 items-end justify-center overflow-hidden rounded-full border-2 border-neutral-700 text-center"
+		>
+			<button class="w-full cursor-pointer bg-transparent border-t border-neutral-800 hover:text-green-400 flex justify-center"><IconEdit size={20} /></button>
+		</div>
+		<div class="text-center">
+			<button class="hover:text-white cursor-pointer">Editar Información</button>
+		</div>
 	</div>
 </div>

@@ -67,7 +67,7 @@
 	let pestanaActiva = $derived(pestanas.find((p) => p.activo));
 
 	// El componente resuelto para la pestaña activa (null = no registrada)
-	let vistaActiva = $derived(pestanaActiva ? resolveView(pestanaActiva.id) : null);
+	let VistaActiva = $derived(pestanaActiva ? resolveView(pestanaActiva.id) : null);
 </script>
 
 <div class="flex h-full w-full overflow-hidden bg-neutral-950 font-sans text-neutral-300">
@@ -93,16 +93,18 @@
 				<div class="flex h-full items-center justify-center text-sm text-neutral-500">
 					Selecciona una opción para comenzar
 				</div>
-			{:else if vistaActiva}
-				<svelte:component this={vistaActiva} />
+			{:else if VistaActiva}
+				<VistaActiva />
 			{:else}
+				{@const Icon = pestanaActiva?.icono}
 				<div class="flex h-full flex-col items-center justify-center gap-3 text-neutral-500">
-					<svelte:component
-						this={pestanaActiva?.icono}
-						size={48}
-						stroke={1.5}
-						class="text-neutral-700"
-					/>
+					{#if Icon}
+						<Icon
+							size={48}
+							stroke={1.5}
+							class="text-neutral-700"
+						/>
+					{/if}
 					<p class="text-sm">
 						El módulo <span class="font-medium text-neutral-400">{pestanaActiva?.titulo}</span> está en
 						desarrollo.

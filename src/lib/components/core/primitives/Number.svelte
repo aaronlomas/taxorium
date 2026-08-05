@@ -78,8 +78,8 @@
 	{/if}
 
 	<div
-		class="flex w-full overflow-hidden border border-neutral-700 bg-neutral-900 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 {error
-			? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500'
+		class="flex w-full overflow-hidden border border-neutral-800 bg-neutral-900 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 {error
+			? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500 rounded-sm'
 			: ''}"
 	>
 		<!-- Usamos type="text" con inputmode="decimal" para teclados móviles -->
