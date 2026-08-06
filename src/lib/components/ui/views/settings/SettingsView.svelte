@@ -94,7 +94,7 @@
 	}
 </script>
 
-<div class="settings-view">
+<div class="flex flex-col overflow-scroll h-full">
 	<div class="settings-header">
 		<div>
 			<h2 class="text-xl font-bold text-slate-100 tracking-tight">Configuración de empresa</h2>
@@ -102,10 +102,10 @@
 		</div>
 	</div>
 
-	<div class="settings-body">
+	<div class="p-2">
 		<div class="max-w-3xl">
 			<!-- Reusamos el componente StepEmpresa -->
-			<div class="bg-neutral-900 border border-neutral-800 rounded-xl p-6 shadow-sm">
+			<div class="bg-neutral-900 border border-neutral-800 rounded-xl p-2 shadow-sm">
 				<StepEmpresa
 					bind:ruc
 					bind:razonSocial
@@ -153,28 +153,3 @@
 		</div>
 	</div>
 </div>
-
-<style>
-	.settings-view {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-		overflow-y: auto;
-		background: #0a0a0a;
-	}
-
-	.settings-header {
-		padding: 2rem 2rem 1.5rem;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-		background: rgba(255, 255, 255, 0.01);
-		position: sticky;
-		top: 0;
-		z-index: 10;
-		backdrop-filter: blur(12px);
-	}
-
-	.settings-body {
-		padding: 2rem;
-		flex: 1;
-	}
-</style>

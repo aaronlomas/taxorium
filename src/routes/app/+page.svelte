@@ -86,7 +86,7 @@
 	<div class="grid grid-rows-[1fr_auto] grid-cols-[auto_1fr] h-full w-full bg-neutral-950 font-sans text-neutral-300">
 		<Sidebar on:seleccionarOpcion={manejarSeleccionSidebar} />
 
-		<div class="flex min-w-0 flex-1 flex-col bg-neutral-950">
+		<div class="flex min-w-0 min-h-0 flex-1 flex-col bg-neutral-950">
 			<TabBar>
 				{#each pestanas as pestana (pestana.id)}
 					<Tab
@@ -101,7 +101,7 @@
 			</TabBar>
 
 			<!-- El área de contenido renderiza dinámicamente según el registro de vistas -->
-			<div class="flex-1 overflow-hidden">
+			<div class="flex-1 overflow-hidden min-h-0">
 				{#if pestanas.length === 0}
 					<div class="flex h-full items-center justify-center text-sm text-neutral-500">
 						Selecciona una opción para comenzar

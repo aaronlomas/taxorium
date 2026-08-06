@@ -72,7 +72,7 @@
 	>
 		<!-- Contenedor principal del Modal -->
 		<div
-			class="relative flex size-auto max-w-4xl flex-col overflow-hidden border border-neutral-800 bg-neutral-950 text-slate-100 shadow-2xl transition-shadow"
+			class="relative flex size-auto max-w-4xl flex-col border border-neutral-800 bg-neutral-950 text-slate-100 shadow-2xl transition-shadow"
 			style="transform: translate3d({position.x}px, {position.y}px, 0);"
 		>
 			<!-- Barra Superior / Header para arrastrar -->

@@ -4,6 +4,7 @@ mod customers;
 mod config;
 mod api;
 mod sellers;
+mod products;
 mod emit;
 
 use std::sync::Mutex;
@@ -60,7 +61,11 @@ pub fn run() {
         sellers::update_seller,
         sellers::delete_seller,
         sellers::login_seller,
-        sellers::get_seller_password
+        sellers::get_seller_password,
+        products::get_products,
+        products::create_product,
+        products::update_product,
+        products::delete_product
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

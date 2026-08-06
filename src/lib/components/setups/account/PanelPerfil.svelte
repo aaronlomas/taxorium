@@ -10,9 +10,7 @@
 	}
 </script>
 
-<div
-	class="grid grid-cols-2 gap-2 overflow-scroll rounded-xl border border-neutral-800 p-2"
->
+<div class="grid grid-cols-2 gap-2 overflow-scroll rounded-xl border border-neutral-800 p-2">
 	<!-- EMPRESA -->
 	<!-- DETALLES -->
 	<div class="grid">
@@ -77,14 +75,19 @@
 	</div>
 
 	<!-- PERFIL -->
-	<div class="grid h-full justify-center items-center border border-neutral-800 rounded-md overflow-scroll">
+	<div
+		class="grid h-full items-center justify-center overflow-scroll rounded-md border border-neutral-800"
+	>
 		<div
 			class="flex size-52 items-end justify-center overflow-hidden rounded-full border-2 border-neutral-700 text-center"
 		>
-			<button class="w-full cursor-pointer bg-transparent border-t border-neutral-800 hover:text-green-400 flex justify-center"><IconEdit size={20} /></button>
+			<button
+				class="flex w-full cursor-pointer justify-center border-t border-neutral-800 bg-transparent hover:text-green-400"
+				><IconEdit size={20} /></button
+			>
 		</div>
 		<div class="text-center">
-			<button class="hover:text-white cursor-pointer">Editar Información</button>
+			<button class="cursor-pointer hover:text-white">Editar Información</button>
 		</div>
 	</div>
 </div>

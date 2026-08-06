@@ -1,7 +1,7 @@
 import type { Component } from 'svelte';
 
 import DashboardView from './dashboard/Dashboard.svelte';
-import ProductsView from './products/ProductControls.svelte';
+import ProductsView from './products/ProductView.svelte';
 import ReportsView from './reports/ReportControls.svelte';
 import CustomersView from './customers/CustomerControls.svelte';
 // SUB OPCIONES EN VENTAS

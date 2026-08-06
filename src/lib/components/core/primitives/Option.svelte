@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { IconChevronDown } from '@tabler/icons-svelte';
 
 	interface OptionItem {
 		value: string | number;
@@ -15,29 +15,60 @@
 		containerClass?: string;
 		class?: string;
 		placeholder?: string;
+		/** Si es false (default), se comporta como Select fijo. Si es true, permite escribir libremente. */
+		editable?: boolean;
+		/** Si es true y editable es true, filtra las opciones según lo que escribe el usuario */
+		filterOptions?: boolean;
 	}
 
 	let {
 		label,
 		error,
-		value = $bindable(),
+		value = $bindable(''),
 		options = [],
 		class: className = '',
 		containerClass = '',
 		id = crypto.randomUUID(),
-		placeholder = 'Seleccionar...'
+		placeholder = 'Seleccionar...',
+		editable = false,
+		filterOptions = true
 	}: Props = $props();
 
 	let isOpen = $state(false);
 	let wrapperElement: HTMLDivElement | undefined = $state();
+	let displayValue = $state('');
+
+	// Sincronizar el texto del input/select con el 'value' externo
+	$effect(() => {
+		const matchedOption = options.find((opt) => opt.value === value);
+		displayValue = matchedOption ? matchedOption.label : String(value ?? '');
+	});
+
+	// Filtrar la lista si está en modo editable y el usuario está escribiendo
+	let filteredOptions = $derived(
+		editable && filterOptions && displayValue && isOpen
+			? options.filter((opt) => opt.label.toLowerCase().includes(displayValue.toLowerCase()))
+			: options
+	);
+
+	let selectedLabel = $derived(options.find((opt) => opt.value === value)?.label || placeholder);
 
 	function toggle() {
 		isOpen = !isOpen;
 	}
 
-	function selectOption(optionValue: string | number) {
-		value = optionValue;
+	function selectOption(option: OptionItem) {
+		value = option.value;
+		displayValue = option.label;
 		isOpen = false;
+	}
+
+	function handleInput(event: Event) {
+		if (!editable) return;
+		const target = event.target as HTMLInputElement;
+		displayValue = target.value;
+		value = displayValue;
+		isOpen = true;
 	}
 
 	function handleWindowClick(event: MouseEvent) {
@@ -45,55 +76,76 @@
 			isOpen = false;
 		}
 	}
-
-	let selectedLabel = $derived(options.find((opt) => opt.value === value)?.label || placeholder);
 </script>
 
 <svelte:window onclick={handleWindowClick} />
 
 <div class="flex w-full flex-col {containerClass}" bind:this={wrapperElement}>
 	{#if label}
-		<!-- svelte-ignore a11y_label_has_associated_control -->
-		<label class="block text-sm font-medium text-neutral-400">
+		<label for={id} class="block text-sm font-medium text-neutral-400">
 			{label}
 		</label>
 	{/if}
 
 	<div class="relative w-full rounded-sm">
-		<button
-			type="button"
-			{id}
-			onclick={toggle}
-			class="flex w-full items-center justify-between border border-neutral-800 bg-neutral-900 px-2 py-2 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 rounded-sm {error
-				? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500'
-				: ''} {className}"
-		>
-			<span class="truncate text-neutral-200">
-				{selectedLabel}
-			</span>
-			<svg
-				class="size-4 text-neutral-400 transition-transform {isOpen ? 'rotate-180' : ''}"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
+		{#if editable}
+			<!-- MODO EDITABLE (Input + Botón desplegable) -->
+			<div
+				class="flex w-full items-center justify-between rounded-sm border border-neutral-800 bg-neutral-900 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 {error
+					? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500'
+					: ''} {className}"
 			>
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-			</svg>
-		</button>
+				<input
+					{id}
+					type="text"
+					value={displayValue}
+					oninput={handleInput}
+					onfocus={() => (isOpen = true)}
+					{placeholder}
+					class="h-9 w-full border-0 bg-transparent text-sm text-neutral-100 placeholder-neutral-500 focus:ring-0"
+				/>
+				<button
+					type="button"
+					tabindex="-1"
+					onclick={toggle}
+					aria-label="Abrir opciones"
+					class="px-2 text-neutral-400 hover:text-neutral-200 focus:outline-none"
+				>
+					<IconChevronDown class="size-4 transition-transform {isOpen ? 'rotate-180' : ''}" />
+				</button>
+			</div>
+		{:else}
+			<!-- MODO FIJO / SELECT (Solo selección de lista) -->
+			<button
+				type="button"
+				{id}
+				onclick={toggle}
+				class="flex w-full items-center justify-between rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none {error
+					? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+					: ''} {className}"
+			>
+				<span class="truncate {value ? 'text-neutral-100' : 'text-neutral-500'}">
+					{selectedLabel}
+				</span>
+				<IconChevronDown
+					class="size-4 text-neutral-400 transition-transform {isOpen ? 'rotate-180' : ''}"
+				/>
+			</button>
+		{/if}
 
-		{#if isOpen}
+		<!-- LISTA DESPLEGABLE (Compartida por ambas variantes) -->
+		{#if isOpen && filteredOptions.length > 0}
 			<ul
-				class="absolute z-10 mt-1 max-h-60 w-full overflow-auto border border-neutral-700 bg-neutral-900 text-sm shadow-lg focus:outline-none"
+				class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-sm border border-neutral-700 bg-neutral-900 text-sm shadow-lg focus:outline-none"
 			>
-				{#each options as option}
+				{#each filteredOptions as option}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 					<li
-						class="cursor-pointer px-2 py-1 text-neutral-200 hover:bg-neutral-800 {value ===
-						option.value
-							? 'bg-blue-600/20 text-blue-400'
-							: ''}"
-						onclick={() => selectOption(option.value)}
+						class="cursor-pointer px-2 py-1.5 hover:bg-neutral-800 {value === option.value
+							? 'bg-blue-600/20 font-medium text-blue-400'
+							: 'text-neutral-200'}"
+						onclick={() => selectOption(option)}
 					>
 						{option.label}
 					</li>

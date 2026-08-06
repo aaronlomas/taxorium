@@ -121,6 +121,69 @@ fn run_migrations(conn: &Connection, app: &AppHandle) -> Result<(), String> {
     let _ = conn.execute("ALTER TABLE sellers ADD COLUMN first_name TEXT", []);
     let _ = conn.execute("ALTER TABLE sellers ADD COLUMN last_name TEXT", []);
 
+    let _ = conn.execute("ALTER TABLE products ADD COLUMN internal_code TEXT", []);
+    let _ = conn.execute("ALTER TABLE products ADD COLUMN sunat_code TEXT", []);
+    let _ = conn.execute("ALTER TABLE products ADD COLUMN gsl_code TEXT", []);
+    let _ = conn.execute("ALTER TABLE products ADD COLUMN price_sale REAL DEFAULT 0", []);
+    let _ = conn.execute("ALTER TABLE products ADD COLUMN price_purchase REAL DEFAULT 0", []);
+    let _ = conn.execute("ALTER TABLE products ADD COLUMN stock_minimo REAL DEFAULT 1", []);
+    let _ = conn.execute("ALTER TABLE products ADD COLUMN afectacion_venta TEXT DEFAULT '20'", []);
+    let _ = conn.execute("ALTER TABLE products ADD COLUMN afectacion_compra TEXT DEFAULT 'NO_GRAVADO'", []);
+    let _ = conn.execute("ALTER TABLE products ADD COLUMN has_icbper BOOLEAN DEFAULT 0", []);
+    let _ = conn.execute("ALTER TABLE products ADD COLUMN brand TEXT", []);
+    let _ = conn.execute("ALTER TABLE products ADD COLUMN category TEXT", []);
+    let _ = conn.execute("ALTER TABLE products ADD COLUMN branch TEXT DEFAULT 'oficina-01'", []);
+    let _ = conn.execute("ALTER TABLE products ADD COLUMN stock_local REAL DEFAULT 0", []);
+
+    // Migration to drop old `sku` and `price` columns which cause NOT NULL constraint failures
+    let has_sku: bool = conn.query_row(
+        "SELECT COUNT(*) FROM pragma_table_info('products') WHERE name='sku'", 
+        [], 
+        |row| row.get::<_, i32>(0)
+    ).unwrap_or(0) > 0;
+
+    if has_sku {
+        let _ = conn.execute("ALTER TABLE products RENAME TO products_old", []);
+        
+        let _ = conn.execute("
+        CREATE TABLE IF NOT EXISTS products (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            internal_code TEXT,
+            unit_code TEXT NOT NULL DEFAULT 'NIU',
+            name TEXT NOT NULL,
+            sunat_code TEXT,
+            gsl_code TEXT,
+            currency TEXT NOT NULL DEFAULT 'PEN',
+            price_sale REAL NOT NULL DEFAULT 0,
+            price_purchase REAL NOT NULL DEFAULT 0,
+            stock_minimo REAL NOT NULL DEFAULT 1,
+            afectacion_venta TEXT NOT NULL DEFAULT '20',
+            afectacion_compra TEXT NOT NULL DEFAULT 'NO_GRAVADO',
+            has_icbper BOOLEAN NOT NULL DEFAULT 0,
+            brand TEXT,
+            category TEXT,
+            branch TEXT DEFAULT 'oficina-01',
+            stock_local REAL NOT NULL DEFAULT 0,
+            is_active BOOLEAN NOT NULL DEFAULT 1,
+            FOREIGN KEY(unit_code) REFERENCES units(code)
+        );", []);
+
+        let _ = conn.execute("
+            INSERT INTO products (
+                id, internal_code, unit_code, name, sunat_code, gsl_code, currency, 
+                price_sale, price_purchase, stock_minimo, afectacion_venta, afectacion_compra, 
+                has_icbper, brand, category, branch, stock_local, is_active
+            )
+            SELECT 
+                id, IFNULL(internal_code, sku), unit_code, name, sunat_code, gsl_code, currency, 
+                CASE WHEN price_sale = 0 THEN price ELSE price_sale END, price_purchase, stock_minimo, afectacion_venta, afectacion_compra, 
+                has_icbper, brand, category, branch, stock_local, is_active
+            FROM products_old
+        ", []);
+
+        let _ = conn.execute("DROP TABLE products_old", []);
+    }
+
     Ok(())
 }
 

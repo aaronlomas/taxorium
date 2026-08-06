@@ -56,6 +56,48 @@ export interface LoginSellerPayload {
 	password_plain: string;
 }
 
+// --- Product Types ---
+
+export interface Product {
+	id: number;
+	internal_code?: string;
+	unit_code: string;
+	name: string;
+	sunat_code?: string;
+	gsl_code?: string;
+	currency: string;
+	price_sale: number;
+	price_purchase: number;
+	stock_minimo: number;
+	afectacion_venta: string;
+	afectacion_compra: string;
+	has_icbper: boolean;
+	brand?: string;
+	category?: string;
+	branch?: string;
+	stock_local: number;
+	is_active: boolean;
+}
+
+export interface CreateProductPayload {
+	internal_code?: string;
+	unit_code: string;
+	name: string;
+	sunat_code?: string;
+	gsl_code?: string;
+	currency: string;
+	price_sale: number;
+	price_purchase: number;
+	stock_minimo: number;
+	afectacion_venta: string;
+	afectacion_compra: string;
+	has_icbper: boolean;
+	brand?: string;
+	category?: string;
+	branch?: string;
+	stock_local: number;
+}
+
 class ApiClient {
 	private async getBaseUrl(): Promise<string> {
 		const config = get(configStore);
@@ -191,6 +233,34 @@ class ApiClient {
 			return invoke<Seller>('login_seller', { payload });
 		} else {
 			return this.request<Seller>('api/sellers/login', '', { method: 'POST' }, payload);
+		}
+	}
+
+	// --- Products API ---
+
+	async getProducts(): Promise<Product[]> {
+		return this.request<Product[]>('api/products', 'get_products');
+	}
+
+	async createProduct(payload: CreateProductPayload): Promise<Product> {
+		return this.request<Product>('api/products', 'create_product', { method: 'POST' }, payload);
+	}
+
+	async updateProduct(id: number, payload: CreateProductPayload): Promise<Product> {
+		const config = get(configStore);
+		if (config.role === 'server') {
+			return invoke<Product>('update_product', { id, payload });
+		} else {
+			return this.request<Product>(`api/products/${id}`, '', { method: 'PUT' }, payload);
+		}
+	}
+
+	async deleteProduct(id: number): Promise<void> {
+		const config = get(configStore);
+		if (config.role === 'server') {
+			return invoke<void>('delete_product', { id });
+		} else {
+			return this.request<void>(`api/products/${id}`, '', { method: 'DELETE' });
 		}
 	}
 }

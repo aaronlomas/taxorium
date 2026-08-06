@@ -17,6 +17,10 @@ use crate::sellers::{
     core_create_seller, core_delete_seller, core_get_sellers, core_login_seller,
     core_update_seller, CreateSellerPayload, LoginSellerPayload, Seller, UpdateSellerPayload,
 };
+use crate::products::{
+    core_create_product, core_delete_product, core_get_products, core_update_product,
+    CreateProductPayload, Product,
+};
 
 #[derive(Clone)]
 struct ApiState {
@@ -35,6 +39,8 @@ pub fn build_router(app: AppHandle) -> Router {
         .route("/api/sellers", get(get_sellers).post(create_seller))
         .route("/api/sellers/login", post(login_seller))
         .route("/api/sellers/:id", put(update_seller).delete(delete_seller))
+        .route("/api/products", get(get_products_api).post(create_product_api))
+        .route("/api/products/:id", put(update_product_api).delete(delete_product_api))
         .with_state(ApiState { app })
         .layer(cors)
 }
@@ -156,3 +162,36 @@ async fn login_seller(
     let seller = run_db_task(state, move |db| core_login_seller(db, payload, &device_id)).await?;
     Ok(Json(seller))
 }
+
+// --- Products handlers ---
+
+async fn get_products_api(state: State<ApiState>) -> Result<Json<Vec<Product>>, (StatusCode, String)> {
+    let products = run_db_task(state, |db| core_get_products(db)).await?;
+    Ok(Json(products))
+}
+
+async fn create_product_api(
+    state: State<ApiState>,
+    Json(payload): Json<CreateProductPayload>,
+) -> Result<Json<Product>, (StatusCode, String)> {
+    let product = run_db_task(state, move |db| core_create_product(db, payload)).await?;
+    Ok(Json(product))
+}
+
+async fn update_product_api(
+    state: State<ApiState>,
+    Path(id): Path<i64>,
+    Json(payload): Json<CreateProductPayload>,
+) -> Result<Json<Product>, (StatusCode, String)> {
+    let product = run_db_task(state, move |db| core_update_product(db, id, payload)).await?;
+    Ok(Json(product))
+}
+
+async fn delete_product_api(
+    state: State<ApiState>,
+    Path(id): Path<i64>,
+) -> Result<StatusCode, (StatusCode, String)> {
+    run_db_task(state, move |db| core_delete_product(db, id)).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+

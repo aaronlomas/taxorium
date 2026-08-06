@@ -114,7 +114,7 @@
 										</span>
 										<button
 											type="button"
-											class="text-neutral-500 transition-colors hover:text-neutral-200"
+											class="text-neutral-500 transition-colors hover:text-neutral-200 mb-0.5"
 											onclick={() => toggleVisibility(seller.id)}
 											title="Mostrar/Ocultar"
 										>
