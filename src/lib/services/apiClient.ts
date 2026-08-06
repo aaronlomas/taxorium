@@ -21,6 +21,41 @@ export interface CreateCustomerPayload {
 	email?: string;
 }
 
+// --- Seller Types ---
+
+export interface Seller {
+	id: number;
+	first_name?: string;
+	last_name?: string;
+	username: string;
+	accesses?: string;
+	domain?: string;
+	is_active: boolean;
+}
+
+export interface CreateSellerPayload {
+	first_name?: string;
+	last_name?: string;
+	username: string;
+	password_plain: string;
+	accesses?: string;
+	domain?: string;
+}
+
+export interface UpdateSellerPayload {
+	first_name?: string;
+	last_name?: string;
+	username: string;
+	password_plain?: string;
+	accesses?: string;
+	domain?: string;
+}
+
+export interface LoginSellerPayload {
+	username: string;
+	password_plain: string;
+}
+
 class ApiClient {
 	private async getBaseUrl(): Promise<string> {
 		const config = get(configStore);
@@ -41,7 +76,13 @@ class ApiClient {
 		options: RequestInit = {},
 		payload?: any
 	): Promise<T> {
-		const config = get(configStore);
+		let config = get(configStore);
+
+		// If role hasn't loaded yet (race condition on app start), force a re-init
+		if (!config.role) {
+			await configStore.init();
+			config = get(configStore);
+		}
 
 		if (config.role === 'server') {
 			// Local execution via Tauri IPC
@@ -99,7 +140,6 @@ class ApiClient {
 	}
 
 	async updateCustomer(id: number, payload: CreateCustomerPayload): Promise<Customer> {
-		// En el frontend, el id se suele pasar aparte en el comando tauri
 		const config = get(configStore);
 		if (config.role === 'server') {
 			return invoke<Customer>('update_customer', { id, payload });
@@ -114,6 +154,43 @@ class ApiClient {
 			return invoke<void>('delete_customer', { id });
 		} else {
 			return this.request<void>(`api/customers/${id}`, '', { method: 'DELETE' });
+		}
+	}
+
+	// --- Sellers API ---
+
+	async getSellers(): Promise<Seller[]> {
+		return this.request<Seller[]>('api/sellers', 'get_sellers');
+	}
+
+	async createSeller(payload: CreateSellerPayload): Promise<Seller> {
+		return this.request<Seller>('api/sellers', 'create_seller', { method: 'POST' }, payload);
+	}
+
+	async updateSeller(id: number, payload: UpdateSellerPayload): Promise<Seller> {
+		const config = get(configStore);
+		if (config.role === 'server') {
+			return invoke<Seller>('update_seller', { id, payload });
+		} else {
+			return this.request<Seller>(`api/sellers/${id}`, '', { method: 'PUT' }, payload);
+		}
+	}
+
+	async deleteSeller(id: number): Promise<void> {
+		const config = get(configStore);
+		if (config.role === 'server') {
+			return invoke<void>('delete_seller', { id });
+		} else {
+			return this.request<void>(`api/sellers/${id}`, '', { method: 'DELETE' });
+		}
+	}
+
+	async loginSeller(payload: LoginSellerPayload): Promise<Seller> {
+		const config = get(configStore);
+		if (config.role === 'server') {
+			return invoke<Seller>('login_seller', { payload });
+		} else {
+			return this.request<Seller>('api/sellers/login', '', { method: 'POST' }, payload);
 		}
 	}
 }

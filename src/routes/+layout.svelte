@@ -8,12 +8,15 @@
 	import { tenantStore } from '$lib/stores/tenant';
 	import { licenseStore } from '$lib/stores/license';
 	import { configStore } from '$lib/stores/config';
+	import { taxoLog } from '$lib/stores/taxoLog';
 	import TitleBar from '$lib/components/ui/TitleBar.svelte';
 	import ResizeBorder from '$lib/components/ui/ResizeBorder.svelte';
 
 	let { children } = $props();
 
 	onMount(async () => {
+		// Inicializar listener de logs del backend
+		taxoLog.initListener();
 		// Inicializar configuración del nodo (Servidor/Cliente)
 		await configStore.init();
 		
