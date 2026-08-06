@@ -1,7 +1,7 @@
+use crate::AppState;
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 use tauri::State;
-use crate::AppState;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Product {
@@ -12,8 +12,8 @@ pub struct Product {
     pub sunat_code: Option<String>,
     pub gsl_code: Option<String>,
     pub currency: String,
-    pub price_sale: f64,
-    pub price_purchase: f64,
+    pub price_unit_sale: f64,
+    pub price_unit_purchase: f64,
     pub stock_minimo: f64,
     pub afectacion_venta: String,
     pub afectacion_compra: String,
@@ -33,8 +33,8 @@ pub struct CreateProductPayload {
     pub sunat_code: Option<String>,
     pub gsl_code: Option<String>,
     pub currency: String,
-    pub price_sale: f64,
-    pub price_purchase: f64,
+    pub price_unit_sale: f64,
+    pub price_unit_purchase: f64,
     pub stock_minimo: f64,
     pub afectacion_venta: String,
     pub afectacion_compra: String,
@@ -51,7 +51,7 @@ pub fn core_get_products(db: &Connection) -> Result<Vec<Product>, String> {
     let mut stmt = db
         .prepare(
             "SELECT id, internal_code, unit_code, name, sunat_code, gsl_code, currency, \
-             price_sale, price_purchase, stock_minimo, afectacion_venta, afectacion_compra, \
+             price_unit_sale, price_unit_purchase, stock_minimo, afectacion_venta, afectacion_compra, \
              has_icbper, brand, category, branch, stock_local, is_active \
              FROM products WHERE is_active = 1 ORDER BY id DESC",
         )
@@ -67,8 +67,8 @@ pub fn core_get_products(db: &Connection) -> Result<Vec<Product>, String> {
                 sunat_code: row.get(4)?,
                 gsl_code: row.get(5)?,
                 currency: row.get(6)?,
-                price_sale: row.get(7)?,
-                price_purchase: row.get(8)?,
+                price_unit_sale: row.get(7)?,
+                price_unit_purchase: row.get(8)?,
                 stock_minimo: row.get(9)?,
                 afectacion_venta: row.get(10)?,
                 afectacion_compra: row.get(11)?,
@@ -89,10 +89,13 @@ pub fn core_get_products(db: &Connection) -> Result<Vec<Product>, String> {
     Ok(products)
 }
 
-pub fn core_create_product(db: &Connection, payload: CreateProductPayload) -> Result<Product, String> {
+pub fn core_create_product(
+    db: &Connection,
+    payload: CreateProductPayload,
+) -> Result<Product, String> {
     db.execute(
         "INSERT INTO products (internal_code, unit_code, name, sunat_code, gsl_code, currency, \
-         price_sale, price_purchase, stock_minimo, afectacion_venta, afectacion_compra, \
+         price_unit_sale, price_unit_purchase, stock_minimo, afectacion_venta, afectacion_compra, \
          has_icbper, brand, category, branch, stock_local) \
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
         params![
@@ -102,8 +105,8 @@ pub fn core_create_product(db: &Connection, payload: CreateProductPayload) -> Re
             payload.sunat_code,
             payload.gsl_code,
             payload.currency,
-            payload.price_sale,
-            payload.price_purchase,
+            payload.price_unit_sale,
+            payload.price_unit_purchase,
             payload.stock_minimo,
             payload.afectacion_venta,
             payload.afectacion_compra,
@@ -126,8 +129,8 @@ pub fn core_create_product(db: &Connection, payload: CreateProductPayload) -> Re
         sunat_code: payload.sunat_code,
         gsl_code: payload.gsl_code,
         currency: payload.currency,
-        price_sale: payload.price_sale,
-        price_purchase: payload.price_purchase,
+        price_unit_sale: payload.price_unit_sale,
+        price_unit_purchase: payload.price_unit_purchase,
         stock_minimo: payload.stock_minimo,
         afectacion_venta: payload.afectacion_venta,
         afectacion_compra: payload.afectacion_compra,
@@ -147,7 +150,7 @@ pub fn core_update_product(
 ) -> Result<Product, String> {
     db.execute(
         "UPDATE products SET internal_code = ?1, unit_code = ?2, name = ?3, sunat_code = ?4, \
-         gsl_code = ?5, currency = ?6, price_sale = ?7, price_purchase = ?8, stock_minimo = ?9, \
+         gsl_code = ?5, currency = ?6, price_unit_sale = ?7, price_unit_purchase = ?8, stock_minimo = ?9, \
          afectacion_venta = ?10, afectacion_compra = ?11, has_icbper = ?12, brand = ?13, \
          category = ?14, branch = ?15, stock_local = ?16 WHERE id = ?17",
         params![
@@ -157,8 +160,8 @@ pub fn core_update_product(
             payload.sunat_code,
             payload.gsl_code,
             payload.currency,
-            payload.price_sale,
-            payload.price_purchase,
+            payload.price_unit_sale,
+            payload.price_unit_purchase,
             payload.stock_minimo,
             payload.afectacion_venta,
             payload.afectacion_compra,
@@ -180,8 +183,8 @@ pub fn core_update_product(
         sunat_code: payload.sunat_code,
         gsl_code: payload.gsl_code,
         currency: payload.currency,
-        price_sale: payload.price_sale,
-        price_purchase: payload.price_purchase,
+        price_unit_sale: payload.price_unit_sale,
+        price_unit_purchase: payload.price_unit_purchase,
         stock_minimo: payload.stock_minimo,
         afectacion_venta: payload.afectacion_venta,
         afectacion_compra: payload.afectacion_compra,
@@ -195,8 +198,11 @@ pub fn core_update_product(
 }
 
 pub fn core_delete_product(db: &Connection, id: i64) -> Result<(), String> {
-    db.execute("UPDATE products SET is_active = 0 WHERE id = ?1", params![id])
-        .map_err(|e| e.to_string())?;
+    db.execute(
+        "UPDATE products SET is_active = 0 WHERE id = ?1",
+        params![id],
+    )
+    .map_err(|e| e.to_string())?;
     Ok(())
 }
 

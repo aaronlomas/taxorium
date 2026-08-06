@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { IconChevronDown } from '@tabler/icons-svelte';
 
-	interface OptionItem {
+	export interface OptionItem {
 		value: string | number;
 		label: string;
 	}
@@ -10,7 +10,7 @@
 		label?: string;
 		error?: string;
 		value?: string | number;
-		options?: OptionItem[];
+		options?: (OptionItem | string | number)[];
 		id?: string;
 		containerClass?: string;
 		class?: string;
@@ -38,20 +38,30 @@
 	let wrapperElement: HTMLDivElement | undefined = $state();
 	let displayValue = $state('');
 
+	let normalizedOptions = $derived(
+		options.map((opt) => {
+			if (typeof opt === 'object' && opt !== null && 'value' in opt) {
+				return opt as OptionItem;
+			}
+			const strOpt = String(opt).toUpperCase();
+			return { value: strOpt, label: strOpt } as OptionItem;
+		})
+	);
+
 	// Sincronizar el texto del input/select con el 'value' externo
 	$effect(() => {
-		const matchedOption = options.find((opt) => opt.value === value);
+		const matchedOption = normalizedOptions.find((opt) => opt.value === value);
 		displayValue = matchedOption ? matchedOption.label : String(value ?? '');
 	});
 
 	// Filtrar la lista si está en modo editable y el usuario está escribiendo
 	let filteredOptions = $derived(
 		editable && filterOptions && displayValue && isOpen
-			? options.filter((opt) => opt.label.toLowerCase().includes(displayValue.toLowerCase()))
-			: options
+			? normalizedOptions.filter((opt) => opt.label.toLowerCase().includes(displayValue.toLowerCase()))
+			: normalizedOptions
 	);
 
-	let selectedLabel = $derived(options.find((opt) => opt.value === value)?.label || placeholder);
+	let selectedLabel = $derived(normalizedOptions.find((opt) => opt.value === value)?.label || placeholder);
 
 	function toggle() {
 		isOpen = !isOpen;
@@ -66,7 +76,8 @@
 	function handleInput(event: Event) {
 		if (!editable) return;
 		const target = event.target as HTMLInputElement;
-		displayValue = target.value;
+		// Forzar a mayúsculas por seguridad/estandarización en DB
+		displayValue = target.value.toUpperCase();
 		value = displayValue;
 		isOpen = true;
 	}
@@ -158,3 +169,4 @@
 		<span class="mt-1 text-xs text-red-500">{error}</span>
 	{/if}
 </div>
+

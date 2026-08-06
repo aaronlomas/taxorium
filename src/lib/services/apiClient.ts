@@ -66,8 +66,8 @@ export interface Product {
 	sunat_code?: string;
 	gsl_code?: string;
 	currency: string;
-	price_sale: number;
-	price_purchase: number;
+	price_unit_sale: number;
+	price_unit_purchase: number;
 	stock_minimo: number;
 	afectacion_venta: string;
 	afectacion_compra: string;
@@ -86,8 +86,8 @@ export interface CreateProductPayload {
 	sunat_code?: string;
 	gsl_code?: string;
 	currency: string;
-	price_sale: number;
-	price_purchase: number;
+	price_unit_sale: number;
+	price_unit_purchase: number;
 	stock_minimo: number;
 	afectacion_venta: string;
 	afectacion_compra: string;

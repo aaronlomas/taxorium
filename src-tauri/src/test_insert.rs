@@ -9,7 +9,7 @@ fn main() {
     
     let res = conn.execute(
         "INSERT INTO products (internal_code, unit_code, name, sunat_code, gsl_code, currency, \
-         price_sale, price_purchase, stock_minimo, afectacion_venta, afectacion_compra, \
+         price_unit_sale, price_unit_purchase, stock_minimo, afectacion_venta, afectacion_compra, \
          has_icbper, brand, category, branch, stock_local) \
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
         params![

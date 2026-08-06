@@ -2,7 +2,7 @@ use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 use tauri::State;
 
-use boveda_core::crypto::{encrypt_with_password, decrypt_with_password, verify_with_password};
+use boveda_core::crypto::{decrypt_with_password, encrypt_with_password, verify_with_password};
 
 use crate::AppState;
 
@@ -116,8 +116,8 @@ pub fn core_update_seller(
     device_id: &str,
 ) -> Result<Seller, String> {
     if let Some(pwd) = &payload.password_plain {
-        let password_encrypted = encrypt_with_password(pwd, device_id, SELLER_SALT)
-            .map_err(|e| e.to_string())?;
+        let password_encrypted =
+            encrypt_with_password(pwd, device_id, SELLER_SALT).map_err(|e| e.to_string())?;
         db.execute(
             "UPDATE sellers SET first_name = ?1, last_name = ?2, username = ?3, password_hash = ?4, accesses = ?5, domain = ?6 WHERE id = ?7",
             params![payload.first_name, payload.last_name, payload.username, password_encrypted, payload.accesses, payload.domain, id],
@@ -143,8 +143,11 @@ pub fn core_update_seller(
 }
 
 pub fn core_delete_seller(db: &Connection, id: i64) -> Result<(), String> {
-    db.execute("UPDATE sellers SET is_active = 0 WHERE id = ?1", params![id])
-        .map_err(|e| e.to_string())?;
+    db.execute(
+        "UPDATE sellers SET is_active = 0 WHERE id = ?1",
+        params![id],
+    )
+    .map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -240,10 +243,7 @@ pub fn login_seller(
 /// Exposes the decrypted password for a specific seller ID.
 /// Used by the frontend to populate the password cache on startup.
 #[tauri::command]
-pub fn get_seller_password(
-    seller_id: i64,
-    state: State<'_, AppState>,
-) -> Result<String, String> {
+pub fn get_seller_password(seller_id: i64, state: State<'_, AppState>) -> Result<String, String> {
     let db_guard = state.db.lock().map_err(|e| e.to_string())?;
     let db = db_guard.as_ref().ok_or("Database not initialized.")?;
 
@@ -255,6 +255,5 @@ pub fn get_seller_password(
         )
         .map_err(|e| e.to_string())?;
 
-    decrypt_with_password(&ciphertext, &get_device_id(), SELLER_SALT)
-        .map_err(|e| e.to_string())
+    decrypt_with_password(&ciphertext, &get_device_id(), SELLER_SALT).map_err(|e| e.to_string())
 }

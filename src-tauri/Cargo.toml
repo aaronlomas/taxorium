@@ -38,3 +38,5 @@ machine-uid = "0.6.0"
 axum = "0.7"
 tokio = { version = "1", features = ["full"] }
 tower-http = { version = "0.5", features = ["cors"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"

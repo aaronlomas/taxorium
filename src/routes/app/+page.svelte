@@ -83,7 +83,7 @@
 {#if showPosLogin}
 	<PosLogin />
 {:else}
-	<div class="grid grid-rows-[1fr_auto] grid-cols-[auto_1fr] h-full w-full bg-neutral-950 font-sans text-neutral-300">
+	<div class="grid grid-rows-[1fr_24px] grid-cols-[auto_1fr] h-full w-full bg-neutral-950 font-sans text-neutral-300">
 		<Sidebar on:seleccionarOpcion={manejarSeleccionSidebar} />
 
 		<div class="flex min-w-0 min-h-0 overflow-hidden flex-col bg-neutral-950">

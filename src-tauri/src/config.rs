@@ -21,7 +21,10 @@ impl Default for NodeConfig {
 }
 
 fn get_config_path(app: &AppHandle) -> PathBuf {
-    let app_dir = app.path().app_data_dir().expect("Failed to get app data dir");
+    let app_dir = app
+        .path()
+        .app_data_dir()
+        .expect("Failed to get app data dir");
     if !app_dir.exists() {
         if let Err(e) = fs::create_dir_all(&app_dir) {
             log::error!("No se pudo crear el directorio de datos de la app: {}", e);
@@ -37,7 +40,8 @@ pub fn load_config(app: &AppHandle) -> NodeConfig {
             Ok(contents) => match serde_json::from_str(&contents) {
                 Ok(config) => return config,
                 Err(e) => {
-                    let msg = format!("node_config.json tiene formato inválido y no se pudo leer: {e}");
+                    let msg =
+                        format!("node_config.json tiene formato inválido y no se pudo leer: {e}");
                     emit::error(app, "config", &msg);
                     log::error!("{}", msg);
                 }
@@ -64,7 +68,11 @@ pub fn save_config(app: &AppHandle, config: &NodeConfig) -> Result<(), String> {
         emit::error(app, "config", &msg);
         msg
     })?;
-    emit::info(app, "config", format!("Configuración guardada: rol = {:?}", config.role));
+    emit::info(
+        app,
+        "config",
+        format!("Configuración guardada: rol = {:?}", config.role),
+    );
     Ok(())
 }
 

@@ -88,8 +88,8 @@
 	{:else}
 		<div class="mt-2 overflow-x-auto border border-neutral-800 rounded-sm">
 			<table class="w-full bg-neutral-900 text-left">
-				<thead class="border-b border-neutral-800 bg-blue-900 text-neutral-400">
-					<tr>
+				<thead class="border-b border-neutral-800 text-neutral-400">
+					<tr class="text-blue-400">
 						<th class="px-2 font-medium">#</th>
 						<th class="px-2 font-medium">Nombres y Apellidos</th>
 						<th class="px-2 font-medium">Usuario</th>
@@ -103,10 +103,10 @@
 				<tbody class="text-neutral-300">
 					{#each filteredSellers as seller, i (seller.id)}
 						<tr class="border-b border-neutral-800/50 hover:bg-neutral-800/20 last:border-0 transition-colors">
-							<td class="py-2 px-3">{i + 1}</td>
-							<td class="py-2 px-3">{seller.first_name || ''} {seller.last_name || ''}</td>
-							<td class="py-2 px-3">{seller.username}</td>
-							<td class="py-2 px-3">
+							<td class="p-2">{i + 1}</td>
+							<td class="p-2">{seller.first_name || ''} {seller.last_name || ''}</td>
+							<td class="p-2">{seller.username}</td>
+							<td class="p-2">
 								<div class="inline-flex items-center gap-2">
 									{#if $sellerPasswordCache[seller.id]}
 										<span class="font-mono text-neutral-300">
