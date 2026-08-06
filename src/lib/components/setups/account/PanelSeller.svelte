@@ -28,8 +28,8 @@
 	let last_name = $state('');
 	let username = $state('');
 	let passwordPlain = $state('');
-	let selectedAccesses = $state<string | undefined>(undefined);
-	let selectedDomain = $state<string | undefined>(undefined);
+	let selectedAccesses = $state<string>('');
+	let selectedDomain = $state<string>('');
 
 	// Sync editing state
 	$effect(() => {
@@ -38,8 +38,8 @@
 			last_name = $editingSeller.last_name || '';
 			username = $editingSeller.username;
 			passwordPlain = '';
-			selectedAccesses = $editingSeller.accesses ?? undefined;
-			selectedDomain = $editingSeller.domain ?? undefined;
+			selectedAccesses = $editingSeller.accesses ?? '';
+			selectedDomain = $editingSeller.domain ?? '';
 			successMsg = '';
 			error = '';
 		} else {
@@ -70,8 +70,8 @@
 					last_name: last_name || undefined,
 					username,
 					password_plain: passwordPlain || undefined,
-					accesses: selectedAccesses,
-					domain: selectedDomain === 'null' ? undefined : selectedDomain
+					accesses: selectedAccesses || undefined,
+					domain: (!selectedDomain || selectedDomain === 'null') ? undefined : selectedDomain
 				});
 				// Update password cache if a new password was provided
 				if (passwordPlain.trim()) {
@@ -84,8 +84,8 @@
 					last_name: last_name || undefined,
 					username,
 					password_plain: passwordPlain,
-					accesses: selectedAccesses,
-					domain: selectedDomain === 'null' ? undefined : selectedDomain
+					accesses: selectedAccesses || undefined,
+					domain: (!selectedDomain || selectedDomain === 'null') ? undefined : selectedDomain
 				};
 				const newSeller = await apiClient.createSeller(payload);
 				// Store password in memory cache for display in table
@@ -109,8 +109,8 @@
 		last_name = '';
 		username = '';
 		passwordPlain = '';
-		selectedAccesses = undefined;
-		selectedDomain = undefined;
+		selectedAccesses = '';
+		selectedDomain = '';
 	}
 </script>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, tick } from 'svelte';
 	import {
 		IconBook2,
 		IconCalculator,
@@ -71,7 +71,11 @@
 			modalLoginOpen = true;
 		} else if (tenantPendiente) {
 			hasAutoOpened = true;
-			dispatch('seleccionarOpcion', { nombre: 'Configuración', icono: IconSettings });
+			// Esperar al siguiente tick para que el padre esté montado y listo
+			// antes de disparar el evento, evitando la race condition en Svelte 5
+			tick().then(() => {
+				dispatch('seleccionarOpcion', { nombre: 'Configuración', icono: IconSettings });
+			});
 		}
 	});
 </script>
