@@ -8,9 +8,9 @@ fn main() {
     conn.pragma_update(None, "key", &password).unwrap();
     
     let res = conn.execute(
-        "INSERT INTO products (internal_code, unit_code, name, sunat_code, gsl_code, currency, \
-         price_unit_sale, price_unit_purchase, stock_minimo, afectacion_venta, afectacion_compra, \
-         has_icbper, brand, category, branch) \
+        "INSERT INTO productos (codigo_interno, codigo_unidad, nombre, codigo_sunat, codigo_gsl, moneda, \
+         precio_unitario_venta, precio_unitario_compra, stock_minimo, afectacion_venta, afectacion_compra, \
+         tiene_icbper, marca, categoria, sucursal) \
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
         params![
             Some("asd12".to_string()), 

@@ -7,7 +7,7 @@ fn main() {
     println!("Password: {}", password);
     let conn = Connection::open(db_path).unwrap();
     conn.pragma_update(None, "key", &password).unwrap();
-    let mut stmt = conn.prepare("SELECT * FROM products").unwrap();
+    let mut stmt = conn.prepare("SELECT * FROM productos").unwrap();
     let rows = stmt.query_map([], |row| {
         Ok(row.get::<_, String>(3).unwrap()) // name
     }).unwrap();

@@ -9,39 +9,39 @@ use crate::AppState;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Seller {
     pub id: i64,
-    pub first_name: Option<String>,
-    pub last_name: Option<String>,
-    pub username: String,
-    // Note: We deliberately don't send the password_hash back to the client
-    pub accesses: Option<String>,
-    pub domain: Option<String>,
-    pub is_active: bool,
+    pub nombres: Option<String>,
+    pub apellidos: Option<String>,
+    pub usuario: String,
+    // Note: We deliberately don't send the clave_cifrada back to the client
+    pub accesos: Option<String>,
+    pub dominio: Option<String>,
+    pub activo: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateSellerPayload {
-    pub first_name: Option<String>,
-    pub last_name: Option<String>,
-    pub username: String,
-    pub password_plain: String,
-    pub accesses: Option<String>,
-    pub domain: Option<String>,
+    pub nombres: Option<String>,
+    pub apellidos: Option<String>,
+    pub usuario: String,
+    pub clave_plana: String,
+    pub accesos: Option<String>,
+    pub dominio: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginSellerPayload {
-    pub username: String,
-    pub password_plain: String,
+    pub usuario: String,
+    pub clave_plana: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateSellerPayload {
-    pub first_name: Option<String>,
-    pub last_name: Option<String>,
-    pub username: String,
-    pub password_plain: Option<String>,
-    pub accesses: Option<String>,
-    pub domain: Option<String>,
+    pub nombres: Option<String>,
+    pub apellidos: Option<String>,
+    pub usuario: String,
+    pub clave_plana: Option<String>,
+    pub accesos: Option<String>,
+    pub dominio: Option<String>,
 }
 
 // Domain salt: deterministic, scoped to seller password encryption.
@@ -51,19 +51,19 @@ const SELLER_SALT: &[u8] = b"taxorium::sellers::v1";
 
 pub fn core_get_sellers(db: &Connection) -> Result<Vec<Seller>, String> {
     let mut stmt = db
-        .prepare("SELECT id, first_name, last_name, username, accesses, domain, is_active FROM sellers WHERE is_active = 1")
+        .prepare("SELECT id, nombres, apellidos, usuario, accesos, dominio, activo FROM vendedores WHERE activo = 1")
         .map_err(|e| e.to_string())?;
 
     let seller_iter = stmt
         .query_map([], |row| {
             Ok(Seller {
                 id: row.get(0)?,
-                first_name: row.get(1)?,
-                last_name: row.get(2)?,
-                username: row.get(3)?,
-                accesses: row.get(4)?,
-                domain: row.get(5)?,
-                is_active: row.get(6)?,
+                nombres: row.get(1)?,
+                apellidos: row.get(2)?,
+                usuario: row.get(3)?,
+                accesos: row.get(4)?,
+                dominio: row.get(5)?,
+                activo: row.get(6)?,
             })
         })
         .map_err(|e| e.to_string())?;
@@ -80,17 +80,17 @@ pub fn core_create_seller(
     payload: CreateSellerPayload,
     device_id: &str,
 ) -> Result<Seller, String> {
-    let password_encrypted = encrypt_with_password(&payload.password_plain, device_id, SELLER_SALT)
+    let password_encrypted = encrypt_with_password(&payload.clave_plana, device_id, SELLER_SALT)
         .map_err(|e| e.to_string())?;
 
     db.execute(
-        "INSERT INTO sellers (first_name, last_name, username, password_hash, accesses, domain) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-        params![payload.first_name, payload.last_name, payload.username, password_encrypted, payload.accesses, payload.domain],
+        "INSERT INTO vendedores (nombres, apellidos, usuario, clave_cifrada, accesos, dominio) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![payload.nombres, payload.apellidos, payload.usuario, password_encrypted, payload.accesos, payload.dominio],
     )
     .map_err(|e| {
         let msg = e.to_string();
         if msg.contains("UNIQUE constraint failed") {
-            format!("El usuario '{}' ya existe. Por favor elige un nombre de usuario diferente.", payload.username)
+            format!("El usuario '{}' ya existe. Por favor elige un nombre de usuario diferente.", payload.usuario)
         } else {
             msg
         }
@@ -100,12 +100,12 @@ pub fn core_create_seller(
 
     Ok(Seller {
         id,
-        first_name: payload.first_name,
-        last_name: payload.last_name,
-        username: payload.username,
-        accesses: payload.accesses,
-        domain: payload.domain,
-        is_active: true,
+        nombres: payload.nombres,
+        apellidos: payload.apellidos,
+        usuario: payload.usuario,
+        accesos: payload.accesos,
+        dominio: payload.dominio,
+        activo: true,
     })
 }
 
@@ -115,36 +115,36 @@ pub fn core_update_seller(
     payload: UpdateSellerPayload,
     device_id: &str,
 ) -> Result<Seller, String> {
-    if let Some(pwd) = &payload.password_plain {
+    if let Some(pwd) = &payload.clave_plana {
         let password_encrypted =
             encrypt_with_password(pwd, device_id, SELLER_SALT).map_err(|e| e.to_string())?;
         db.execute(
-            "UPDATE sellers SET first_name = ?1, last_name = ?2, username = ?3, password_hash = ?4, accesses = ?5, domain = ?6 WHERE id = ?7",
-            params![payload.first_name, payload.last_name, payload.username, password_encrypted, payload.accesses, payload.domain, id],
+            "UPDATE vendedores SET nombres = ?1, apellidos = ?2, usuario = ?3, clave_cifrada = ?4, accesos = ?5, dominio = ?6 WHERE id = ?7",
+            params![payload.nombres, payload.apellidos, payload.usuario, password_encrypted, payload.accesos, payload.dominio, id],
         )
         .map_err(|e| e.to_string())?;
     } else {
         db.execute(
-            "UPDATE sellers SET first_name = ?1, last_name = ?2, username = ?3, accesses = ?4, domain = ?5 WHERE id = ?6",
-            params![payload.first_name, payload.last_name, payload.username, payload.accesses, payload.domain, id],
+            "UPDATE vendedores SET nombres = ?1, apellidos = ?2, usuario = ?3, accesos = ?4, dominio = ?5 WHERE id = ?6",
+            params![payload.nombres, payload.apellidos, payload.usuario, payload.accesos, payload.dominio, id],
         )
         .map_err(|e| e.to_string())?;
     }
 
     Ok(Seller {
         id,
-        first_name: payload.first_name,
-        last_name: payload.last_name,
-        username: payload.username,
-        accesses: payload.accesses,
-        domain: payload.domain,
-        is_active: true,
+        nombres: payload.nombres,
+        apellidos: payload.apellidos,
+        usuario: payload.usuario,
+        accesos: payload.accesos,
+        dominio: payload.dominio,
+        activo: true,
     })
 }
 
 pub fn core_delete_seller(db: &Connection, id: i64) -> Result<(), String> {
     db.execute(
-        "UPDATE sellers SET is_active = 0 WHERE id = ?1",
+        "UPDATE vendedores SET activo = 0 WHERE id = ?1",
         params![id],
     )
     .map_err(|e| e.to_string())?;
@@ -156,29 +156,29 @@ pub fn core_login_seller(
     payload: LoginSellerPayload,
     device_id: &str,
 ) -> Result<Seller, String> {
-    // Fetch the seller row by username only — never by hash in plaintext comparison
+    // Fetch the seller row by usuario only — never by hash in plaintext comparison
     let mut stmt = db
-        .prepare("SELECT id, first_name, last_name, username, password_hash, accesses, domain, is_active FROM sellers WHERE username = ?1 AND is_active = 1")
+        .prepare("SELECT id, nombres, apellidos, usuario, clave_cifrada, accesos, dominio, activo FROM vendedores WHERE usuario = ?1 AND activo = 1")
         .map_err(|e| e.to_string())?;
 
-    let result = stmt.query_row(params![payload.username], |row| {
+    let result = stmt.query_row(params![payload.usuario], |row| {
         Ok((
             Seller {
                 id: row.get(0)?,
-                first_name: row.get(1)?,
-                last_name: row.get(2)?,
-                username: row.get(3)?,
-                accesses: row.get(5)?,
-                domain: row.get(6)?,
-                is_active: row.get(7)?,
+                nombres: row.get(1)?,
+                apellidos: row.get(2)?,
+                usuario: row.get(3)?,
+                accesos: row.get(5)?,
+                dominio: row.get(6)?,
+                activo: row.get(7)?,
             },
-            row.get::<_, String>(4)?, // password_hash (now stores ciphertext)
+            row.get::<_, String>(4)?, // clave_cifrada (now stores ciphertext)
         ))
     });
 
     match result {
         Ok((seller, ciphertext)) => {
-            if verify_with_password(&payload.password_plain, &ciphertext, device_id, SELLER_SALT) {
+            if verify_with_password(&payload.clave_plana, &ciphertext, device_id, SELLER_SALT) {
                 Ok(seller)
             } else {
                 Err("Invalid credentials".into())
@@ -249,7 +249,7 @@ pub fn get_seller_password(seller_id: i64, state: State<'_, AppState>) -> Result
 
     let ciphertext: String = db
         .query_row(
-            "SELECT password_hash FROM sellers WHERE id = ?1 AND is_active = 1",
+            "SELECT clave_cifrada FROM vendedores WHERE id = ?1 AND activo = 1",
             params![seller_id],
             |row| row.get(0),
         )

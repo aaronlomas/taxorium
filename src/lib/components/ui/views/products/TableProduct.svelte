@@ -13,7 +13,7 @@
 
 	import ProductModal from './ProductModal.svelte';
 	import { productsStore, editingProduct } from '$lib/stores/products';
-	import { apiClient, type Product } from '$lib/services/apiClient';
+	import { productClient, type Product } from '$lib/services/products/clientProducts';
 	import { taxoLog } from '$lib/stores/taxoLog';
 	import { SUNAT_UNITS } from '$lib/constants/units';
 	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
@@ -23,22 +23,21 @@
 	}
 
 	let columnas = $state<ColumnConfig[]>([
-		{ id: 'internal_code', key: 'internal_code', label: 'Cód. Interno', checked: true },
-		{ id: 'unit_code', key: 'unit_code', label: 'Unidad', checked: true },
-		{ id: 'name', key: 'name', label: 'Descripción', checked: true },
-		{ id: 'stock_local', key: 'stock_local', label: 'Stock', checked: true },
-		{ id: 'price_unit_sale', key: 'price_unit_sale', label: 'P. Unitario Venta', checked: true },
+		{ id: 'codigo_interno', key: 'codigo_interno', label: 'Cód. Interno', checked: true },
+		{ id: 'codigo_unidad', key: 'codigo_unidad', label: 'Unidad', checked: true },
+		{ id: 'nombre', key: 'nombre', label: 'Descripción', checked: true },
+		{ id: 'precio_unitario_venta', key: 'precio_unitario_venta', label: 'P. Unitario Venta', checked: true },
 		{
-			id: 'price_unit_purchase',
-			key: 'price_unit_purchase',
+			id: 'precio_unitario_compra',
+			key: 'precio_unitario_compra',
 			label: 'P. Unitario Compra',
 			checked: false
 		},
-		{ id: 'currency', key: 'currency', label: 'Moneda', checked: true },
-		{ id: 'sunat_code', key: 'sunat_code', label: 'Código SUNAT', checked: false },
-		{ id: 'brand', key: 'brand', label: 'Marca', checked: false },
-		{ id: 'category', key: 'category', label: 'Categoría', checked: false },
-		{ id: 'branch', key: 'branch', label: 'Sede', checked: false }
+		{ id: 'moneda', key: 'moneda', label: 'Moneda', checked: true },
+		{ id: 'codigo_sunat', key: 'codigo_sunat', label: 'Código SUNAT', checked: false },
+		{ id: 'marca', key: 'marca', label: 'Marca', checked: false },
+		{ id: 'categoria', key: 'categoria', label: 'Categoría', checked: false },
+		{ id: 'sucursal', key: 'sucursal', label: 'Sede', checked: false }
 	]);
 
 	// Columnas visibles reactivas según TableFilter
@@ -50,9 +49,9 @@
 
 	const SEARCH_OPTIONS = [
 		{ value: '', label: 'Todos' },
-		{ value: 'name', label: 'Descripción' },
-		{ value: 'category', label: 'Categoría' },
-		{ value: 'brand', label: 'Marca' }
+		{ value: 'nombre', label: 'Descripción' },
+		{ value: 'categoria', label: 'Categoría' },
+		{ value: 'marca', label: 'Marca' }
 	];
 
 	onMount(() => {
@@ -65,21 +64,21 @@
 			if (!searchTerm.trim()) return true;
 			const term = searchTerm.toLowerCase();
 
-			if (searchBy === 'name') {
-				return p.name.toLowerCase().includes(term);
-			} else if (searchBy === 'brand') {
-				return p.brand?.toLowerCase().includes(term);
-			} else if (searchBy === 'category') {
-				return p.category?.toLowerCase().includes(term);
+			if (searchBy === 'nombre') {
+				return p.nombre.toLowerCase().includes(term);
+			} else if (searchBy === 'marca') {
+				return p.marca?.toLowerCase().includes(term);
+			} else if (searchBy === 'categoria') {
+				return p.categoria?.toLowerCase().includes(term);
 			}
 
 			// Si es 'Todos' (searchBy === '')
 			return (
-				p.name.toLowerCase().includes(term) ||
-				(p.internal_code && p.internal_code.toLowerCase().includes(term)) ||
-				(p.sunat_code && p.sunat_code.toLowerCase().includes(term)) ||
-				(p.brand && p.brand.toLowerCase().includes(term)) ||
-				(p.category && p.category.toLowerCase().includes(term))
+				p.nombre.toLowerCase().includes(term) ||
+				(p.codigo_interno && p.codigo_interno.toLowerCase().includes(term)) ||
+				(p.codigo_sunat && p.codigo_sunat.toLowerCase().includes(term)) ||
+				(p.marca && p.marca.toLowerCase().includes(term)) ||
+				(p.categoria && p.categoria.toLowerCase().includes(term))
 			);
 		})
 	);
@@ -106,11 +105,11 @@
 		}
 	}
 
-	async function handleDelete(id: number, name: string) {
-		if (confirm(`¿Estás seguro de eliminar el producto "${name}"?`)) {
+	async function handleDelete(id: number, nombre: string) {
+		if (confirm(`¿Estás seguro de eliminar el producto "${nombre}"?`)) {
 			try {
-				await apiClient.deleteProduct(id);
-				taxoLog.info(`Producto '${name}' eliminado`, 'productos');
+				await productClient.deleteProduct(id);
+				taxoLog.info(`Producto '${nombre}' eliminado`, 'productos');
 				await productsStore.load();
 			} catch (e: any) {
 				const msg = e?.message ?? 'Error al eliminar el producto';
@@ -128,12 +127,12 @@
 	function formatCellValue(product: Product, key: keyof Product): string {
 		const val = product[key];
 		if (val === null || val === undefined) return '-';
-		if (key === 'price_unit_sale' || key === 'price_unit_purchase') {
+		if (key === 'precio_unitario_venta' || key === 'precio_unitario_compra') {
 			const num = typeof val === 'number' ? val : parseFloat(String(val));
-			const symbol = CURRENCY_SYMBOL[product.currency ?? 'PEN'] ?? 'S/.';
+			const symbol = CURRENCY_SYMBOL[product.moneda ?? 'PEN'] ?? 'S/.';
 			return `${symbol} ${num.toFixed(2)}`;
 		}
-		if (key === 'currency') {
+		if (key === 'moneda') {
 			const labels: Record<string, string> = {
 				PEN: 'Soles (S/.)',
 				USD: 'Dólares ($)',
@@ -141,7 +140,7 @@
 			};
 			return labels[String(val)] ?? String(val);
 		}
-		if (key === 'unit_code') {
+		if (key === 'codigo_unidad') {
 			return getUnitDisplay(String(val));
 		}
 		if (typeof val === 'boolean') {
@@ -202,11 +201,11 @@
 				<IconSearch size={16} />
 				<input
 					type="text"
-					placeholder={searchBy === 'name'
+					placeholder={searchBy === 'nombre'
 						? 'Buscar descripción...'
-						: searchBy === 'category'
+						: searchBy === 'categoria'
 							? 'Buscar categoría...'
-							: searchBy === 'brand'
+							: searchBy === 'marca'
 								? 'Buscar marca...'
 								: 'Buscar producto...'}
 					bind:value={searchTerm}
@@ -260,7 +259,7 @@
 									</button>
 									<button
 										class="cursor-pointer text-neutral-400 transition-colors hover:text-red-400"
-										onclick={() => handleDelete(product.id, product.name)}
+										onclick={() => handleDelete(product.id, product.nombre)}
 										title="Eliminar"
 									>
 										<IconTrash size={16} />

@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import { apiClient, type Seller } from '$lib/services/apiClient';
+import { sellerClient, type Seller } from '$lib/services/sellers/clientSellers';
 
 function createSellersStore() {
 	const { subscribe, set, update } = writable<Seller[]>([]);
@@ -8,7 +8,7 @@ function createSellersStore() {
 		subscribe,
 		load: async () => {
 			try {
-				const data = await apiClient.getSellers();
+				const data = await sellerClient.getSellers();
 				set(data);
 			} catch (e) {
 				console.error('Error loading sellers:', e);

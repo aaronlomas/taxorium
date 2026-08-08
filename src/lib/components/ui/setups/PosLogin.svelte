@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { IconLock, IconArrowLeft } from '@tabler/icons-svelte';
-	import { apiClient, type Seller } from '$lib/services/apiClient';
+	import { sellerClient, type Seller } from '$lib/services/sellers/clientSellers';
 	import { sellerAuth } from '$lib/stores/sellerAuth';
 	import { configStore } from '$lib/stores/config';
 	import Input from '$lib/components/core/primitives/Input.svelte';
@@ -26,7 +26,7 @@
 		loading = true;
 		errorMsg = '';
 		try {
-			sellers = await apiClient.getSellers();
+			sellers = await sellerClient.getSellers();
 		} catch (e: any) {
 			errorMsg = e?.message || 'Error cargando los vendedores';
 		} finally {
@@ -55,8 +55,8 @@
 
 		try {
 			await sellerAuth.login({
-				username: selectedSeller.username,
-				password_plain: password
+				usuario: selectedSeller.usuario,
+				clave_plana: password
 			});
 			// Success! The activeSeller store will update, and layout will hide PosLogin
 		} catch (e: any) {
@@ -67,17 +67,17 @@
 	}
 
 	function getInitials(seller: Seller) {
-		if (seller.first_name && seller.last_name) {
-			return `${seller.first_name[0]}${seller.last_name[0]}`.toUpperCase();
+		if (seller.nombres && seller.apellidos) {
+			return `${seller.nombres[0]}${seller.apellidos[0]}`.toUpperCase();
 		}
-		return seller.username[0].toUpperCase();
+		return seller.usuario[0].toUpperCase();
 	}
 
 	function getName(seller: Seller) {
-		if (seller.first_name) {
-			return `${seller.first_name} ${seller.last_name || ''}`.trim();
+		if (seller.nombres) {
+			return `${seller.nombres} ${seller.apellidos || ''}`.trim();
 		}
-		return seller.username;
+		return seller.usuario;
 	}
 </script>
 
@@ -114,7 +114,7 @@
 							</div>
 							<div class="text-center">
 								<p class="font-medium text-neutral-200">{getName(seller)}</p>
-								<p class="text-xs text-neutral-500">{seller.domain || 'Sin caja asignada'}</p>
+								<p class="text-xs text-neutral-500">{seller.dominio || 'Sin caja asignada'}</p>
 							</div>
 						</button>
 					{/each}
@@ -136,7 +136,7 @@
 					</div>
 					<div>
 						<h2 class="text-xl font-bold text-neutral-200">{getName(selectedSeller)}</h2>
-						<p class="text-sm text-neutral-500">{selectedSeller.username}</p>
+						<p class="text-sm text-neutral-500">{selectedSeller.usuario}</p>
 					</div>
 				</div>
 

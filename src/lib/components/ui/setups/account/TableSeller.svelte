@@ -3,7 +3,7 @@
 	import { IconEye, IconEyeOff, IconTrash, IconEdit, IconSearch } from '@tabler/icons-svelte';
 	import Option from '$lib/components/core/primitives/Select.svelte';
 	import { sellersStore, editingSeller, sellerPasswordCache } from '$lib/stores/sellers';
-	import { apiClient, type Seller } from '$lib/services/apiClient';
+	import { sellerClient, type Seller } from '$lib/services/sellers/clientSellers';
 
 	const MODULOS = [
 		{ value: 'sales', label: 'Módulo de Ventas' },
@@ -26,7 +26,7 @@
 	async function deleteSeller(id: number) {
 		if (!confirm('¿Estás seguro de eliminar este vendedor?')) return;
 		try {
-			await apiClient.deleteSeller(id);
+			await sellerClient.deleteSeller(id);
 			await sellersStore.load();
 		} catch (e: any) {
 			alert(e?.message ?? 'Error al eliminar el vendedor');
@@ -37,9 +37,9 @@
 		editingSeller.set(seller);
 	}
 
-	function accessLabel(accesses?: string): string {
-		if (!accesses) return '—';
-		return accesses
+	function accessLabel(accesos?: string): string {
+		if (!accesos) return '—';
+		return accesos
 			.split(',')
 			.map((a) => MODULOS.find((m) => m.value === a.trim())?.label ?? a.trim())
 			.join(', ');
@@ -54,10 +54,10 @@
 
 	let filteredSellers = $derived($sellersStore.filter(s => {
 		const searchLower = searchQuery.toLowerCase();
-		const fullName = `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase();
-		return s.username.toLowerCase().includes(searchLower) || 
+		const fullName = `${s.nombres || ''} ${s.apellidos || ''}`.toLowerCase();
+		return s.usuario.toLowerCase().includes(searchLower) || 
 			fullName.includes(searchLower) ||
-			(s.domain || '').toLowerCase().includes(searchLower);
+			(s.dominio || '').toLowerCase().includes(searchLower);
 	}));
 </script>
 
@@ -104,8 +104,8 @@
 					{#each filteredSellers as seller, i (seller.id)}
 						<tr class="border-b border-neutral-800/50 hover:bg-neutral-800/20 last:border-0 transition-colors">
 							<td class="p-2">{i + 1}</td>
-							<td class="p-2">{seller.first_name || ''} {seller.last_name || ''}</td>
-							<td class="p-2">{seller.username}</td>
+							<td class="p-2">{seller.nombres || ''} {seller.apellidos || ''}</td>
+							<td class="p-2">{seller.usuario}</td>
 							<td class="p-2">
 								<div class="inline-flex items-center gap-2">
 									{#if $sellerPasswordCache[seller.id]}
@@ -129,11 +129,11 @@
 									{/if}
 								</div>
 							</td>
-							<td class="py-2 px-3">{seller.domain ?? '—'}</td>
-							<td class="py-2 px-3 text-xs">{accessLabel(seller.accesses)}</td>
+							<td class="py-2 px-3">{seller.dominio ?? '—'}</td>
+							<td class="py-2 px-3 text-xs">{accessLabel(seller.accesos)}</td>
 							<td class="py-2 px-3 text-center">
-								<span class={seller.is_active ? 'text-emerald-400' : 'text-neutral-500'}>
-									{seller.is_active ? 'Activo' : 'Inactivo'}
+								<span class={seller.activo ? 'text-emerald-400' : 'text-neutral-500'}>
+									{seller.activo ? 'Activo' : 'Inactivo'}
 								</span>
 							</td>
 							<td class="py-2 px-3 text-center">

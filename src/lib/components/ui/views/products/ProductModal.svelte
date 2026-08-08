@@ -10,7 +10,7 @@
 		DESTINO_AFECTACION_COMPRAS
 	} from '$lib/constants/affectionType';
 
-	import { apiClient, type CreateProductPayload } from '$lib/services/apiClient';
+	import { productClient, type CreateProductPayload } from '$lib/services/products/clientProducts';
 	import { productsStore, editingProduct } from '$lib/stores/products';
 	import { taxoLog } from '$lib/stores/taxoLog';
 
@@ -31,7 +31,7 @@
 	let hasIcbper = $state(false);
 	let marca = $state('');
 	let categoria = $state('');
-	let sede = $state('oficina-01');
+	let sede = $state('0000');
 
 	let error = $state('');
 	let loading = $state(false);
@@ -39,21 +39,21 @@
 	// Sync with editingProduct
 	$effect(() => {
 		if ($editingProduct) {
-			codigoInterno = $editingProduct.internal_code || '';
-			unidad = $editingProduct.unit_code || 'NIU';
-			descripcion = $editingProduct.name || '';
-			codigoSunat = $editingProduct.sunat_code || '';
-			codigoGsl = $editingProduct.gsl_code || '';
-			moneda = $editingProduct.currency || 'PEN';
-			precioVenta = $editingProduct.price_unit_sale ?? 0;
-			precioCompra = $editingProduct.price_unit_purchase ?? 0;
+			codigoInterno = $editingProduct.codigo_interno || '';
+			unidad = $editingProduct.codigo_unidad || 'NIU';
+			descripcion = $editingProduct.nombre || '';
+			codigoSunat = $editingProduct.codigo_sunat || '';
+			codigoGsl = $editingProduct.codigo_gsl || '';
+			moneda = $editingProduct.moneda || 'PEN';
+			precioVenta = $editingProduct.precio_unitario_venta ?? 0;
+			precioCompra = $editingProduct.precio_unitario_compra ?? 0;
 			stockMinimo = $editingProduct.stock_minimo ?? 1;
 			afectacionVenta = $editingProduct.afectacion_venta || '20';
 			afectacionCompra = $editingProduct.afectacion_compra || 'NO_GRAVADO';
-			hasIcbper = $editingProduct.has_icbper ?? false;
-			marca = $editingProduct.brand || '';
-			categoria = $editingProduct.category || '';
-			sede = $editingProduct.branch || 'oficina-01';
+			hasIcbper = $editingProduct.tiene_icbper ?? false;
+			marca = $editingProduct.marca || '';
+			categoria = $editingProduct.categoria || '';
+			sede = $editingProduct.sucursal || '0000';
 			error = '';
 		} else if (isOpen) {
 			resetForm();
@@ -75,7 +75,7 @@
 		hasIcbper = false;
 		marca = '';
 		categoria = '';
-		sede = 'oficina-01';
+		sede = '0000';
 		error = '';
 	}
 
@@ -97,29 +97,29 @@
 
 		try {
 			const payload: CreateProductPayload = {
-				internal_code: codigoInterno.trim() || undefined,
-				unit_code: validUnit.value,
-				name: descripcion.trim(),
-				sunat_code: codigoSunat.trim() || undefined,
-				gsl_code: codigoGsl.trim() || undefined,
-				currency: moneda || 'PEN',
-				price_unit_sale: window.Number(precioVenta) || 0,
-				price_unit_purchase: window.Number(precioCompra) || 0,
+				codigo_interno: codigoInterno.trim() || undefined,
+				codigo_unidad: validUnit.value,
+				nombre: descripcion.trim(),
+				codigo_sunat: codigoSunat.trim() || undefined,
+				codigo_gsl: codigoGsl.trim() || undefined,
+				moneda: moneda || 'PEN',
+				precio_unitario_venta: window.Number(precioVenta) || 0,
+				precio_unitario_compra: window.Number(precioCompra) || 0,
 				stock_minimo: window.Number(stockMinimo) || 0,
 				afectacion_venta: afectacionVenta || '20',
 				afectacion_compra: afectacionCompra || 'NO_GRAVADO',
-				has_icbper: hasIcbper,
-				brand: marca.trim() || undefined,
-				category: categoria.trim() || undefined,
-				branch: sede.trim() || undefined
+				tiene_icbper: hasIcbper,
+				marca: marca.trim() || undefined,
+				categoria: categoria.trim() || undefined,
+				sucursal: sede.trim() || undefined
 			};
 
 			if ($editingProduct) {
-				await apiClient.updateProduct($editingProduct.id, payload);
-				taxoLog.info(`Producto '${payload.name}' actualizado`, 'productos');
+				await productClient.updateProduct($editingProduct.id, payload);
+				taxoLog.info(`Producto '${payload.nombre}' actualizado`, 'productos');
 			} else {
-				await apiClient.createProduct(payload);
-				taxoLog.info(`Producto '${payload.name}' creado`, 'productos');
+				await productClient.createProduct(payload);
+				taxoLog.info(`Producto '${payload.nombre}' creado`, 'productos');
 			}
 
 			$editingProduct = null;
@@ -150,7 +150,7 @@
 	let CATEGORIAS = $derived([
 		...new Set(
 			$productsStore
-				.map((p) => p.category?.trim().toUpperCase())
+				.map((p) => p.categoria?.trim().toUpperCase())
 				.filter((c): c is string => Boolean(c))
 		)
 	]);
@@ -159,7 +159,7 @@
 	let MARCAS = $derived([
 		...new Set(
 			$productsStore
-				.map((p) => p.brand?.trim().toUpperCase())
+				.map((p) => p.marca?.trim().toUpperCase())
 				.filter((c): c is string => Boolean(c))
 		)
 	]);

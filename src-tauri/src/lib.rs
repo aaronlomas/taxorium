@@ -1,11 +1,8 @@
 mod api;
 mod config;
-mod customers;
 mod db;
 mod emit;
-mod products;
-mod sellers;
-mod units;
+mod models;
 
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager, State};

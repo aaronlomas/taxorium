@@ -3,7 +3,7 @@
 	import Button from '$lib/components/core/primitives/Button.svelte';
 	import Option from '$lib/components/core/primitives/Select.svelte';
 	import { IconLock, IconUser, IconEyeOff, IconEye } from '@tabler/icons-svelte';
-	import { apiClient, type CreateSellerPayload } from '$lib/services/apiClient';
+	import { sellerClient, type CreateSellerPayload } from '$lib/services/sellers/clientSellers';
 	import { sellersStore, editingSeller, sellerPasswordCache } from '$lib/stores/sellers';
 	import { taxoLog } from '$lib/stores/taxoLog';
 
@@ -24,22 +24,22 @@
 	let successMsg = $state('');
 
 	// Form state
-	let first_name = $state('');
-	let last_name = $state('');
-	let username = $state('');
-	let passwordPlain = $state('');
-	let selectedAccesses = $state<string>('');
-	let selectedDomain = $state<string>('');
+	let nombres = $state('');
+	let apellidos = $state('');
+	let usuario = $state('');
+	let clavePlana = $state('');
+	let accesosSeleccionados = $state<string>('');
+	let dominioSeleccionado = $state<string>('');
 
 	// Sync editing state
 	$effect(() => {
 		if ($editingSeller) {
-			first_name = $editingSeller.first_name || '';
-			last_name = $editingSeller.last_name || '';
-			username = $editingSeller.username;
-			passwordPlain = '';
-			selectedAccesses = $editingSeller.accesses ?? '';
-			selectedDomain = $editingSeller.domain ?? '';
+			nombres = $editingSeller.nombres || '';
+			apellidos = $editingSeller.apellidos || '';
+			usuario = $editingSeller.usuario;
+			clavePlana = '';
+			accesosSeleccionados = $editingSeller.accesos ?? '';
+			dominioSeleccionado = $editingSeller.dominio ?? '';
 			successMsg = '';
 			error = '';
 		} else {
@@ -49,11 +49,11 @@
 
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
-		if (!username.trim()) {
+		if (!usuario.trim()) {
 			error = 'El usuario es requerido';
 			return;
 		}
-		if (!$editingSeller && !passwordPlain.trim()) {
+		if (!$editingSeller && !clavePlana.trim()) {
 			error = 'La contraseña es requerida';
 			return;
 		}
@@ -65,31 +65,31 @@
 		try {
 			if ($editingSeller) {
 				const editId = $editingSeller.id;
-				await apiClient.updateSeller(editId, {
-					first_name: first_name || undefined,
-					last_name: last_name || undefined,
-					username,
-					password_plain: passwordPlain || undefined,
-					accesses: selectedAccesses || undefined,
-					domain: (!selectedDomain || selectedDomain === 'null') ? undefined : selectedDomain
+				await sellerClient.updateSeller(editId, {
+					nombres: nombres || undefined,
+					apellidos: apellidos || undefined,
+					usuario,
+					clave_plana: clavePlana || undefined,
+					accesos: accesosSeleccionados || undefined,
+					dominio: (!dominioSeleccionado || dominioSeleccionado === 'null') ? undefined : dominioSeleccionado
 				});
 				// Update password cache if a new password was provided
-				if (passwordPlain.trim()) {
-					sellerPasswordCache.update(cache => ({ ...cache, [editId]: passwordPlain }));
+				if (clavePlana.trim()) {
+					sellerPasswordCache.update(cache => ({ ...cache, [editId]: clavePlana }));
 				}
 				successMsg = 'Vendedor actualizado correctamente';
 			} else {
 				const payload: CreateSellerPayload = {
-					first_name: first_name || undefined,
-					last_name: last_name || undefined,
-					username,
-					password_plain: passwordPlain,
-					accesses: selectedAccesses || undefined,
-					domain: (!selectedDomain || selectedDomain === 'null') ? undefined : selectedDomain
+					nombres: nombres || undefined,
+					apellidos: apellidos || undefined,
+					usuario,
+					clave_plana: clavePlana,
+					accesos: accesosSeleccionados || undefined,
+					dominio: (!dominioSeleccionado || dominioSeleccionado === 'null') ? undefined : dominioSeleccionado
 				};
-				const newSeller = await apiClient.createSeller(payload);
+				const newSeller = await sellerClient.createSeller(payload);
 				// Store password in memory cache for display in table
-				sellerPasswordCache.update(cache => ({ ...cache, [newSeller.id]: passwordPlain }));
+				sellerPasswordCache.update(cache => ({ ...cache, [newSeller.id]: clavePlana }));
 				successMsg = 'Vendedor registrado correctamente';
 			}
 			$editingSeller = null;
@@ -105,12 +105,12 @@
 	}
 
 	function resetForm() {
-		first_name = '';
-		last_name = '';
-		username = '';
-		passwordPlain = '';
-		selectedAccesses = '';
-		selectedDomain = '';
+		nombres = '';
+		apellidos = '';
+		usuario = '';
+		clavePlana = '';
+		accesosSeleccionados = '';
+		dominioSeleccionado = '';
 	}
 </script>
 
@@ -124,10 +124,10 @@
 		class="grid grid-cols-2 gap-2 rounded-md border border-neutral-800 p-2"
 	>
 		<div class="flex flex-col">
-			<Input label="Nombres" bind:value={first_name} />
-			<Input label="Apellidos" bind:value={last_name} />
+			<Input label="Nombres" bind:value={nombres} />
+			<Input label="Apellidos" bind:value={apellidos} />
 
-			<Input label="Usuario" variant="triple" bind:value={username} placeholder="nombre@correo.com">
+			<Input label="Usuario" variant="triple" bind:value={usuario} placeholder="nombre@correo.com">
 				{#snippet icon()}<IconUser size={18} />{/snippet}
 			</Input>
 
@@ -142,14 +142,14 @@
 		</div>
 
 		<div class="flex flex-col">
-			<Option label="Asignar Accesos" options={MODULOS} bind:value={selectedAccesses} />
-			<Option label="Asignar Dominio / Puesto" options={DOMINIOS} bind:value={selectedDomain} />
+			<Option label="Asignar Accesos" options={MODULOS} bind:value={accesosSeleccionados} />
+			<Option label="Asignar Dominio / Puesto" options={DOMINIOS} bind:value={dominioSeleccionado} />
 
 			<Input
 				label="Contraseña{$editingSeller ? ' (dejar vacío para no cambiar)' : ''}"
 				variant="triple"
 				type={mostrarPassword ? 'text' : 'password'}
-				bind:value={passwordPlain}
+				bind:value={clavePlana}
 				placeholder={$editingSeller ? 'Sin cambios' : '••••••••'}
 			>
 				{#snippet icon()}<IconLock size={18} />{/snippet}

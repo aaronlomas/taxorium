@@ -6,40 +6,40 @@ use tauri::State;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Customer {
     pub id: i64,
-    pub document_type: String,
-    pub document_number: String,
-    pub name: String,
-    pub address: Option<String>,
-    pub email: Option<String>,
-    pub is_active: bool,
+    pub tipo_documento: String,
+    pub numero_documento: String,
+    pub nombre: String,
+    pub direccion: Option<String>,
+    pub correo: Option<String>,
+    pub activo: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateCustomerPayload {
-    pub document_type: String,
-    pub document_number: String,
-    pub name: String,
-    pub address: Option<String>,
-    pub email: Option<String>,
+    pub tipo_documento: String,
+    pub numero_documento: String,
+    pub nombre: String,
+    pub direccion: Option<String>,
+    pub correo: Option<String>,
 }
 
 // --- CORE LOGIC ---
 
 pub fn core_get_customers(db: &Connection) -> Result<Vec<Customer>, String> {
     let mut stmt = db
-        .prepare("SELECT id, document_type, document_number, name, address, email, is_active FROM customers WHERE is_active = 1")
+        .prepare("SELECT id, tipo_documento, numero_documento, nombre, direccion, correo, activo FROM clientes WHERE activo = 1")
         .map_err(|e| e.to_string())?;
 
     let customer_iter = stmt
         .query_map([], |row| {
             Ok(Customer {
                 id: row.get(0)?,
-                document_type: row.get(1)?,
-                document_number: row.get(2)?,
-                name: row.get(3)?,
-                address: row.get(4)?,
-                email: row.get(5)?,
-                is_active: row.get(6)?,
+                tipo_documento: row.get(1)?,
+                numero_documento: row.get(2)?,
+                nombre: row.get(3)?,
+                direccion: row.get(4)?,
+                correo: row.get(5)?,
+                activo: row.get(6)?,
             })
         })
         .map_err(|e| e.to_string())?;
@@ -56,20 +56,20 @@ pub fn core_create_customer(
     payload: CreateCustomerPayload,
 ) -> Result<Customer, String> {
     db.execute(
-        "INSERT INTO customers (document_type, document_number, name, address, email) VALUES (?1, ?2, ?3, ?4, ?5)",
-        params![payload.document_type, payload.document_number, payload.name, payload.address, payload.email],
+        "INSERT INTO clientes (tipo_documento, numero_documento, nombre, direccion, correo) VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![payload.tipo_documento, payload.numero_documento, payload.nombre, payload.direccion, payload.correo],
     ).map_err(|e| e.to_string())?;
 
     let id = db.last_insert_rowid();
 
     Ok(Customer {
         id,
-        document_type: payload.document_type,
-        document_number: payload.document_number,
-        name: payload.name,
-        address: payload.address,
-        email: payload.email,
-        is_active: true,
+        tipo_documento: payload.tipo_documento,
+        numero_documento: payload.numero_documento,
+        nombre: payload.nombre,
+        direccion: payload.direccion,
+        correo: payload.correo,
+        activo: true,
     })
 }
 
@@ -79,24 +79,24 @@ pub fn core_update_customer(
     payload: CreateCustomerPayload,
 ) -> Result<Customer, String> {
     db.execute(
-        "UPDATE customers SET document_type = ?1, document_number = ?2, name = ?3, address = ?4, email = ?5 WHERE id = ?6",
-        params![payload.document_type, payload.document_number, payload.name, payload.address, payload.email, id],
+        "UPDATE clientes SET tipo_documento = ?1, numero_documento = ?2, nombre = ?3, direccion = ?4, correo = ?5 WHERE id = ?6",
+        params![payload.tipo_documento, payload.numero_documento, payload.nombre, payload.direccion, payload.correo, id],
     ).map_err(|e| e.to_string())?;
 
     Ok(Customer {
         id,
-        document_type: payload.document_type,
-        document_number: payload.document_number,
-        name: payload.name,
-        address: payload.address,
-        email: payload.email,
-        is_active: true,
+        tipo_documento: payload.tipo_documento,
+        numero_documento: payload.numero_documento,
+        nombre: payload.nombre,
+        direccion: payload.direccion,
+        correo: payload.correo,
+        activo: true,
     })
 }
 
 pub fn core_delete_customer(db: &Connection, id: i64) -> Result<(), String> {
     db.execute(
-        "UPDATE customers SET is_active = 0 WHERE id = ?1",
+        "UPDATE clientes SET activo = 0 WHERE id = ?1",
         params![id],
     )
     .map_err(|e| e.to_string())?;

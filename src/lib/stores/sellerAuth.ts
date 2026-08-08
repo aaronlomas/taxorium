@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import { apiClient, type Seller, type LoginSellerPayload } from '$lib/services/apiClient';
+import { sellerClient, type Seller, type LoginSellerPayload } from '$lib/services/sellers/clientSellers';
 
 function createSellerAuth() {
 	// Initialize from localStorage if running in browser
@@ -13,7 +13,7 @@ function createSellerAuth() {
 		subscribe,
 		login: async (payload: LoginSellerPayload) => {
 			try {
-				const seller = await apiClient.loginSeller(payload);
+				const seller = await sellerClient.loginSeller(payload);
 				set(seller);
 				if (isBrowser) {
 					localStorage.setItem('activeSeller', JSON.stringify(seller));
