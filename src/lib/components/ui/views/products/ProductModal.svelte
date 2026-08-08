@@ -32,7 +32,6 @@
 	let marca = $state('');
 	let categoria = $state('');
 	let sede = $state('oficina-01');
-	let stockLocal = $state(0);
 
 	let error = $state('');
 	let loading = $state(false);
@@ -55,7 +54,6 @@
 			marca = $editingProduct.brand || '';
 			categoria = $editingProduct.category || '';
 			sede = $editingProduct.branch || 'oficina-01';
-			stockLocal = $editingProduct.stock_local ?? 0;
 			error = '';
 		} else if (isOpen) {
 			resetForm();
@@ -78,7 +76,6 @@
 		marca = '';
 		categoria = '';
 		sede = 'oficina-01';
-		stockLocal = 0;
 		error = '';
 	}
 
@@ -114,8 +111,7 @@
 				has_icbper: hasIcbper,
 				brand: marca.trim() || undefined,
 				category: categoria.trim() || undefined,
-				branch: sede.trim() || undefined,
-				stock_local: window.Number(stockLocal) || 0
+				branch: sede.trim() || undefined
 			};
 
 			if ($editingProduct) {
@@ -168,12 +164,13 @@
 		)
 	]);
 
-	const SEDE = [
-		{ value: 'oficina-01', label: 'Oficina Principal' },
-		{ value: 'sede-01', label: 'Sede 01' },
-		{ value: 'sede-02', label: 'Sede 02' },
-		{ value: 'almacen', label: 'Almacén' }
-	];
+const SEDE = [
+    { value: '0000', label: 'Oficina Principal' },
+    { value: '0001', label: 'Sede 01 (Sucursal)' },
+    { value: '0002', label: 'Sede 02 (Agencia)' },
+    { value: '0003', label: 'Almacén / Depósito' }
+];
+
 </script>
 
 <Modal

@@ -95,7 +95,6 @@ export interface CreateProductPayload {
 	brand?: string;
 	category?: string;
 	branch?: string;
-	stock_local: number;
 }
 
 class ApiClient {

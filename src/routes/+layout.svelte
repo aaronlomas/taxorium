@@ -38,10 +38,10 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<div class="flex flex-col h-screen w-full overflow-hidden bg-neutral-950">
+<div class="flex flex-col h-screen w-full bg-neutral-950">
 	<ResizeBorder />
 	<TitleBar />
-	<div class="flex-1 w-full h-full relative overflow-hidden">
+	<div class="flex-1 w-full h-full relative">
 		{@render children()}
 	</div>
 </div>

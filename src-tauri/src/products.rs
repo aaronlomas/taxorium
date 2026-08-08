@@ -21,7 +21,6 @@ pub struct Product {
     pub brand: Option<String>,
     pub category: Option<String>,
     pub branch: Option<String>,
-    pub stock_local: f64,
     pub is_active: bool,
 }
 
@@ -42,7 +41,6 @@ pub struct CreateProductPayload {
     pub brand: Option<String>,
     pub category: Option<String>,
     pub branch: Option<String>,
-    pub stock_local: f64,
 }
 
 // --- CORE LOGIC ---
@@ -52,7 +50,7 @@ pub fn core_get_products(db: &Connection) -> Result<Vec<Product>, String> {
         .prepare(
             "SELECT id, internal_code, unit_code, name, sunat_code, gsl_code, currency, \
              price_unit_sale, price_unit_purchase, stock_minimo, afectacion_venta, afectacion_compra, \
-             has_icbper, brand, category, branch, stock_local, is_active \
+             has_icbper, brand, category, branch, is_active \
              FROM products WHERE is_active = 1 ORDER BY id DESC",
         )
         .map_err(|e| e.to_string())?;
@@ -76,8 +74,7 @@ pub fn core_get_products(db: &Connection) -> Result<Vec<Product>, String> {
                 brand: row.get(13)?,
                 category: row.get(14)?,
                 branch: row.get(15)?,
-                stock_local: row.get(16)?,
-                is_active: row.get(17)?,
+                is_active: row.get(16)?,
             })
         })
         .map_err(|e| e.to_string())?;
@@ -96,8 +93,8 @@ pub fn core_create_product(
     db.execute(
         "INSERT INTO products (internal_code, unit_code, name, sunat_code, gsl_code, currency, \
          price_unit_sale, price_unit_purchase, stock_minimo, afectacion_venta, afectacion_compra, \
-         has_icbper, brand, category, branch, stock_local) \
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
+         has_icbper, brand, category, branch) \
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
         params![
             payload.internal_code,
             payload.unit_code,
@@ -114,7 +111,6 @@ pub fn core_create_product(
             payload.brand,
             payload.category,
             payload.branch,
-            payload.stock_local,
         ],
     )
     .map_err(|e| e.to_string())?;
@@ -138,7 +134,6 @@ pub fn core_create_product(
         brand: payload.brand,
         category: payload.category,
         branch: payload.branch,
-        stock_local: payload.stock_local,
         is_active: true,
     })
 }
@@ -152,7 +147,7 @@ pub fn core_update_product(
         "UPDATE products SET internal_code = ?1, unit_code = ?2, name = ?3, sunat_code = ?4, \
          gsl_code = ?5, currency = ?6, price_unit_sale = ?7, price_unit_purchase = ?8, stock_minimo = ?9, \
          afectacion_venta = ?10, afectacion_compra = ?11, has_icbper = ?12, brand = ?13, \
-         category = ?14, branch = ?15, stock_local = ?16 WHERE id = ?17",
+         category = ?14, branch = ?15 WHERE id = ?16",
         params![
             payload.internal_code,
             payload.unit_code,
@@ -169,7 +164,6 @@ pub fn core_update_product(
             payload.brand,
             payload.category,
             payload.branch,
-            payload.stock_local,
             id,
         ],
     )
@@ -192,7 +186,6 @@ pub fn core_update_product(
         brand: payload.brand,
         category: payload.category,
         branch: payload.branch,
-        stock_local: payload.stock_local,
         is_active: true,
     })
 }

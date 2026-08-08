@@ -157,10 +157,6 @@ fn run_migrations(conn: &Connection, app: &AppHandle) -> Result<(), String> {
         "ALTER TABLE products ADD COLUMN branch TEXT DEFAULT 'oficina-01'",
         [],
     );
-    let _ = conn.execute(
-        "ALTER TABLE products ADD COLUMN stock_local REAL DEFAULT 0",
-        [],
-    );
 
     // Migration to drop old `sku` and `price` columns which cause NOT NULL constraint failures
     let has_sku: bool = conn
@@ -194,7 +190,6 @@ fn run_migrations(conn: &Connection, app: &AppHandle) -> Result<(), String> {
             brand TEXT,
             category TEXT,
             branch TEXT DEFAULT 'oficina-01',
-            stock_local REAL NOT NULL DEFAULT 0,
             is_active BOOLEAN NOT NULL DEFAULT 1,
             FOREIGN KEY(unit_code) REFERENCES units(code)
         );",
@@ -205,12 +200,12 @@ fn run_migrations(conn: &Connection, app: &AppHandle) -> Result<(), String> {
             INSERT INTO products (
                 id, internal_code, unit_code, name, sunat_code, gsl_code, currency, 
                 price_unit_sale, price_unit_purchase, stock_minimo, afectacion_venta, afectacion_compra, 
-                has_icbper, brand, category, branch, stock_local, is_active
+                has_icbper, brand, category, branch, is_active
             )
             SELECT 
                 id, IFNULL(internal_code, sku), unit_code, name, sunat_code, gsl_code, currency, 
                 CASE WHEN price_unit_sale = 0 THEN price ELSE price_unit_sale END, price_unit_purchase, stock_minimo, afectacion_venta, afectacion_compra, 
-                has_icbper, brand, category, branch, stock_local, is_active
+                has_icbper, brand, category, branch, is_active
             FROM products_old
         ", []);
 
