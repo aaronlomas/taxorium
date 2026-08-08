@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Input from '$lib/components/core/primitives/Input.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
-	import Option from '$lib/components/core/primitives/Option.svelte';
+	import Option from '$lib/components/core/primitives/Select.svelte';
 	import { IconLock, IconUser, IconEyeOff, IconEye } from '@tabler/icons-svelte';
 	import { apiClient, type CreateSellerPayload } from '$lib/services/apiClient';
 	import { sellersStore, editingSeller, sellerPasswordCache } from '$lib/stores/sellers';

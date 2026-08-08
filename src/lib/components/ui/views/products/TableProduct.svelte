@@ -9,7 +9,7 @@
 		IconEdit
 	} from '@tabler/icons-svelte';
 	import TableFilter, { type CheckItem } from '$lib/components/core/primitives/TableFilter.svelte';
-	import Option from '$lib/components/core/primitives/Option.svelte';
+	import Option from '$lib/components/core/primitives/Select.svelte';
 
 	import ProductModal from './ProductModal.svelte';
 	import { productsStore, editingProduct } from '$lib/stores/products';
@@ -151,8 +151,9 @@
 	}
 </script>
 
-<div class="grid h-full grid-rows-[auto_1fr] gap-2 p-2 text-sm">
-	<div class="grid grid-cols-[1fr_auto] rounded-md border border-neutral-800 p-4">
+<div class="grid h-full grid-rows-[auto_1fr] gap-2 px-2 pb-2 text-sm">
+	<!-- PANEL DE CONTROLES -->
+	<div class="grid grid-cols-[1fr_auto] rounded-b-md border-x border-b border-neutral-800 p-2">
 		<div class="flex items-center gap-4">
 			<button
 				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
@@ -171,10 +172,21 @@
 				>
 					<IconDatabaseExport size={20} />Exportar
 				</button>
-				<div class="absolute left-0 top-full z-10 mt-1 hidden w-48 flex-col overflow-hidden rounded-md border border-neutral-700 bg-neutral-800 shadow-lg group-hover:flex">
-					<button class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white" onclick={() => handleExportFile('xlsx')}>Excel (.xlsx)</button>
-					<button class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white" onclick={() => handleExportFile('csv-comma')}>CSV (comas)</button>
-					<button class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white" onclick={() => handleExportFile('csv-semicolon')}>CSV (puntos y comas)</button>
+				<div
+					class="absolute top-full z-10 hidden w-48 flex-col overflow-hidden rounded-md border border-neutral-700 bg-neutral-800 shadow-lg group-hover:flex"
+				>
+					<button
+						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
+						onclick={() => handleExportFile('xlsx')}>Excel (.xlsx)</button
+					>
+					<button
+						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
+						onclick={() => handleExportFile('csv-comma')}>CSV (comas)</button
+					>
+					<button
+						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
+						onclick={() => handleExportFile('csv-semicolon')}>CSV (puntos y comas)</button
+					>
 				</div>
 			</div>
 			<TableFilter label="Columnas" bind:items={columnas} />
@@ -183,18 +195,20 @@
 		<div class="grid grid-cols-[auto_1fr] items-end gap-2">
 			<!-- Esta opcion solo filtra por categoria, marca y descripcion -->
 			<div class="w-30">
-				<Option 
-					placeholder="Buscar por:" 
-					options={SEARCH_OPTIONS} 
-					bind:value={searchBy} 
-				/>
+				<Option placeholder="Buscar por:" options={SEARCH_OPTIONS} bind:value={searchBy} />
 			</div>
 			<!-- buscador compatible con el filtro 'Buscar por:' -->
 			<div class="flex items-center rounded-lg border border-neutral-800 px-4">
 				<IconSearch size={16} />
 				<input
 					type="text"
-					placeholder={searchBy === 'name' ? 'Buscar descripción...' : searchBy === 'category' ? 'Buscar categoría...' : searchBy === 'brand' ? 'Buscar marca...' : 'Buscar producto...'}
+					placeholder={searchBy === 'name'
+						? 'Buscar descripción...'
+						: searchBy === 'category'
+							? 'Buscar categoría...'
+							: searchBy === 'brand'
+								? 'Buscar marca...'
+								: 'Buscar producto...'}
 					bind:value={searchTerm}
 					class="w-full border-0 bg-transparent text-sm focus:ring-0"
 				/>

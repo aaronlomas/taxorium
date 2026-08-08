@@ -13,7 +13,7 @@
 	import { isAuthenticated, isLoading, auth } from '$lib/stores/auth';
 	import { currentTenant, tenantLoading } from '$lib/stores/tenant';
 	import Modal from '$lib/components/core/primitives/Modal.svelte';
-	import PanelLogin from '$lib/components/setups/PanelLogin.svelte';
+	import PanelLogin from '$lib/components/ui/setups/PanelLogin.svelte';
 
 	let { seccionActiva }: { seccionActiva: 'operaciones' | 'registros' | null } = $props();
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { auth } from '$lib/stores/auth';
 	import { currentTenant, tenantStore } from '$lib/stores/tenant';
-	import StepEmpresa from '$lib/components/setups/StepEmpresa.svelte';
+	import StepEmpresa from '$lib/components/ui/setups/StepEmpresa.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
 
 	let ruc = $state($currentTenant?.ruc ?? '');

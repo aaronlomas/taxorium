@@ -2,7 +2,7 @@
 	import Modal from '$lib/components/core/primitives/Modal.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
 	import Input from '$lib/components/core/primitives/Input.svelte';
-	import Option from '$lib/components/core/primitives/Option.svelte';
+	import Option from '$lib/components/core/primitives/Select.svelte';
 	import Number from '$lib/components/core/primitives/Number.svelte';
 
 	let { isOpen = $bindable(false), onClose }: { isOpen: boolean; onClose: () => void } = $props();

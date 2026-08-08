@@ -7,7 +7,7 @@
 	import { tenantStore, currentTenant } from '$lib/stores/tenant';
 	import { sellerAuth } from '$lib/stores/sellerAuth';
 	import { configStore } from '$lib/stores/config';
-	import PosLogin from '$lib/components/setups/PosLogin.svelte';
+	import PosLogin from '$lib/components/ui/setups/PosLogin.svelte';
 	import { onMount } from 'svelte';
 	import { IconLayoutDashboard } from '@tabler/icons-svelte';
 	import Log from '$lib/components/log/TaxoLog.svelte';

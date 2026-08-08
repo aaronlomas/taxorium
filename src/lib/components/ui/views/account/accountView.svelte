@@ -1,7 +1,7 @@
 <script lang="ts">
-	import PanelPerfil from '$lib/components/setups/account/PanelPerfil.svelte';
-	import PanelSeller from '$lib/components/setups/account/PanelSeller.svelte';
-	import TableSeller from '$lib/components/setups/account/TableSeller.svelte';
+	import PanelPerfil from '$lib/components/ui/setups/account/PanelPerfil.svelte';
+	import PanelSeller from '$lib/components/ui/setups/account/PanelSeller.svelte';
+	import TableSeller from '$lib/components/ui/setups/account/TableSeller.svelte';
 </script>
 
 <div class="grid h-full grid-cols-[1fr_auto] grid-rows-[auto_auto_1fr]">

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Option from '$lib/components/core/primitives/Option.svelte';
+	import Option from '$lib/components/core/primitives/Select.svelte';
 	import Input from '$lib/components/core/primitives/Input.svelte';
 	import Fecha from '$lib/components/core/primitives/InputData.svelte';
 	import TableSales from './TableSales.svelte';

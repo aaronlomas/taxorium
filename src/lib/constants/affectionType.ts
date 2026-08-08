@@ -1,4 +1,4 @@
-// CATÁLOGO REAL DE TIPO DE AFECTACIÓN EN VENTAS SEGÚN SUNAT
+// CATÁLOGO Nro 7 DE TIPO DE AFECTACIÓN EN VENTAS
 export const TIPOS_AFECTACION_VENTAS = [
 	{ id: '10', value: '10', label: 'Gravado - Op. Onerosa (IGV 18%)' },
 	{ id: '20', value: '20', label: 'Exonerado - Op. Onerosa (IGV 0%)' },
@@ -7,7 +7,8 @@ export const TIPOS_AFECTACION_VENTAS = [
 	{ id: '31', value: '31', label: 'Inafecto - Retiro (Transferencia Gratuita)' }
 ];
 
-// CATÁLOGO REAL DE TIPO DE AFECTACIÓN EN COMPRAS
+// CLASIFICACIÓN DE DESTINO DE COMPRAS (SIRE - RCE)
+// Determina si el IGV de la compra va a Crédito Fiscal, Prorrata, Costo/Gasto o No Gravado.
 export const DESTINO_AFECTACION_COMPRAS = [
 	{
 		value: 'GRAVADO_V_GRAVADO',

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { IconEye, IconEyeOff, IconTrash, IconEdit, IconSearch } from '@tabler/icons-svelte';
-	import Option from '$lib/components/core/primitives/Option.svelte';
+	import Option from '$lib/components/core/primitives/Select.svelte';
 	import { sellersStore, editingSeller, sellerPasswordCache } from '$lib/stores/sellers';
 	import { apiClient, type Seller } from '$lib/services/apiClient';
 
@@ -12,9 +12,9 @@
 	];
 
 	const VENDEDORES = [
-		{ value: '', label: 'Apellido' },
-		{ value: '', label: 'Nombre' },
-		{ value: '', label: 'Puesto' }
+		{ value: 'apellido', label: 'Apellido' },
+		{ value: 'nombre', label: 'Nombre' },
+		{ value: 'puesto', label: 'Puesto' }
 	];
 
 	let searchQuery = $state('');
@@ -75,7 +75,7 @@
 					type="text"
 					placeholder="Buscar por usuario o dominio..."
 					bind:value={searchQuery}
-					class="w-full py-1.5 px-2 border-0 text-sm bg-transparent text-neutral-200 outline-none focus:ring-0"
+					class="w-full px-2 border-0 text-sm bg-transparent text-neutral-200 outline-none focus:ring-0"
 				/>
 			</div>
 		</div>

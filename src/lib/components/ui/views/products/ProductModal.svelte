@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Modal from '$lib/components/core/primitives/Modal.svelte';
 	import Number from '$lib/components/core/primitives/Number.svelte';
-	import Option from '$lib/components/core/primitives/Option.svelte';
+	import Select from '$lib/components/core/primitives/Select.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
 	import Input from '$lib/components/core/primitives/Input.svelte';
 	import { SUNAT_UNITS } from '$lib/constants/units';
@@ -181,13 +181,13 @@
 	onClose={handleCloseModal}
 	title={$editingProduct ? 'Editar Producto' : 'Registrar Producto'}
 >
-	<div class="grid h-full w-190 grid-cols-4 grid-rows-6 gap-2 p-2">
+	<div class="grid h-full w-190 grid-cols-4 grid-rows-5 gap-2 p-2">
 		<!-- Cuerpo del Modal (Grid Layout de 4 columnas) -->
 
 		<!-- Fila 1 -->
 		<Input id="codigoInterno" label="Código Interno" variant="simple" bind:value={codigoInterno} />
 
-		<Option id="unidad" label="Unidad" bind:value={unidad} options={SUNAT_UNITS} editable={true} />
+		<Select id="unidad" label="Unidad" bind:value={unidad} options={SUNAT_UNITS} />
 
 		<div class="col-span-2">
 			<Input
@@ -204,7 +204,7 @@
 
 		<Input id="codigoGsl" label="Código GSL" variant="simple" bind:value={codigoGsl} />
 
-		<Option id="moneda" label="Moneda" bind:value={moneda} options={TIPO_MONEDA} />
+		<Select id="moneda" label="Moneda" bind:value={moneda} options={TIPO_MONEDA} />
 
 		<Number id="precioVenta" label="Precio Unitario (Venta)" bind:value={precioVenta} />
 
@@ -215,7 +215,7 @@
 
 		<!-- TIPO DE AFECTACION EN VENTAS -->
 		<div class="col-span-2">
-			<Option
+			<Select
 				id="afectacionVenta"
 				label="Tipo de afectación (Venta)"
 				bind:value={afectacionVenta}
@@ -225,7 +225,7 @@
 
 		<!-- TIPO DE AFECTACION EN COMPRAS -->
 		<div class="col-span-2">
-			<Option
+			<Select
 				id="afectacionCompra"
 				label="Tipo de afectación (Compra)"
 				bind:value={afectacionCompra}
@@ -245,27 +245,20 @@
 		</div>
 
 		<!-- Fila 5 -->
-		<div class="col-span-2">
-			<Option id="marca" label="Marca" editable={true} bind:value={marca} options={MARCAS} />
-		</div>
 
-		<div class="col-span-2">
-			<Option
-				id="categoria"
-				label="Categoría"
-				editable={true}
-				bind:value={categoria}
-				options={CATEGORIAS}
-			/>
-		</div>
+		<Select id="marca" label="Marca" editable={true} bind:value={marca} options={MARCAS} />
+
+		<Select
+			id="categoria"
+			label="Categoría"
+			editable={true}
+			bind:value={categoria}
+			options={CATEGORIAS}
+		/>
 
 		<!-- Fila 6 -->
 		<div class="col-span-2">
-			<Option id="sede" options={SEDE} editable={true} label="Sede" bind:value={sede} />
-		</div>
-
-		<div class="col-span-2">
-			<Number id="stockLocal" label="Stock Local" bind:value={stockLocal} />
+			<Select id="sede" options={SEDE} editable={true} label="Sede" bind:value={sede} />
 		</div>
 	</div>
 

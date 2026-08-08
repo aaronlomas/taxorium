@@ -36,7 +36,7 @@
 
 	let isOpen = $state(false);
 	let wrapperElement: HTMLDivElement | undefined = $state();
-	let displayValue = $state('');
+	let searchInput = $state(''); // Captura lo que el usuario digita de forma independiente
 
 	let normalizedOptions = $derived(
 		options.map((opt) => {
@@ -48,28 +48,33 @@
 		})
 	);
 
-	// Sincronizar el texto del input/select con el 'value' externo
-	$effect(() => {
+	// Calcula dinámicamente qué mostrar en el input sin provocar bucles de efectos
+	let displayValue = $derived.by(() => {
+		if (editable && isOpen) return searchInput;
 		const matchedOption = normalizedOptions.find((opt) => opt.value === value);
-		displayValue = matchedOption ? matchedOption.label : String(value ?? '');
+		return matchedOption ? matchedOption.label : String(value ?? '');
 	});
 
-	// Filtrar la lista si está en modo editable y el usuario está escribiendo
+	// Filtrar la lista si está en modo editable y el usuario está escribiendo usando el buscador reactivo
 	let filteredOptions = $derived(
-		editable && filterOptions && displayValue && isOpen
-			? normalizedOptions.filter((opt) => opt.label.toLowerCase().includes(displayValue.toLowerCase()))
+		editable && filterOptions && searchInput && isOpen
+			? normalizedOptions.filter((opt) => opt.label.toLowerCase().includes(searchInput.toLowerCase()))
 			: normalizedOptions
 	);
 
 	let selectedLabel = $derived(normalizedOptions.find((opt) => opt.value === value)?.label || placeholder);
 
 	function toggle() {
+		if (!isOpen && editable) {
+			const matched = normalizedOptions.find((opt) => opt.value === value);
+			searchInput = matched ? matched.label : String(value ?? '');
+		}
 		isOpen = !isOpen;
 	}
 
 	function selectOption(option: OptionItem) {
 		value = option.value;
-		displayValue = option.label;
+		searchInput = option.label;
 		isOpen = false;
 	}
 
@@ -77,8 +82,8 @@
 		if (!editable) return;
 		const target = event.target as HTMLInputElement;
 		// Forzar a mayúsculas por seguridad/estandarización en DB
-		displayValue = target.value.toUpperCase();
-		value = displayValue;
+		searchInput = target.value.toUpperCase();
+		value = searchInput;
 		isOpen = true;
 	}
 
@@ -111,7 +116,7 @@
 					type="text"
 					value={displayValue}
 					oninput={handleInput}
-					onfocus={() => (isOpen = true)}
+					onfocus={() => { isOpen = true; const matched = normalizedOptions.find((opt) => opt.value === value); searchInput = matched ? matched.label : String(value ?? ''); }}
 					{placeholder}
 					class="h-9 w-full border-0 bg-transparent text-sm text-neutral-100 placeholder-neutral-500 focus:ring-0"
 				/>
@@ -169,4 +174,3 @@
 		<span class="mt-1 text-xs text-red-500">{error}</span>
 	{/if}
 </div>
-
