@@ -4,15 +4,12 @@
 	import Select from '$lib/components/core/primitives/Select.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
 	import Input from '$lib/components/core/primitives/Input.svelte';
-	import { SUNAT_UNITS } from '$lib/constants/units';
-	import {
-		TIPOS_AFECTACION_VENTAS,
-		DESTINO_AFECTACION_COMPRAS
-	} from '$lib/constants/affectionType';
 
 	import { productClient, type CreateProductPayload } from '$lib/services/products/clientProducts';
 	import { productsStore, editingProduct } from '$lib/stores/products';
+	import { catalogoStore, monedasOptions, unidadesOptions, sedesOptions, afectacionesVentaOptions, afectacionesCompraOptions } from '$lib/stores/catalogos';
 	import { taxoLog } from '$lib/stores/taxoLog';
+	import { onMount } from 'svelte';
 
 	let { isOpen = $bindable(false), onClose }: { isOpen: boolean; onClose: () => void } = $props();
 
@@ -53,11 +50,15 @@
 			hasIcbper = $editingProduct.tiene_icbper ?? false;
 			marca = $editingProduct.marca || '';
 			categoria = $editingProduct.categoria || '';
-			sede = $editingProduct.sucursal || '0000';
+			sede = $editingProduct.codigo_sede || '0000';
 			error = '';
 		} else if (isOpen) {
 			resetForm();
 		}
+	});
+
+	onMount(() => {
+		catalogoStore.load();
 	});
 
 	function resetForm() {
@@ -86,7 +87,7 @@
 		}
 
 		// Validar que la unidad sea estrictamente una de las permitidas
-		const validUnit = SUNAT_UNITS.find((u) => u.value === unidad || u.label === unidad);
+		const validUnit = $unidadesOptions.find((u) => u.value === unidad || u.label === unidad);
 		if (!validUnit) {
 			error = 'Por favor, seleccione una Unidad válida de la lista desplegable.';
 			return;
@@ -111,7 +112,7 @@
 				tiene_icbper: hasIcbper,
 				marca: marca.trim() || undefined,
 				categoria: categoria.trim() || undefined,
-				sucursal: sede.trim() || undefined
+				codigo_sede: sede.trim() || undefined
 			};
 
 			if ($editingProduct) {
@@ -141,11 +142,6 @@
 		onClose();
 	}
 
-	const TIPO_MONEDA = [
-		{ value: 'PEN', label: 'Soles' },
-		{ value: 'USD', label: 'Dólares' }
-	];
-
 	// Extraer categorías únicas de la base de datos de productos (en mayúsculas por convención)
 	let CATEGORIAS = $derived([
 		...new Set(
@@ -164,13 +160,6 @@
 		)
 	]);
 
-const SEDE = [
-    { value: '0000', label: 'Oficina Principal' },
-    { value: '0001', label: 'Sede 01 (Sucursal)' },
-    { value: '0002', label: 'Sede 02 (Agencia)' },
-    { value: '0003', label: 'Almacén / Depósito' }
-];
-
 </script>
 
 <Modal
@@ -184,7 +173,7 @@ const SEDE = [
 		<!-- Fila 1 -->
 		<Input id="codigoInterno" label="Código Interno" variant="simple" bind:value={codigoInterno} />
 
-		<Select id="unidad" label="Unidad" bind:value={unidad} options={SUNAT_UNITS} />
+		<Select id="unidad" label="Unidad" bind:value={unidad} options={$unidadesOptions} editable={true} />
 
 		<div class="col-span-2">
 			<Input
@@ -201,7 +190,7 @@ const SEDE = [
 
 		<Input id="codigoGsl" label="Código GSL" variant="simple" bind:value={codigoGsl} />
 
-		<Select id="moneda" label="Moneda" bind:value={moneda} options={TIPO_MONEDA} />
+		<Select id="moneda" label="Moneda" bind:value={moneda} options={$monedasOptions} />
 
 		<Number id="precioVenta" label="Precio Unitario (Venta)" bind:value={precioVenta} />
 
@@ -216,7 +205,7 @@ const SEDE = [
 				id="afectacionVenta"
 				label="Tipo de afectación (Venta)"
 				bind:value={afectacionVenta}
-				options={TIPOS_AFECTACION_VENTAS}
+				options={$afectacionesVentaOptions}
 			/>
 		</div>
 
@@ -226,7 +215,7 @@ const SEDE = [
 				id="afectacionCompra"
 				label="Tipo de afectación (Compra)"
 				bind:value={afectacionCompra}
-				options={DESTINO_AFECTACION_COMPRAS}
+				options={$afectacionesCompraOptions}
 			/>
 		</div>
 
@@ -255,7 +244,13 @@ const SEDE = [
 
 		<!-- Fila 6 -->
 		<div class="col-span-2">
-			<Select id="sede" options={SEDE} editable={true} label="Sede" bind:value={sede} />
+			<Select
+				id="sede"
+				options={$sedesOptions}
+				editable={true}
+				label="Sede"
+				bind:value={sede}
+			/>
 		</div>
 	</div>
 

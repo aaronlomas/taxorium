@@ -267,7 +267,7 @@ pub const UNITS: &[Unit] = &[
     },
     Unit {
         codigo: "NIU",
-        descripcion: "UNIDAD (BIENES)",
+        descripcion: "UNIDAD",
         simbolo: "UND",
     },
     Unit {

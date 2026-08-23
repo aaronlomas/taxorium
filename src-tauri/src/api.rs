@@ -1,22 +1,29 @@
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    routing::{delete, get, post, put},
+    routing::{get, post, put},
     Json, Router,
 };
 use tauri::{AppHandle, Manager};
 use tower_http::cors::{Any, CorsLayer};
 
-use crate::customers::{
+use crate::emit;
+use crate::models::catalogos::{
+    core_get_afectaciones_compra, core_get_afectaciones_venta, core_get_monedas,
+    core_get_sedes, core_get_tipos_comprobante, core_get_tipos_operacion, core_get_tipos_pago,
+    core_get_unidades, CatalogoAfectacion, CatalogoMoneda, CatalogoSede, CatalogoTipoComprobante,
+    CatalogoTipoOperacion, CatalogoTipoPago, CatalogoUnidad,
+};
+use crate::models::series::{core_get_series, Serie};
+use crate::models::customers::{
     core_create_customer, core_delete_customer, core_get_customers, core_update_customer,
     CreateCustomerPayload, Customer,
 };
-use crate::emit;
-use crate::products::{
+use crate::models::products::{
     core_create_product, core_delete_product, core_get_products, core_update_product,
     CreateProductPayload, Product,
 };
-use crate::sellers::{
+use crate::models::sellers::{
     core_create_seller, core_delete_seller, core_get_sellers, core_login_seller,
     core_update_seller, CreateSellerPayload, LoginSellerPayload, Seller, UpdateSellerPayload,
 };
@@ -50,6 +57,18 @@ pub fn build_router(app: AppHandle) -> Router {
             "/api/products/:id",
             put(update_product_api).delete(delete_product_api),
         )
+        .route("/api/monedas", get(get_monedas_api))
+        .route("/api/unidades", get(get_unidades_api))
+        .route("/api/sedes", get(get_sedes_api))
+        .route("/api/afectaciones/venta", get(get_afectaciones_venta_api))
+        .route(
+            "/api/afectaciones/compra",
+            get(get_afectaciones_compra_api),
+        )
+        .route("/api/tipos_operacion", get(get_tipos_operacion_api))
+        .route("/api/tipos_pago", get(get_tipos_pago_api))
+        .route("/api/tipos_comprobante", get(get_tipos_comprobante_api))
+        .route("/api/series", get(get_series_api))
         .with_state(ApiState { app })
         .layer(cors)
 }
@@ -212,4 +231,69 @@ async fn delete_product_api(
 ) -> Result<StatusCode, (StatusCode, String)> {
     run_db_task(state, move |db| core_delete_product(db, id)).await?;
     Ok(StatusCode::NO_CONTENT)
+}
+
+// --- Catálogos (sembrados desde la base de datos) ---
+
+async fn get_monedas_api(
+    state: State<ApiState>,
+) -> Result<Json<Vec<CatalogoMoneda>>, (StatusCode, String)> {
+    let items = run_db_task(state, |db| core_get_monedas(db)).await?;
+    Ok(Json(items))
+}
+
+async fn get_unidades_api(
+    state: State<ApiState>,
+) -> Result<Json<Vec<CatalogoUnidad>>, (StatusCode, String)> {
+    let items = run_db_task(state, |db| core_get_unidades(db)).await?;
+    Ok(Json(items))
+}
+
+async fn get_sedes_api(
+    state: State<ApiState>,
+) -> Result<Json<Vec<CatalogoSede>>, (StatusCode, String)> {
+    let items = run_db_task(state, |db| core_get_sedes(db)).await?;
+    Ok(Json(items))
+}
+
+async fn get_afectaciones_venta_api(
+    state: State<ApiState>,
+) -> Result<Json<Vec<CatalogoAfectacion>>, (StatusCode, String)> {
+    let items = run_db_task(state, |db| core_get_afectaciones_venta(db)).await?;
+    Ok(Json(items))
+}
+
+async fn get_afectaciones_compra_api(
+    state: State<ApiState>,
+) -> Result<Json<Vec<CatalogoAfectacion>>, (StatusCode, String)> {
+    let items = run_db_task(state, |db| core_get_afectaciones_compra(db)).await?;
+    Ok(Json(items))
+}
+
+async fn get_tipos_operacion_api(
+    state: State<ApiState>,
+) -> Result<Json<Vec<CatalogoTipoOperacion>>, (StatusCode, String)> {
+    let items = run_db_task(state, |db| core_get_tipos_operacion(db)).await?;
+    Ok(Json(items))
+}
+
+async fn get_tipos_pago_api(
+    state: State<ApiState>,
+) -> Result<Json<Vec<CatalogoTipoPago>>, (StatusCode, String)> {
+    let items = run_db_task(state, |db| core_get_tipos_pago(db)).await?;
+    Ok(Json(items))
+}
+
+async fn get_tipos_comprobante_api(
+    state: State<ApiState>,
+) -> Result<Json<Vec<CatalogoTipoComprobante>>, (StatusCode, String)> {
+    let items = run_db_task(state, |db| core_get_tipos_comprobante(db)).await?;
+    Ok(Json(items))
+}
+
+async fn get_series_api(
+    state: State<ApiState>,
+) -> Result<Json<Vec<Serie>>, (StatusCode, String)> {
+    let items = run_db_task(state, |db| core_get_series(db)).await?;
+    Ok(Json(items))
 }

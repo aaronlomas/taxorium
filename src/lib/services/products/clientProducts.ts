@@ -16,7 +16,7 @@ export interface Product {
 	tiene_icbper: boolean;
 	marca?: string;
 	categoria?: string;
-	sucursal?: string;
+	codigo_sede?: string;
 	activo: boolean;
 }
 
@@ -35,7 +35,7 @@ export interface CreateProductPayload {
 	tiene_icbper: boolean;
 	marca?: string;
 	categoria?: string;
-	sucursal?: string;
+	codigo_sede?: string;
 }
 
 class ProductClient extends ApiClient {

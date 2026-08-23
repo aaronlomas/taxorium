@@ -4,49 +4,28 @@
 	import Fecha from '$lib/components/core/primitives/InputData.svelte';
 	import TableSales from './TableSales.svelte';
 	import SalesSummary from './SalesDetails.svelte';
+	import { onMount } from 'svelte';
+	import {
+		catalogoStore,
+		seriesOptions,
+		sedesOptions,
+		tiposOperacionOptions,
+		monedasOptions,
+		tiposPagoOptions,
+		tiposComprobanteOptions
+	} from '$lib/stores/catalogos';
 
-	// TIPOS DE COMPROBANTE SEGUN SUNAT
-	const tipoDeComprobante = [
-		{ value: '03', label: 'Boleta de Venta Electrónica' },
-		{ value: '01', label: 'Factura Electrónica' }
-	];
+	onMount(() => {
+		catalogoStore.load();
+	});
+
+	// Valores por defecto
 	let comprobanteSeleccionado = '01';
-
-	//SERIES SEGUN SUNAT
-	const series = [
-		{ value: 'F001', label: 'F001' },
-		{ value: 'B001', label: 'B001' }
-	];
-	let serieSeleccionada = 'B001'; // por defecto
-
-	//ESTABLECIMIENTOS
-	const establecimientos = [
-		{ value: '001', label: 'Oficina Principal' },
-		{ value: '002', label: 'Establecimiento 002' },
-		{ value: '003', label: 'Establecimiento 003' }
-	];
-	let establecimientoPrincipal = '001'; // por defecto
-
-	// TIPO DE OPERACION SEGUN SUNAT
-	const tiposDeOperacion = [
-		{ value: '0101', label: 'Venta Interna' },
-		{ value: '0102', label: 'Venta Interna - Anticipos' }
-	];
-	let operacionSeleccionada = '0101'; // por defecto
-
-	//TIPO DE MONEDA SEGUN SUNAT
-	const tipoDeMoneda = [
-		{ value: 'PEN', label: 'Soles' },
-		{ value: 'USD', label: 'Dólares' }
-	];
-  let monedaSeleccionada = 'PEN'
-
-  //TIPO DE PAGO SEGÚN SUNAT
-  const tipoDePago = [
-    {value: 'Contado', label: 'Contado'},
-    {value: 'Credito', label: 'Crédito'}
-  ]
-  let pagoSeleccionado = 'Contado'
+	let serieSeleccionada = 'F001';
+	let establecimientoPrincipal = '0000';
+	let operacionSeleccionada = '0101';
+	let monedaSeleccionada = 'PEN';
+	let pagoSeleccionado = 'Contado';
 </script>
 
 <div class="m-4">
@@ -61,14 +40,14 @@
 		<div class="border-r border-r-neutral-800 p-4">
 			<Option
 				id="tipoComprobante"
-				options={tipoDeComprobante}
+				options={$tiposComprobanteOptions}
         label="Tipo de Comprobante"
 				bind:value={comprobanteSeleccionado}
 			/>
 
 			<Option id="seleccionarCliente" label="Seleccionar Cliente" />
 
-			<Option id="tipoPago" label="Tipo de Pago" options={tipoDePago} bind:value={pagoSeleccionado}/>
+			<Option id="tipoPago" label="Tipo de Pago" options={$tiposPagoOptions} bind:value={pagoSeleccionado}/>
 
 			<Input id="infoAdicional" label="Información Adicional"/>
 		</div>
@@ -78,11 +57,11 @@
 
 		<div class="grid grid-cols-2 gap-4 p-4">
 			<div class="flex flex-col">
-				<Option id="serie" label="Serie" options={series} bind:value={serieSeleccionada} />
+				<Option id="serie" label="Serie" options={$seriesOptions} bind:value={serieSeleccionada} />
 
-				<Option id="tipoOperacion" label="Tipo de Operación" options={tiposDeOperacion} bind:value={operacionSeleccionada} />
+				<Option id="tipoOperacion" label="Tipo de Operación" options={$tiposOperacionOptions} bind:value={operacionSeleccionada} />
 
-        <Option id="moneda" label="Moneda" options={tipoDeMoneda} bind:value={monedaSeleccionada}/>
+        <Option id="moneda" label="Moneda" options={$monedasOptions} bind:value={monedaSeleccionada}/>
 
 				<Input id="tipoCambio" label="Orden de Compra"/>
 			</div>
@@ -95,7 +74,7 @@
 				<Option
 					id="establecimiento"
           label="Establecimiento"
-					options={establecimientos}
+					options={$sedesOptions}
 					bind:value={establecimientoPrincipal}
 				/>
 

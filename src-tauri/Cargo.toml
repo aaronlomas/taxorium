@@ -16,8 +16,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2.6.3", features = [] }
 
 [dependencies]
-rusqlite = { version = "0.31", features = ["bundled"] }
-rusqlite_migration = "1.1"
+rusqlite_migration = "1.2"
 boveda-core = { path = "/home/us-dala/Escritorio/boveda-core" }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }

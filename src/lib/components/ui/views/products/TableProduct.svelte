@@ -9,13 +9,14 @@
 		IconEdit
 	} from '@tabler/icons-svelte';
 	import TableFilter, { type CheckItem } from '$lib/components/core/primitives/TableFilter.svelte';
+	import TableToolbar from '$lib/components/core/primitives/TableToolbar.svelte';
 	import Option from '$lib/components/core/primitives/Select.svelte';
 
 	import ProductModal from './ProductModal.svelte';
 	import { productsStore, editingProduct } from '$lib/stores/products';
 	import { productClient, type Product } from '$lib/services/products/clientProducts';
 	import { taxoLog } from '$lib/stores/taxoLog';
-	import { SUNAT_UNITS } from '$lib/constants/units';
+	import { catalogoStore, getUnitDisplay } from '$lib/stores/catalogos';
 	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
 
 	interface ColumnConfig extends CheckItem {
@@ -26,7 +27,12 @@
 		{ id: 'codigo_interno', key: 'codigo_interno', label: 'Cód. Interno', checked: true },
 		{ id: 'codigo_unidad', key: 'codigo_unidad', label: 'Unidad', checked: true },
 		{ id: 'nombre', key: 'nombre', label: 'Descripción', checked: true },
-		{ id: 'precio_unitario_venta', key: 'precio_unitario_venta', label: 'P. Unitario Venta', checked: true },
+		{
+			id: 'precio_unitario_venta',
+			key: 'precio_unitario_venta',
+			label: 'P. Unitario Venta',
+			checked: true
+		},
 		{
 			id: 'precio_unitario_compra',
 			key: 'precio_unitario_compra',
@@ -37,7 +43,7 @@
 		{ id: 'codigo_sunat', key: 'codigo_sunat', label: 'Código SUNAT', checked: false },
 		{ id: 'marca', key: 'marca', label: 'Marca', checked: false },
 		{ id: 'categoria', key: 'categoria', label: 'Categoría', checked: false },
-		{ id: 'sucursal', key: 'sucursal', label: 'Sede', checked: false }
+		{ id: 'codigo_sede', key: 'codigo_sede', label: 'Sede', checked: false }
 	]);
 
 	// Columnas visibles reactivas según TableFilter
@@ -56,6 +62,7 @@
 
 	onMount(() => {
 		productsStore.load();
+		catalogoStore.load();
 	});
 
 	// Filtrado de lista por término de búsqueda y por campo
@@ -82,11 +89,6 @@
 			);
 		})
 	);
-
-	function getUnitDisplay(code: string): string {
-		const found = SUNAT_UNITS.find((u) => u.value === code);
-		return found ? `${found.value} (${found.symbol || found.value})` : code;
-	}
 
 	function handleAdd() {
 		$editingProduct = null;

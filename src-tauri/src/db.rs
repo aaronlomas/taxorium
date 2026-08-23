@@ -1,7 +1,10 @@
 use crate::emit;
-use crate::monedas::TIPO_MONEDA;
-use crate::sedes::SEDES;
-use crate::units::UNITS;
+use crate::models::afectaciones::{DESTINO_AFECTACION_COMPRAS, TIPOS_AFECTACION_VENTAS};
+use crate::models::branch::SEDES;
+use crate::models::catalogos::{TIPOS_COMPROBANTE, TIPOS_OPERACION, TIPOS_PAGO};
+use crate::models::currency::TIPO_MONEDA;
+use crate::models::series::SERIES_DEFECTO;
+use crate::models::units::UNITS;
 use rusqlite::{params, Connection};
 use rusqlite_migration::{Migrations, M};
 use std::fs;
@@ -11,6 +14,24 @@ fn obtener_migraciones() -> Migrations<'static> {
     Migrations::new(vec![
         M::up(include_str!("../migrations/01_esquema_inicial.sql")),
     ])
+}
+
+#[cfg(test)]
+mod tests {
+    use super::obtener_migraciones;
+
+    #[test]
+    fn migraciones_validas() {
+        let migraciones = obtener_migraciones();
+        assert!(migraciones.validate().is_ok());
+    }
+
+    #[test]
+    fn migraciones_aplican_en_memoria() {
+        let migraciones = obtener_migraciones();
+        let mut conn = rusqlite::Connection::open_in_memory().unwrap();
+        migraciones.to_latest(&mut conn).unwrap();
+    }
 }
 
 pub fn init_db(app: &AppHandle, password: &str) -> Result<Connection, String> {
@@ -45,6 +66,11 @@ pub fn init_db(app: &AppHandle, password: &str) -> Result<Connection, String> {
     seed_monedas(&mut conn, app)?;
     seed_units(&mut conn, app)?;
     seed_sedes(&mut conn, app)?;
+    seed_afectaciones(&mut conn, app)?;
+    seed_tipos_operacion(&mut conn, app)?;
+    seed_tipos_pago(&mut conn, app)?;
+    seed_tipos_comprobante(&mut conn, app)?;
+    seed_series(&mut conn, app)?;
 
     Ok(conn)
 }
@@ -134,5 +160,154 @@ fn seed_sedes(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
     tx.commit().map_err(|e| e.to_string())?;
 
     emit::info(app, "db", format!("Se sembraron {} sedes", SEDES.len()));
+    Ok(())
+}
+
+fn seed_afectaciones(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
+    // 1. Sembrar Afectaciones de Venta
+    let count_v: i64 = conn
+        .query_row("SELECT COUNT(*) FROM afectaciones_venta", [], |row| row.get(0))
+        .unwrap_or(0);
+
+    if count_v == 0 {
+        let tx = conn.transaction().map_err(|e| e.to_string())?;
+        {
+            let mut stmt = tx
+                .prepare("INSERT INTO afectaciones_venta (codigo, descripcion) VALUES (?1, ?2)")
+                .map_err(|e| e.to_string())?;
+
+            for item in TIPOS_AFECTACION_VENTAS {
+                stmt.execute(params![item.codigo, item.descripcion])
+                    .map_err(|e| e.to_string())?;
+            }
+        }
+        tx.commit().map_err(|e| e.to_string())?;
+    }
+
+    // 2. Sembrar Afectaciones de Compra
+    let count_c: i64 = conn
+        .query_row("SELECT COUNT(*) FROM afectaciones_compra", [], |row| row.get(0))
+        .unwrap_or(0);
+
+    if count_c == 0 {
+        let tx = conn.transaction().map_err(|e| e.to_string())?;
+        {
+            let mut stmt = tx
+                .prepare("INSERT INTO afectaciones_compra (codigo, descripcion) VALUES (?1, ?2)")
+                .map_err(|e| e.to_string())?;
+
+            for item in DESTINO_AFECTACION_COMPRAS {
+                stmt.execute(params![item.codigo, item.descripcion])
+                    .map_err(|e| e.to_string())?;
+            }
+        }
+        tx.commit().map_err(|e| e.to_string())?;
+    }
+
+    emit::info(app, "db", "Se sembraron los catálogos de afectación de ventas y compras SUNAT".to_string());
+    Ok(())
+}
+
+fn seed_tipos_operacion(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
+    let count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM tipos_operacion", [], |row| row.get(0))
+        .unwrap_or(0);
+
+    if count > 0 {
+        return Ok(());
+    }
+
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+    {
+        let mut stmt = tx
+            .prepare("INSERT INTO tipos_operacion (codigo, descripcion) VALUES (?1, ?2)")
+            .map_err(|e| e.to_string())?;
+
+        for item in TIPOS_OPERACION {
+            stmt.execute(params![item.0, item.1])
+                .map_err(|e| e.to_string())?;
+        }
+    }
+    tx.commit().map_err(|e| e.to_string())?;
+
+    emit::info(app, "db", format!("Se sembraron {} tipos de operación", TIPOS_OPERACION.len()));
+    Ok(())
+}
+
+fn seed_tipos_pago(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
+    let count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM tipos_pago", [], |row| row.get(0))
+        .unwrap_or(0);
+
+    if count > 0 {
+        return Ok(());
+    }
+
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+    {
+        let mut stmt = tx
+            .prepare("INSERT INTO tipos_pago (codigo, descripcion) VALUES (?1, ?2)")
+            .map_err(|e| e.to_string())?;
+
+        for item in TIPOS_PAGO {
+            stmt.execute(params![item.0, item.1])
+                .map_err(|e| e.to_string())?;
+        }
+    }
+    tx.commit().map_err(|e| e.to_string())?;
+
+    emit::info(app, "db", format!("Se sembraron {} tipos de pago", TIPOS_PAGO.len()));
+    Ok(())
+}
+
+fn seed_tipos_comprobante(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
+    let count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM tipos_comprobante", [], |row| row.get(0))
+        .unwrap_or(0);
+
+    if count > 0 {
+        return Ok(());
+    }
+
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+    {
+        let mut stmt = tx
+            .prepare("INSERT INTO tipos_comprobante (codigo, descripcion) VALUES (?1, ?2)")
+            .map_err(|e| e.to_string())?;
+
+        for item in TIPOS_COMPROBANTE {
+            stmt.execute(params![item.0, item.1])
+                .map_err(|e| e.to_string())?;
+        }
+    }
+    tx.commit().map_err(|e| e.to_string())?;
+
+    emit::info(app, "db", format!("Se sembraron {} tipos de comprobante", TIPOS_COMPROBANTE.len()));
+    Ok(())
+}
+
+fn seed_series(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
+    let count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM series", [], |row| row.get(0))
+        .unwrap_or(0);
+
+    if count > 0 {
+        return Ok(());
+    }
+
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+    {
+        let mut stmt = tx
+            .prepare("INSERT INTO series (codigo, tipo_documento, numero_actual) VALUES (?1, ?2, ?3)")
+            .map_err(|e| e.to_string())?;
+
+        for item in SERIES_DEFECTO {
+            stmt.execute(params![item.0, item.1, 1])
+                .map_err(|e| e.to_string())?;
+        }
+    }
+    tx.commit().map_err(|e| e.to_string())?;
+
+    emit::info(app, "db", format!("Se sembraron {} series por defecto", SERIES_DEFECTO.len()));
     Ok(())
 }

@@ -27,6 +27,18 @@ CREATE TABLE IF NOT EXISTS unidades (
     descripcion TEXT NOT NULL,
     simbolo TEXT
 );
+-- TABLAS DE CATÁLOGOS TRIBUTARIOS
+CREATE TABLE IF NOT EXISTS afectaciones_venta (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT NOT NULL UNIQUE,       -- '10', '20', etc.
+    descripcion TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS afectaciones_compra (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT NOT NULL UNIQUE,       -- 'GRAVADO_V_GRAVADO', etc.
+    descripcion TEXT NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS productos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,7 +59,10 @@ CREATE TABLE IF NOT EXISTS productos (
     codigo_sede TEXT DEFAULT '0000',
     activo BOOLEAN NOT NULL DEFAULT 1,
     FOREIGN KEY(codigo_unidad) REFERENCES unidades(codigo),
-    FOREIGN KEY(codigo_sede) REFERENCES sedes(codigo)
+    FOREIGN KEY(codigo_sede) REFERENCES sedes(codigo),
+    FOREIGN KEY(moneda) REFERENCES monedas(codigo),
+    FOREIGN KEY(afectacion_venta) REFERENCES afectaciones_venta(codigo),
+    FOREIGN KEY(afectacion_compra) REFERENCES afectaciones_compra(codigo)
 );
 
 CREATE TABLE IF NOT EXISTS clientes (
@@ -72,6 +87,24 @@ CREATE TABLE IF NOT EXISTS vendedores (
 );
 
 -- ÍNDICES DE RENDIMIENTO
-CREATE INDEX IF NOT EXISTS idx_productos_codigo_interno OFF productos(codigo_interno);
-CREATE INDEX IF NOT EXISTS idx_productos_sede OFF productos(codigo_sede);
-CREATE INDEX IF NOT EXISTS idx_clientes_num_doc OFF clientes(numero_documento);
+CREATE INDEX IF NOT EXISTS idx_productos_codigo_interno ON productos(codigo_interno);
+CREATE INDEX IF NOT EXISTS idx_productos_sede ON productos(codigo_sede);
+CREATE INDEX IF NOT EXISTS idx_clientes_num_doc ON clientes(numero_documento);
+
+CREATE TABLE IF NOT EXISTS tipos_operacion (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT NOT NULL UNIQUE,
+    descripcion TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS tipos_pago (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT NOT NULL UNIQUE,
+    descripcion TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS tipos_comprobante (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT NOT NULL UNIQUE,
+    descripcion TEXT NOT NULL
+);

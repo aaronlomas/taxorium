@@ -20,7 +20,7 @@ pub struct Product {
     pub tiene_icbper: bool,
     pub marca: Option<String>,
     pub categoria: Option<String>,
-    pub sucursal: Option<String>,
+    pub codigo_sede: Option<String>,
     pub activo: bool,
 }
 
@@ -40,7 +40,7 @@ pub struct CreateProductPayload {
     pub tiene_icbper: bool,
     pub marca: Option<String>,
     pub categoria: Option<String>,
-    pub sucursal: Option<String>,
+    pub codigo_sede: Option<String>,
 }
 
 // --- CORE LOGIC ---
@@ -50,7 +50,7 @@ pub fn core_get_products(db: &Connection) -> Result<Vec<Product>, String> {
         .prepare(
             "SELECT id, codigo_interno, codigo_unidad, nombre, codigo_sunat, codigo_gsl, moneda, \
              precio_unitario_venta, precio_unitario_compra, stock_minimo, afectacion_venta, afectacion_compra, \
-             tiene_icbper, marca, categoria, sucursal, activo \
+             tiene_icbper, marca, categoria, codigo_sede, activo \
              FROM productos WHERE activo = 1 ORDER BY id DESC",
         )
         .map_err(|e| e.to_string())?;
@@ -73,7 +73,7 @@ pub fn core_get_products(db: &Connection) -> Result<Vec<Product>, String> {
                 tiene_icbper: row.get(12)?,
                 marca: row.get(13)?,
                 categoria: row.get(14)?,
-                sucursal: row.get(15)?,
+                codigo_sede: row.get(15)?,
                 activo: row.get(16)?,
             })
         })
@@ -93,7 +93,7 @@ pub fn core_create_product(
     db.execute(
         "INSERT INTO productos (codigo_interno, codigo_unidad, nombre, codigo_sunat, codigo_gsl, moneda, \
          precio_unitario_venta, precio_unitario_compra, stock_minimo, afectacion_venta, afectacion_compra, \
-         tiene_icbper, marca, categoria, sucursal) \
+         tiene_icbper, marca, categoria, codigo_sede) \
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
         params![
             payload.codigo_interno,
@@ -110,7 +110,7 @@ pub fn core_create_product(
             payload.tiene_icbper,
             payload.marca,
             payload.categoria,
-            payload.sucursal,
+            payload.codigo_sede,
         ],
     )
     .map_err(|e| e.to_string())?;
@@ -133,7 +133,7 @@ pub fn core_create_product(
         tiene_icbper: payload.tiene_icbper,
         marca: payload.marca,
         categoria: payload.categoria,
-        sucursal: payload.sucursal,
+        codigo_sede: payload.codigo_sede,
         activo: true,
     })
 }
@@ -147,7 +147,7 @@ pub fn core_update_product(
         "UPDATE productos SET codigo_interno = ?1, codigo_unidad = ?2, nombre = ?3, codigo_sunat = ?4, \
          codigo_gsl = ?5, moneda = ?6, precio_unitario_venta = ?7, precio_unitario_compra = ?8, stock_minimo = ?9, \
          afectacion_venta = ?10, afectacion_compra = ?11, tiene_icbper = ?12, marca = ?13, \
-         categoria = ?14, sucursal = ?15 WHERE id = ?16",
+         categoria = ?14, codigo_sede = ?15 WHERE id = ?16",
         params![
             payload.codigo_interno,
             payload.codigo_unidad,
@@ -163,7 +163,7 @@ pub fn core_update_product(
             payload.tiene_icbper,
             payload.marca,
             payload.categoria,
-            payload.sucursal,
+            payload.codigo_sede,
             id,
         ],
     )
@@ -185,7 +185,7 @@ pub fn core_update_product(
         tiene_icbper: payload.tiene_icbper,
         marca: payload.marca,
         categoria: payload.categoria,
-        sucursal: payload.sucursal,
+        codigo_sede: payload.codigo_sede,
         activo: true,
     })
 }
