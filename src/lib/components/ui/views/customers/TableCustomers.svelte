@@ -1,83 +1,118 @@
 <script lang="ts">
-	import {
-		IconSearch,
-		IconDatabaseImport,
-		IconDatabaseExport,
-		IconPlus
-	} from '@tabler/icons-svelte';
-	import { editingProduct } from '$lib/stores/products';
-	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
-	let isModalOpen = $state(false);
+	import Table, { row, cell, headCell } from '$lib/components/core/primitives/Table.svelte';
+	import { IconTrash, IconEdit } from '@tabler/icons-svelte';
+	import type { Customer } from '$lib/services/customers/clientCustomer';
+	import { customerClient } from '$lib/services/customers/clientCustomer';
+	import { customersStore } from '$lib/stores/customers';
+	import { taxoLog } from '$lib/stores/taxoLog';
+	import type { CheckItem } from '$lib/components/core/primitives/TableFilter.svelte';
 
-	function handleAdd() {
-		$editingProduct = null;
-		isModalOpen = true;
+	interface ColumnConfig extends CheckItem {
+		key: keyof Customer;
 	}
 
-	async function handleExportFile(format: ExportFormat) {}
+	let {
+		clientes = [],
+		columnas = [],
+		onEdit
+	}: {
+		clientes: Customer[];
+		columnas: ColumnConfig[];
+		onEdit: (customer: Customer) => void;
+	} = $props();
+
+	async function handleDelete(id: number, nombre: string) {
+		if (confirm(`¿Estás seguro de eliminar el cliente "${nombre}"?`)) {
+			try {
+				await customerClient.deleteCustomer(id);
+				taxoLog.info(`Cliente '${nombre}' eliminado`, 'clientes');
+				await customersStore.load();
+			} catch (e: any) {
+				const msg = e?.message ?? 'Error al eliminar el cliente';
+				taxoLog.error(msg, 'clientes');
+			}
+		}
+	}
+
+	function formatCellValue(customer: Customer, key: keyof Customer): string {
+		const val = customer[key];
+		if (val === null || val === undefined || val === '') return '-';
+		if (typeof val === 'boolean') return val ? 'Sí' : 'No';
+		return String(val);
+	}
 </script>
 
-<div class="grid h-full grid-rows-[auto_1fr] gap-2 px-2 pb-2 text-sm">
-	<!-- PANEL DE CONTROLES -->
-	<div class="grid grid-cols-[1fr_auto] rounded-b-md border-x border-b border-neutral-800 p-2">
-		<!-- BOTONES DE ACCIÓN -->
-		<div class="flex items-center gap-4">
-			<button
-				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
-				onclick={handleAdd}
-			>
-				<IconPlus size={20} />Añadir
-			</button>
-			<button
-				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
-			>
-				<IconDatabaseImport size={20} />Importar
-			</button>
-			<div class="group relative">
-				<button
-					class="flex cursor-pointer items-center gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
-				>
-					<IconDatabaseExport size={20} />Exportar
-				</button>
-				<div
-					class="absolute top-full z-10 hidden w-48 flex-col overflow-hidden rounded-md border border-neutral-700 bg-neutral-800 shadow-lg group-hover:flex"
-				>
-					<button
-						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
-						onclick={() => handleExportFile('xlsx')}>Excel (.xlsx)</button
-					>
-					<button
-						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
-						onclick={() => handleExportFile('csv-comma')}>CSV (comas)</button
-					>
-					<button
-						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
-						onclick={() => handleExportFile('csv-semicolon')}>CSV (puntos y comas)</button
-					>
-				</div>
-			</div>
-		</div>
-		<!-- FILTROS Y BÚSQUEDA -->
-		<div class="grid grid-cols-[auto_1fr] items-end gap-2">
-			<div class="w-30"></div>
-			<div class="flex items-center rounded-lg border border-neutral-800 px-4">
-				<IconSearch size={16} />
-				<input class="w-full border-0 bg-transparent text-sm focus:ring-0" />
-			</div>
-		</div>
-	</div>
+<div class="h-full overflow-hidden">
+	<Table>
+		{#snippet head()}
+			<tr class="text-blue-400">
+				{#snippet headIndex()}
+					#
+				{/snippet}
+				{@render headCell({ children: headIndex })}
+				{#each columnas as col (col.id)}
+					{#snippet headCol()}
+						{col.label}
+					{/snippet}
+					{@render headCell({ children: headCol })}
+				{/each}
+				{#snippet headActions()}
+					Acciones
+				{/snippet}
+				{@render headCell({ children: headActions })}
+			</tr>
+		{/snippet}
 
-	<div class="overflow-auto rounded-md border border-neutral-800">
-		<table class="w-full bg-neutral-900 text-center">
-			<thead class="border-b border-neutral-800 text-neutral-400">
-				<tr class="text-blue-400">
-					<th class="px-2">#</th>
+		{#snippet body()}
+			{#if clientes.length === 0}
+				<tr>
+					{#snippet emptyState()}
+						No hay clientes registrados.
+					{/snippet}
+					{@render cell({
+						colspan: columnas.length + 2,
+						class: 'py-8 text-neutral-500',
+						children: emptyState
+					})}
 				</tr>
-			</thead>
+			{:else}
+				{#each clientes as customer, index (customer.id)}
+					{#snippet rowData()}
+						{#snippet cellIndex()}
+							{index + 1}
+						{/snippet}
+						{@render cell({ class: 'px-3 py-2 text-neutral-500', children: cellIndex })}
+						
+						{#each columnas as col (col.id)}
+							{#snippet cellVal()}
+								{formatCellValue(customer, col.key)}
+							{/snippet}
+							{@render cell({ children: cellVal })}
+						{/each}
 
-			<tbody class="divide-y divide-neutral-800 text-neutral-200">
-				<tr> </tr>
-			</tbody>
-		</table>
-	</div>
+						{#snippet cellActions()}
+							<div class="flex items-center justify-center gap-2">
+								<button
+									class="cursor-pointer text-neutral-400 transition-colors hover:text-blue-400"
+									onclick={() => onEdit(customer)}
+									title="Editar"
+								>
+									<IconEdit size={16} />
+								</button>
+								<button
+									class="cursor-pointer text-neutral-400 transition-colors hover:text-red-400"
+									onclick={() => handleDelete(customer.id, customer.nombre)}
+									title="Eliminar"
+								>
+									<IconTrash size={16} />
+								</button>
+							</div>
+						{/snippet}
+						{@render cell({ children: cellActions })}
+					{/snippet}
+					{@render row({ children: rowData })}
+				{/each}
+			{/if}
+		{/snippet}
+	</Table>
 </div>

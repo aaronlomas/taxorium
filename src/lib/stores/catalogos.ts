@@ -132,8 +132,18 @@ export const tiposComprobanteOptions = derived(catalogoStore, ($c) =>
 );
 
 export const seriesOptions = derived(catalogoStore, ($c) =>
-	$c.series.map((s) => ({ value: s.codigo, label: `${s.codigo} (${s.tipo_documento === '01' ? 'Factura' : s.tipo_documento === '03' ? 'Boleta' : 'Guía'})` }))
+	$c.series.map((s) => ({ value: s.codigo, label: s.codigo }))
 );
+
+export const seriesOptionsPorTipo = derived(catalogoStore, ($c) => {
+	const byTipo = new Map<string, { value: string; label: string }[]>();
+	for (const s of $c.series) {
+		const list = byTipo.get(s.tipo_documento) ?? [];
+		list.push({ value: s.codigo, label: s.codigo });
+		byTipo.set(s.tipo_documento, list);
+	}
+	return (tipoDocumento: string) => byTipo.get(tipoDocumento) ?? [];
+});
 
 // Utilidad para el display de unidades en tablas
 export function getUnitDisplay(code: string): string {

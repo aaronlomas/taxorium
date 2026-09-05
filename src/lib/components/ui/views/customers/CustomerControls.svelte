@@ -1,15 +1,156 @@
 <script lang="ts">
+	import { IconDatabaseImport, IconDatabaseExport, IconPlus } from '@tabler/icons-svelte';
+	//PRIMITIVAS
+	import TableToolbar from '$lib/components/core/primitives/TableToolbar.svelte';
+	import TableFilter, { type CheckItem } from '$lib/components/core/primitives/TableFilter.svelte';
+	import Search from '$lib/components/core/primitives/Search.svelte';
+	import Select from '$lib/components/core/primitives/Select.svelte';
+	import { onMount } from 'svelte';
+
+	//TABLA Y MODAL
 	import TableCustomers from './TableCustomers.svelte';
+	import CustomersModal from './CustomersModal.svelte';
+
+	//STORES
+	import { customersStore, editingCustomer } from '$lib/stores/customers';
+	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
+	import type { Customer } from '$lib/services/customers/clientCustomer';
+	
+	let isModalOpen = $state(false);
+
+	onMount(() => {
+		customersStore.load();
+	});
+
+	function handleAdd() {
+		$editingCustomer = null;
+		isModalOpen = true;
+	}
+
+	function handleEdit(customer: Customer) {
+		$editingCustomer = customer;
+		isModalOpen = true;
+	}
+	
+	let searchTerm = $state('');
+	let searchBy = $state('');
+	const SEARCH_OPTIONS = [
+		{ value: '', label: 'Todos' },
+		{ value: 'nombre', label: 'Nombre' },
+		{ value: 'dni', label: 'DNI' },
+		{ value: 'ruc', label: 'RUC' }
+	];
+	
+	async function handleExportFile(format: ExportFormat) {
+		// implement export logic here if needed
+	}
+
+	interface ColumnConfig extends CheckItem {
+		key: keyof Customer;
+	}
+
+	let columnas = $state<ColumnConfig[]>([
+		{ id: 'tipo_documento', key: 'tipo_documento', label: 'Tipo doc. identidad', checked: true },
+		{ id: 'numero_documento', key: 'numero_documento', label: 'Número', checked: true },
+		{ id: 'nombre', key: 'nombre', label: 'Nombre', checked: true },
+		{ id: 'nombre_comercial', key: 'nombre_comercial', label: 'Nombre Comercial', checked: true },
+		{ id: 'pais', key: 'pais', label: 'Pais', checked: true },
+		{ id: 'departamento', key: 'departamento', label: 'Departamente', checked: true },
+		{ id: 'provincia', key: 'provincia', label: 'Provincia', checked: true },
+		{ id: 'distrito', key: 'distrito', label: 'Distrito', checked: true },
+		{ id: 'direccion', key: 'direccion', label: 'Direccion', checked: true },
+		{ id: 'telefono', key: 'telefono', label: 'Teléfono', checked: true },
+		{ id: 'correo', key: 'correo', label: 'Correo electrónico', checked: true }
+	]);
+
+	let columnasVisibles = $derived(columnas.filter((c) => c.checked));
+
+	let clientesFiltrados = $derived(
+		$customersStore.filter((c) => {
+			if (!searchTerm.trim()) return true;
+			const term = searchTerm.toLowerCase();
+
+			if (searchBy === 'nombre') {
+				return c.nombre.toLowerCase().includes(term);
+			} else if (searchBy === 'dni') {
+				return c.numero_documento.toLowerCase().includes(term) && c.tipo_documento === 'DNI';
+			} else if (searchBy === 'ruc') {
+				return c.numero_documento.toLowerCase().includes(term) && c.tipo_documento === 'RUC';
+			}
+
+			return (
+				c.nombre.toLowerCase().includes(term) ||
+				c.numero_documento.toLowerCase().includes(term) ||
+				(c.nombre_comercial && c.nombre_comercial.toLowerCase().includes(term))
+			);
+		})
+	);
 </script>
 
-<main class="grid h-full grid-rows-[1fr_30px]">
-  <TableCustomers/>
-	<footer class="flex border-y border-y-neutral-800 text-sm">
-		<div class="w-full border-r border-r-neutral-800">
-			<button class="h-full cursor-pointer bg-blue-700 px-2 hover:bg-blue-600">Ver Tutorial</button>
-		</div>
-		<button class="cursor-pointer border-r border-r-neutral-800 px-2 whitespace-nowrap">+ Nuevo Cliente</button>
-		<button class="cursor-pointer border-r border-r-neutral-800 px-2">Importar</button>
-		<button class="cursor-pointer border-r border-r-neutral-800 px-2">Exportar</button>
-	</footer>
-</main>
+<!-- PANEL DE CONTROLES -->
+<div class="grid h-full grid-rows-[auto_1fr] gap-2 px-2 pb-2 text-sm">
+	<TableToolbar>
+		<!-- CONTROLES -->
+		{#snippet actions()}
+			<button
+				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
+				onclick={handleAdd}
+			>
+				<IconPlus size={20} />Añadir
+			</button>
+			<button
+				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
+			>
+				<IconDatabaseImport size={20} />Importar
+			</button>
+			<div class="group relative">
+				<button
+					class="flex cursor-pointer items-center gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
+				>
+					<IconDatabaseExport size={20} />Exportar
+				</button>
+				<div
+					class="absolute top-full z-10 hidden w-48 flex-col overflow-hidden rounded-md border border-neutral-700 bg-neutral-800 shadow-lg group-hover:flex"
+				>
+					<button
+						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
+						onclick={() => handleExportFile('xlsx')}>Excel (.xlsx)</button
+					>
+					<button
+						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
+						onclick={() => handleExportFile('csv-comma')}>CSV (comas)</button
+					>
+					<button
+						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
+						onclick={() => handleExportFile('csv-semicolon')}>CSV (puntos y comas)</button
+					>
+				</div>
+			</div>
+			<TableFilter label="Columnas" storageKey="clientes" bind:items={columnas} />
+		{/snippet}
+		<!-- FILTROS -->
+		{#snippet filters()}
+			<div class="w-30">
+				<Select placeholder="Buscar por:" options={SEARCH_OPTIONS} bind:value={searchBy} />
+			</div>
+			<Search
+				bind:value={searchTerm}
+				placeholder={searchBy === 'nombre'
+					? 'Buscar nombre...'
+					: searchBy === 'dni'
+						? 'Buscar DNI...'
+						: searchBy === 'ruc'
+							? 'Buscar RUC...'
+							: 'Buscar cliente...'}
+			/>
+		{/snippet}
+	</TableToolbar>
+	<TableCustomers clientes={clientesFiltrados} columnas={columnasVisibles} onEdit={handleEdit} />
+
+	<CustomersModal
+		bind:isOpen={isModalOpen}
+		onClose={() => {
+			isModalOpen = false;
+		}}
+	/>
+</div>

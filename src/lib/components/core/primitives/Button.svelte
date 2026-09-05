@@ -33,10 +33,10 @@
 
   // Definición de estilos
   const variants = {
-    primary: "text-white bg-blue-600 hover:bg-blue-700",
-    secondary: "text-gray-900 bg-gray-100 hover:bg-gray-200",
-    danger: "text-white bg-red-600 hover:bg-red-700",
-    outline: "border border-neutral-700 bg-neutral-900 text-neutral-300 hover:bg-neutral-800 transition-colors",
+    primary: "border border-blue-500 text-white bg-blue-900 hover:bg-blue-500 whitespace-nowrap",
+    secondary: "text-gray-900 bg-gray-100 hover:bg-gray-200 whitespace-nowrap",
+    danger: "text-white bg-red-600 hover:bg-red-700 whitespace-nowrap",
+    outline: "border border-neutral-700 bg-neutral-900 text-neutral-300 hover:bg-neutral-800 transition-colors whitespace-nowrap",
   };
 
   const sizes = {

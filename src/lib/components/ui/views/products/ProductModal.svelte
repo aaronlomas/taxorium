@@ -178,7 +178,8 @@
 		<div class="col-span-2">
 			<Input
 				id="descripcion"
-				label="Descripción <span class='text-red-500'>*</span>"
+				label="Descripción"
+				required
 				variant="simple"
 				bind:value={descripcion}
 				placeholder="Ej. Zapatillas T30..."

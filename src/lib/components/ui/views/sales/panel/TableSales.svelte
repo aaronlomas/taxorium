@@ -1,33 +1,99 @@
-<div class="grid grid-rows-[40px_auto_1fr] border border-neutral-800 text-sm">
-	<table class="w-full bg-neutral-900 table-auto">
-		<thead class="bg-blue-900">
-			<!-- cabecera -->
-			<tr class="border-neutral-800 border-b">
-				<th class="align-top font-semibold">#</th>
-				<th class="align-top font-semibold">Descripción</th>
-				<th class="align-top font-semibold">Unidad</th>
-				<th class="align-top font-semibold">Cantidad</th>
-				<th class="align-top font-semibold">Precio U.</th>
-				<th class="align-top font-semibold">Sub Total</th>
-				<th class="align-top font-semibold">Total</th>
-				<th class="align-top font-semibold">Acción</th>
-			</tr>
-		</thead>
-		<tbody>
-			<!-- contenido -->
-			<tr class="text-center border-b border-blue-700">
-				<td class="align-top">1</td>
-				<td class="align-top">Pollo</td>
-				<td class="align-top">NIU</td>
-				<td class="align-top">2</td>
-				<td class="align-top">-</td>
-				<td class="align-top">s/. 10.00</td>
-				<td class="align-top">s/. 20.00</td> 
-				<td class="align-top">
-					<button class="text-red-500 hover:text-red-400 transition-colors cursor-pointer">Eliminar</button>
-				</td>
-			</tr>
-		</tbody>
-	</table>
-</div>
+<script lang="ts">
+	import Table, { row, cell, headCell } from '$lib/components/core/primitives/Table.svelte';
+	import { salesStore } from '$lib/stores/sales';
 
+	const CURRENCY_SYMBOL: Record<string, string> = {
+		PEN: 'S/.',
+		USD: '$',
+		EUR: '€'
+	};
+
+	function formatMoney(item: { moneda: string }, value: number): string {
+		const symbol = CURRENCY_SYMBOL[item.moneda] ?? 'S/.';
+		return `${symbol} ${value.toFixed(2)}`;
+	}
+
+	function handleDelete(id: number) {
+		salesStore.remove(id);
+	}
+</script>
+
+<Table>
+	{#snippet head()}
+		<tr class="text-blue-400 text-sm">
+			{#snippet headIndex()}
+				#
+			{/snippet}
+			{@render headCell({ children: headIndex })}
+			{#each ['Descripción', 'Unidad', 'Cantidad', 'Precio U.', 'Sub Total', 'Total'] as label (label)}
+				{#snippet headCol()}
+					{label}
+				{/snippet}
+				{@render headCell({ children: headCol })}
+			{/each}
+			{#snippet headActions()}
+				Acción
+			{/snippet}
+			{@render headCell({ children: headActions })}
+		</tr>
+	{/snippet}
+
+	{#snippet body()}
+		{#if $salesStore.length === 0}
+			<tr>
+				{#snippet emptyState()}
+					No hay productos agregados.
+				{/snippet}
+				{@render cell({
+					colspan: 8,
+					class: 'py-8 text-neutral-500',
+					children: emptyState
+				})}
+			</tr>
+		{:else}
+			{#each $salesStore as item, index (item.id)}
+				{#snippet rowData()}
+					{#snippet cellIndex()}
+						{index + 1}
+					{/snippet}
+					{@render cell({ class: 'px-3 py-2 text-neutral-500', children: cellIndex })}
+					{#snippet cellDesc()}
+						{item.descripcion}
+					{/snippet}
+					{@render cell({ children: cellDesc })}
+					{#snippet cellUnidad()}
+						{item.unidad}
+					{/snippet}
+					{@render cell({ children: cellUnidad })}
+					{#snippet cellCantidad()}
+						{item.cantidad}
+					{/snippet}
+					{@render cell({ children: cellCantidad })}
+					{#snippet cellPrecio()}
+						{formatMoney(item, item.precioUnitario)}
+					{/snippet}
+					{@render cell({ children: cellPrecio })}
+					{#snippet cellSubtotal()}
+						{formatMoney(item, item.subtotal)}
+					{/snippet}
+					{@render cell({ children: cellSubtotal })}
+					{#snippet cellTotal()}
+						{formatMoney(item, item.total)}
+					{/snippet}
+					{@render cell({ children: cellTotal })}
+					{#snippet cellAccion()}
+						<button
+							class="cursor-pointer text-red-500 transition-colors hover:text-red-400"
+							title="Eliminar"
+							onclick={() => handleDelete(item.id)}
+						>
+							Eliminar
+						</button>
+					{/snippet}
+					{@render cell({ children: cellAccion })}
+				{/snippet}
+				{@render row({ children: rowData })}
+			{/each}
+		{/if}
+	{/snippet}
+</Table>

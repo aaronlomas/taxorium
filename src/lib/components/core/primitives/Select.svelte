@@ -15,6 +15,8 @@
 		containerClass?: string;
 		class?: string;
 		placeholder?: string;
+		required?: boolean;
+		disabled?: boolean;
 		/** Si es false (default), se comporta como Select fijo. Si es true, permite escribir libremente. */
 		editable?: boolean;
 		/** Si es true y editable es true, filtra las opciones según lo que escribe el usuario */
@@ -30,6 +32,8 @@
 		containerClass = '',
 		id = crypto.randomUUID(),
 		placeholder = 'Seleccionar...',
+		required = false,
+		disabled = false,
 		editable = false,
 		filterOptions = true
 	}: Props = $props();
@@ -65,6 +69,7 @@
 	let selectedLabel = $derived(normalizedOptions.find((opt) => opt.value === value)?.label || placeholder);
 
 	function toggle() {
+		if (disabled) return;
 		if (!isOpen && editable) {
 			const matched = normalizedOptions.find((opt) => opt.value === value);
 			searchInput = matched ? matched.label : String(value ?? '');
@@ -99,7 +104,7 @@
 <div class="flex w-full flex-col {containerClass}" bind:this={wrapperElement}>
 	{#if label}
 		<label for={id} class="block text-sm font-medium text-neutral-400">
-			{label}
+			{label}{#if required}<span class="text-red-500"> *</span>{/if}
 		</label>
 	{/if}
 
@@ -115,28 +120,32 @@
 					{id}
 					type="text"
 					value={displayValue}
+					{disabled}
 					oninput={handleInput}
-					onfocus={() => { isOpen = true; const matched = normalizedOptions.find((opt) => opt.value === value); searchInput = matched ? matched.label : String(value ?? ''); }}
+					onfocus={() => { if (disabled) return; isOpen = true; const matched = normalizedOptions.find((opt) => opt.value === value); searchInput = matched ? matched.label : String(value ?? ''); }}
 					{placeholder}
-					class="h-9 w-full border-0 bg-transparent text-sm text-neutral-100 placeholder-neutral-500 focus:ring-0"
+					class="h-9 w-full border-0 bg-transparent text-sm text-neutral-100 placeholder-neutral-500 focus:ring-0 {disabled ? 'opacity-50 cursor-not-allowed' : ''}"
 				/>
-				<button
-					type="button"
-					tabindex="-1"
-					onclick={toggle}
-					aria-label="Abrir opciones"
-					class="px-2 text-neutral-400 hover:text-neutral-200 focus:outline-none"
-				>
-					<IconChevronDown class="size-4 transition-transform {isOpen ? 'rotate-180' : ''}" />
-				</button>
+			<button
+				type="button"
+				tabindex="-1"
+				onclick={toggle}
+				aria-label="Abrir opciones"
+				class="px-2 text-neutral-400 hover:text-neutral-200 focus:outline-none {disabled ? 'opacity-50 cursor-not-allowed' : ''}"
+			>
+				<IconChevronDown class="size-4 transition-transform {isOpen ? 'rotate-180' : ''}" />
+			</button>
 			</div>
 		{:else}
 			<!-- MODO FIJO / SELECT (Solo selección de lista) -->
 			<button
 				type="button"
 				{id}
+				disabled={disabled}
 				onclick={toggle}
-				class="flex w-full items-center justify-between rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none {error
+				class="flex w-full items-center justify-between rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none {disabled
+					? 'opacity-50 cursor-not-allowed'
+					: ''} {error
 					? 'border-red-500 focus:border-red-500 focus:ring-red-500'
 					: ''} {className}"
 			>

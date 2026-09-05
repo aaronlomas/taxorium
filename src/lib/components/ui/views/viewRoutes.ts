@@ -5,7 +5,7 @@ import ProductsView from './products/ProductView.svelte';
 import ReportsView from './reports/ReportControls.svelte';
 import CustomersView from './customers/CustomerControls.svelte';
 // SUB OPCIONES EN VENTAS
-import PanelSalesView from './sales/panel/SalesControls.svelte';
+import PanelSalesView from './sales/panel/SalesView.svelte';
 import ComprobantesSalesView from './sales/vouchers/VoucherList.svelte';
 import SalesSummaryView from './sales/summary/SalesSummary.svelte';
 

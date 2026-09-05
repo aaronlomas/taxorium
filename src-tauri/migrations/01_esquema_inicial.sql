@@ -70,7 +70,13 @@ CREATE TABLE IF NOT EXISTS clientes (
     tipo_documento TEXT NOT NULL,
     numero_documento TEXT NOT NULL UNIQUE,
     nombre TEXT NOT NULL,
+    nombre_comercial TEXT,
+    pais TEXT NOT NULL DEFAULT 'PERU',
+    departamento TEXT,
+    provincia TEXT,
+    distrito TEXT,
     direccion TEXT,
+    telefono TEXT,
     correo TEXT,
     activo BOOLEAN NOT NULL DEFAULT 1
 );
@@ -108,3 +114,37 @@ CREATE TABLE IF NOT EXISTS tipos_comprobante (
     codigo TEXT NOT NULL UNIQUE,
     descripcion TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS comprobantes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha_de_emision TEXT NOT NULL,
+    cliente TEXT NOT NULL,
+    numero_comprobante TEXT NOT NULL UNIQUE,
+    estado_validez TEXT NOT NULL DEFAULT 'registrado' CHECK (estado_validez IN ('registrado', 'rechazado', 'aceptado')),
+    estado_pago TEXT NOT NULL DEFAULT 'pendiente' CHECK (estado_pago IN ('pendiente', 'pagado')),
+    moneda TEXT NOT NULL DEFAULT 'PEN',
+    gravado REAL NOT NULL DEFAULT 0,
+    igv REAL NOT NULL DEFAULT 0,
+    total REAL NOT NULL DEFAULT 0,
+    estado BOOLEAN NOT NULL DEFAULT 1
+);
+
+CREATE INDEX IF NOT EXISTS idx_comprobantes_numero ON comprobantes(numero_comprobante);
+CREATE INDEX IF NOT EXISTS idx_comprobantes_estado_validez ON comprobantes(estado_validez);
+
+CREATE TABLE IF NOT EXISTS comprobantes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha_de_emision TEXT NOT NULL,
+    cliente TEXT NOT NULL,
+    numero_comprobante TEXT NOT NULL UNIQUE,
+    estado_validez TEXT NOT NULL DEFAULT 'registrado' CHECK (estado_validez IN ('registrado', 'rechazado', 'aceptado')),
+    estado_pago TEXT NOT NULL DEFAULT 'pendiente' CHECK (estado_pago IN ('pendiente', 'pagado')),
+    moneda TEXT NOT NULL DEFAULT 'PEN',
+    gravado REAL NOT NULL DEFAULT 0,
+    igv REAL NOT NULL DEFAULT 0,
+    total REAL NOT NULL DEFAULT 0,
+    estado BOOLEAN NOT NULL DEFAULT 1
+);
+
+CREATE INDEX IF NOT EXISTS idx_comprobantes_numero ON comprobantes(numero_comprobante);
+CREATE INDEX IF NOT EXISTS idx_comprobantes_estado_validez ON comprobantes(estado_validez);

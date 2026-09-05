@@ -1,5 +1,5 @@
 <script lang="ts">
-	import InputData from "$lib/components/core/primitives/InputData.svelte";
+	import InputData from "$lib/components/core/primitives/InputDate.svelte";
   import Button from "$lib/components/core/primitives/Button.svelte"
 </script>
 

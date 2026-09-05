@@ -1,13 +1,12 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  let {
-    actions,
-    filters
-  }: {
+  interface Props {
     actions?: Snippet;
     filters?: Snippet;
-  } = $props();
+  }
+
+  let { actions, filters }: Props = $props();
 </script>
 
 <div class="grid grid-cols-[1fr_auto] rounded-b-md border-x border-b border-neutral-800 p-2">

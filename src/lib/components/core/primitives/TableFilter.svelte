@@ -10,6 +10,7 @@
 	interface Props {
 		label?: string;
 		items?: CheckItem[];
+		storageKey?: string;
 		containerClass?: string;
 		class?: string;
 	}
@@ -17,12 +18,14 @@
 	let {
 		label = 'Columnas',
 		items = $bindable([]),
+		storageKey = '',
 		containerClass = '',
 		class: className = ''
 	}: Props = $props();
 
 	let isOpen = $state(false);
 	let wrapperElement: HTMLDivElement | undefined = $state();
+	let restored = $state(false);
 
 	function toggleDropdown() {
 		isOpen = !isOpen;
@@ -31,6 +34,51 @@
 	function toggleItem(id: string) {
 		items = items.map((item) => (item.id === id ? { ...item, checked: !item.checked } : item));
 	}
+
+	function storagePath() {
+		return `taxorium.columnas.${storageKey}`;
+	}
+
+	function loadSaved(): Record<string, boolean> | null {
+		try {
+			if (typeof localStorage === 'undefined') return null;
+			const raw = localStorage.getItem(storagePath());
+			if (!raw) return null;
+			const parsed = JSON.parse(raw);
+			if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+			return null;
+		} catch {
+			return null;
+		}
+	}
+
+	function persist() {
+		try {
+			if (typeof localStorage === 'undefined') return;
+			const record: Record<string, boolean> = {};
+			for (const item of items) record[item.id] = item.checked;
+			localStorage.setItem(storagePath(), JSON.stringify(record));
+		} catch {
+			console.error('Error guardando configuración de columnas');
+		}
+	}
+
+	$effect(() => {
+		if (!storageKey) return;
+
+		if (!restored) {
+			restored = true;
+			const saved = loadSaved();
+			if (saved) {
+				items = items.map((item) =>
+					saved[item.id] !== undefined ? { ...item, checked: saved[item.id] } : item
+				);
+			}
+			return;
+		}
+
+		persist();
+	});
 
 	function handleWindowClick(event: MouseEvent) {
 		if (isOpen && wrapperElement && !wrapperElement.contains(event.target as Node)) {

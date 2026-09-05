@@ -22,6 +22,7 @@
 		variant = 'simple',
 		icon,
 		action,
+		required = false,
 		class: className = '',
 		containerClass = '',
 		id = crypto.randomUUID(),
@@ -39,7 +40,7 @@
 <div class="grid w-full {containerClass}">
 	{#if label}
 		<label for={id} class="block text-sm text-neutral-400">
-			{@html label}
+			{label}{#if required}<span class="text-red-500"> *</span>{/if}
 		</label>
 	{/if}
 

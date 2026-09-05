@@ -106,7 +106,7 @@
 
 <div class="relative flex w-full flex-col {containerClass}" bind:this={wrapperEl}>
 	{#if label}
-		<label for={id} class="block text-sm font-medium text-neutral-400">
+		<label for={id} class="block text-sm font-medium text-neutral-400 whitespace-nowrap">
 			{label}
 		</label>
 	{/if}
