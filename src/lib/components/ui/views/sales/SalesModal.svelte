@@ -22,6 +22,21 @@
 		if (!afectacionIgv && exoneradoDefault) afectacionIgv = exoneradoDefault;
 	});
 
+	let prevProducto = '';
+	$effect(() => {
+		if (String(productoSeleccionado) !== prevProducto) {
+			prevProducto = String(productoSeleccionado);
+			if (productoSeleccionado) {
+				const producto = $productsStore.find((p) => String(p.id) === String(productoSeleccionado));
+				if (producto) {
+					precioUnitario = String(producto.precio_unitario_venta);
+				}
+			} else {
+				precioUnitario = '0';
+			}
+		}
+	});
+
 	let productosOptions = $derived(
 		$productsStore
 			.filter((p) => p.activo)

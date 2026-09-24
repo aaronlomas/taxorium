@@ -4,6 +4,7 @@ apoyo/
 docs/
 # vscode
 .vscode*
+.claude*
 
 # Output
 .output

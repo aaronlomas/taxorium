@@ -27,6 +27,9 @@ use crate::models::sellers::{
     core_create_seller, core_delete_seller, core_get_sellers, core_login_seller,
     core_update_seller, CreateSellerPayload, LoginSellerPayload, Seller, UpdateSellerPayload,
 };
+use crate::models::vouchers::{
+    core_create_voucher, core_get_vouchers, core_next_correlativo, CreateVoucherPayload, Voucher,
+};
 use crate::AppState;
 
 #[derive(Clone)]
@@ -69,6 +72,11 @@ pub fn build_router(app: AppHandle) -> Router {
         .route("/api/tipos_pago", get(get_tipos_pago_api))
         .route("/api/tipos_comprobante", get(get_tipos_comprobante_api))
         .route("/api/series", get(get_series_api))
+        .route("/api/vouchers", get(get_vouchers_api).post(create_voucher_api))
+        .route(
+            "/api/vouchers/next_correlativo/:serie",
+            get(get_next_correlativo_api),
+        )
         .with_state(ApiState { app })
         .layer(cors)
 }
@@ -110,6 +118,26 @@ where
         let app_state = app.state::<AppState>();
         let db_guard = app_state.db.lock().map_err(|e| e.to_string())?;
         let db = db_guard.as_ref().ok_or("Database not initialized")?;
+        task(db)
+    })
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    result.map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+// Helper to run blocking DB operations that require a mutable connection (transacciones)
+async fn run_db_task_mut<F, R>(state: State<ApiState>, task: F) -> Result<R, (StatusCode, String)>
+where
+    F: FnOnce(&mut rusqlite::Connection) -> Result<R, String> + Send + 'static,
+    R: Send + 'static,
+{
+    let app = state.app.clone();
+
+    let result = tokio::task::spawn_blocking(move || {
+        let app_state = app.state::<AppState>();
+        let mut db_guard = app_state.db.lock().map_err(|e| e.to_string())?;
+        let db = db_guard.as_mut().ok_or("Database not initialized")?;
         task(db)
     })
     .await
@@ -296,4 +324,29 @@ async fn get_series_api(
 ) -> Result<Json<Vec<Serie>>, (StatusCode, String)> {
     let items = run_db_task(state, |db| core_get_series(db)).await?;
     Ok(Json(items))
+}
+
+// --- Comprobantes handlers ---
+
+async fn get_vouchers_api(
+    state: State<ApiState>,
+) -> Result<Json<Vec<Voucher>>, (StatusCode, String)> {
+    let items = run_db_task(state, core_get_vouchers).await?;
+    Ok(Json(items))
+}
+
+async fn get_next_correlativo_api(
+    state: State<ApiState>,
+    Path(serie): Path<String>,
+) -> Result<Json<i64>, (StatusCode, String)> {
+    let correlativo = run_db_task(state, move |db| core_next_correlativo(db, &serie)).await?;
+    Ok(Json(correlativo))
+}
+
+async fn create_voucher_api(
+    state: State<ApiState>,
+    Json(payload): Json<CreateVoucherPayload>,
+) -> Result<Json<Voucher>, (StatusCode, String)> {
+    let voucher = run_db_task_mut(state, move |db| core_create_voucher(db, payload)).await?;
+    Ok(Json(voucher))
 }

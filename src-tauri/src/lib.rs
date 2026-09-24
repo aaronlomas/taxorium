@@ -3,6 +3,7 @@ mod config;
 mod db;
 mod emit;
 mod models;
+pub mod xml_builder;
 
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager, State};
@@ -77,7 +78,10 @@ pub fn run() {
             models::series::get_series,
             models::series::create_serie,
             models::series::update_serie,
-            models::series::delete_serie
+            models::series::delete_serie,
+            models::vouchers::get_vouchers,
+            models::vouchers::create_voucher,
+            models::vouchers::get_next_correlativo
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {

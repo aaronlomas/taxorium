@@ -34,7 +34,10 @@ hmac = "0.12.1"
 sha2 = "0.10.9"
 subtle = "2.5"
 machine-uid = "0.6.0"
-
+tera = "1.19"
+lazy_static = "1.4"
+base64 = "0.22"
+chrono = "0.4"
 # Servidor HTTP local (Axum)
 axum = "0.7"
 tokio = { version = "1", features = ["full"] }

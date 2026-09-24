@@ -3,6 +3,8 @@
 	import Number from '$lib/components/core/primitives/Number.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
 	import { salesStore } from '$lib/stores/sales';
+	import VoucherModal from '$lib/components/ui/views/vouchers/VoucherModal.svelte';
+	import { voucherConfigStore } from '$lib/components/ui/views/vouchers/voucherContext';
 
 	const medioDePagoContado = [
 		{ value: '008', label: 'Efectivo' },
@@ -12,6 +14,14 @@
 	];
 	let medioSeleccionado = $state('008');
 	let montoRecibido = $state('0');
+	let isVoucherModalOpen = $state(false);
+
+	$effect(() => voucherConfigStore.updateField('medioPago', medioSeleccionado));
+	$effect(() => {
+		const opcion = medioDePagoContado.find((m) => m.value === medioSeleccionado);
+		voucherConfigStore.updateField('medioPagoLabel', opcion?.label ?? medioSeleccionado);
+	});
+	$effect(() => voucherConfigStore.updateField('montoRecibido', montoRecibido));
 
 	const CURRENCY_SYMBOL: Record<string, string> = {
 		PEN: 'S/.',
@@ -40,7 +50,7 @@
 </script>
 
 <div class="grid h-full grid-cols-[1fr_auto] border-t border-r border-neutral-800">
-	<div class="grid grid-rows-[auto_auto] grid-cols-[auto_1fr] gap-2">
+	<div class="grid grid-cols-[auto_1fr] grid-rows-[auto_auto] gap-2">
 		<div class="w-56">
 			<Select
 				id="medioDePago"
@@ -52,7 +62,7 @@
 		<div class="w-56">
 			<Number label="Monto Recibido" bind:value={montoRecibido} />
 		</div>
-    <Button>Generar Venta</Button>
+		<Button onclick={() => (isVoucherModalOpen = true)}>Generar Venta</Button>
 	</div>
 	<div class="border-l border-neutral-800 text-sm">
 		<table>
@@ -83,3 +93,5 @@
 		</table>
 	</div>
 </div>
+
+<VoucherModal bind:isOpen={isVoucherModalOpen} onClose={() => (isVoucherModalOpen = false)} />

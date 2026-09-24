@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { onDestroy, createEventDispatcher, type ComponentType, type Component } from 'svelte';
+  import { onDestroy, createEventDispatcher } from 'svelte';
+  import { isAuthenticated } from '$lib/stores/auth';
   import MainControls from './main-controls/MainControls.svelte';
   import OptionRecords from './options/OptionRecords.svelte';
   import OptionSales from './options/OptionSales.svelte';
@@ -14,13 +15,20 @@
 
   const dispatch = createEventDispatcher();
 
-  let anchoBarraLateral = 240;
-  let estaRedimensionando = false;
-  let seccionActiva: Seccion | null = 'operaciones';
+  let anchoBarraLateral = $state(240);
+  let estaRedimensionando = $state(false);
+  let seccionActiva: Seccion | null = $state($isAuthenticated ? 'operaciones' : null);
 
   function cambiarSeccion(seccion: Seccion) {
     seccionActiva = seccionActiva === seccion ? null : seccion;
   }
+
+  // Mantener el sidebar encogido mientras no haya una sesión iniciada
+  $effect(() => {
+    if (!$isAuthenticated) {
+      seccionActiva = null;
+    }
+  });
 
   function handleSeleccionarOpcion(e: CustomEvent) {
     dispatch('seleccionarOpcion', e.detail);
@@ -77,11 +85,9 @@
   <MainControls {seccionActiva} on:cambiarSeccion={(e) => cambiarSeccion(e.detail)} on:seleccionarOpcion={handleSeleccionarOpcion} />
 
   <!-- PANEL DESPLEGABLE DINÁMICO -->
-  {#if seccionActiva && PANELS[seccionActiva]}
-    <svelte:component
-      this={PANELS[seccionActiva]}
-      on:seleccionarOpcion={handleSeleccionarOpcion}
-    />
+  {#if seccionActiva}
+    {@const Panel = PANELS[seccionActiva]}
+    <Panel on:seleccionarOpcion={handleSeleccionarOpcion} />
   {/if}
 
   {#if seccionActiva}

@@ -17,6 +17,7 @@
 	import { customersStore } from '$lib/stores/customers';
 	import type { Customer } from '$lib/services/customers/clientCustomer';
 	import CustomersModal from '$lib/components/ui/views/customers/CustomersModal.svelte';
+	import { voucherConfigStore } from '$lib/components/ui/views/vouchers/voucherContext';
 
 	onMount(() => {
 		catalogoStore.load();
@@ -29,23 +30,17 @@
 			label: `${c.tipo_documento} ${c.numero_documento} - ${c.nombre}`
 		}))
 	);
-
-	// Valores por defecto
-	let comprobanteSeleccionado = $state('01');
-	let clienteSeleccionado = $state<number | ''>('');
-	let serieSeleccionada = $state('F001');
-	let establecimientoPrincipal = $state('0000');
-	let operacionSeleccionada = $state('0101');
-	let monedaSeleccionada = $state('PEN');
-	let pagoSeleccionado = $state('Contado');
-
 	let isModalOpen = $state(false);
 	let isCustomersModalOpen = $state(false);
 
-	const seriesDisponibles = $derived($seriesOptionsPorTipo(comprobanteSeleccionado));
+	const seriesDisponibles = $derived($seriesOptionsPorTipo($voucherConfigStore.tipoComprobante));
+
 	$effect(() => {
-		if (seriesDisponibles.length > 0 && !seriesDisponibles.some((s) => s.value === serieSeleccionada)) {
-			serieSeleccionada = seriesDisponibles[0].value;
+		if (
+			seriesDisponibles.length > 0 &&
+			!seriesDisponibles.some((s) => s.value === $voucherConfigStore.serie)
+		) {
+			voucherConfigStore.updateField('serie', String(seriesDisponibles[0].value));
 		}
 	});
 </script>
@@ -61,13 +56,13 @@
 					id="tipoComprobante"
 					options={$tiposComprobanteOptions}
 					label="Tipo de Comprobante"
-					bind:value={comprobanteSeleccionado}
+					bind:value={$voucherConfigStore.tipoComprobante}
 				/>
 				<Select
 					id="tipoPago"
 					label="Tipo de Pago"
 					options={$tiposPagoOptions}
-					bind:value={pagoSeleccionado}
+					bind:value={$voucherConfigStore.tipoPago}
 				/>
 			</div>
 			<div class="flex items-end gap-x-2">
@@ -76,14 +71,14 @@
 					label="Seleccionar Cliente"
 					placeholder="Seleccionar cliente..."
 					options={clientesOptions}
-					bind:value={clienteSeleccionado}
+					bind:value={$voucherConfigStore.clienteId}
 				/>
 				<Button variant="outline" size="md" onclick={() => (isCustomersModalOpen = true)}
 					>+ Nuevo</Button
 				>
 			</div>
 
-			<Input id="infoAdicional" label="Información Adicional" />
+			<Input id="infoAdicional" label="Información Adicional" bind:value={$voucherConfigStore.infoAdicional} />
 		</div>
 		<!-- BOTONES DEL PANEL -->
 		<div>
@@ -103,7 +98,7 @@
 				id="serie"
 				label="Serie"
 				options={seriesDisponibles}
-				bind:value={serieSeleccionada}
+				bind:value={$voucherConfigStore.serie}
 				disabled={seriesDisponibles.length === 0}
 			/>
 
@@ -111,32 +106,32 @@
 				id="tipoOperacion"
 				label="Tipo de Operación"
 				options={$tiposOperacionOptions}
-				bind:value={operacionSeleccionada}
+				bind:value={$voucherConfigStore.tipoOperacion}
 			/>
 
 			<Select
 				id="moneda"
 				label="Moneda"
 				options={$monedasOptions}
-				bind:value={monedaSeleccionada}
+				bind:value={$voucherConfigStore.moneda}
 			/>
 
-			<Input id="tipoCambio" label="Orden de Compra" />
+			<Input id="tipoCambio" label="Orden de Compra" bind:value={$voucherConfigStore.ordenCompra} />
 		</div>
 
 		<div class="grid">
-			<Fecha id="fechaEmision" label="Fecha de Emisión" />
+			<Fecha id="fechaEmision" label="Fecha de Emisión" bind:value={$voucherConfigStore.fechaEmision} />
 
-			<Fecha id="fechaVencimiento" label="Fecha de Vencimiento" />
+			<Fecha id="fechaVencimiento" label="Fecha de Vencimiento" bind:value={$voucherConfigStore.fechaVencimiento} />
 
 			<Select
 				id="establecimiento"
 				label="Establecimiento"
 				options={$sedesOptions}
-				bind:value={establecimientoPrincipal}
+				bind:value={$voucherConfigStore.establecimiento}
 			/>
 
-			<Input id="tipoCambio" label="Tipo de Cambio" />
+			<Input id="tipoCambio" label="Tipo de Cambio" bind:value={$voucherConfigStore.tipoCambio} />
 		</div>
 	</div>
 	<SalesModal bind:isOpen={isModalOpen} onClose={() => (isModalOpen = false)} />

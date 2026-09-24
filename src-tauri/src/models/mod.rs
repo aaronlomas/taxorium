@@ -7,3 +7,4 @@ pub mod products;
 pub mod sellers;
 pub mod series;
 pub mod units;
+pub mod vouchers;
