@@ -10,7 +10,8 @@
 	import TableFilter, { type CheckItem } from '$lib/components/core/primitives/TableFilter.svelte';
 	import TableToolbar from '$lib/components/core/primitives/TableToolbar.svelte';
 	import Search from '$lib/components/core/primitives/Search.svelte';
-	import Option from '$lib/components/core/primitives/Select.svelte';
+	import Select from '$lib/components/core/primitives/Select.svelte';
+	import Hint from '$lib/components/core/primitives/Hint.svelte';
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/Table.svelte';
 
 	import ProductModal from './ProductModal.svelte';
@@ -154,12 +155,14 @@
 	<!-- PRIMITIVA TOOLBAR -->
 	<TableToolbar>
 		{#snippet actions()}
-			<button
-				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
-				onclick={handleAdd}
-			>
-				<IconPlus size={20} />Añadir
-			</button>
+			<Hint text="Agregar Producto" side="bottom" align="start">
+				<button
+					class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
+					onclick={handleAdd}
+				>
+					<IconPlus size={20} />
+				</button>
+			</Hint>
 			<button
 				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
 			>
@@ -188,12 +191,12 @@
 					>
 				</div>
 			</div>
-			<TableFilter label="Columnas" storageKey="productos" bind:items={columnas} />
+			<TableFilter storageKey="productos" bind:items={columnas} />
 		{/snippet}
 
 		{#snippet filters()}
 			<div class="w-30">
-				<Option placeholder="Buscar por:" options={SEARCH_OPTIONS} bind:value={searchBy} />
+				<Select placeholder="Buscar por:" options={SEARCH_OPTIONS} bind:value={searchBy} />
 			</div>
 			<Search
 				bind:value={searchTerm}

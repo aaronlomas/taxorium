@@ -2,7 +2,6 @@
 	import { auth } from '$lib/stores/auth';
 	import { currentTenant, tenantStore } from '$lib/stores/tenant';
 	import StepEmpresa from '$lib/components/ui/setups/StepEmpresa.svelte';
-	import Button from '$lib/components/core/primitives/Button.svelte';
 
 	let ruc = $state($currentTenant?.ruc ?? '');
 	let razonSocial = $state($currentTenant?.razon_social ?? '');
@@ -105,87 +104,61 @@
 	}
 </script>
 
-<div class="flex h-full flex-col overflow-scroll">
-	<div class="settings-header">
-		<div>
-			<h2 class="text-xl font-bold tracking-tight text-slate-100">Configuración de empresa</h2>
-			<p class="mt-1 text-sm text-slate-400">
-				Gestiona los datos de tu empresa para la emisión de comprobantes
-			</p>
-		</div>
-	</div>
-
-	<div class="p-2">
-		<div class="max-w-3xl">
-			<!-- Reusamos el componente StepEmpresa -->
-			<div class="rounded-xl border border-neutral-800 bg-neutral-900 p-2 shadow-sm">
-				<StepEmpresa
-					bind:ruc
-					bind:razonSocial
-					bind:nombreComercial
-					bind:departamento
-					bind:direccion
-					bind:telefono
-					bind:email
-					bind:rucValid
-					bind:rucValidating
-					{validateRuc}
-				/>
-
-				{#if errorMsg}
-					<div
-						class="mt-4 flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400"
-					>
-						<svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="mt-0.5 shrink-0">
-							<circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
-							<path
-								d="M8 5v4M8 11v.5"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-							/>
-						</svg>
-						{errorMsg}
-					</div>
-				{/if}
-
-				{#if successMsg}
-					<div
-						class="mt-4 flex items-start gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-400"
-					>
-						<svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="mt-0.5 shrink-0">
-							<circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
-							<path
-								d="M5 8l2 2 4-4"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							/>
-						</svg>
-						{successMsg}
-					</div>
-				{/if}
-
-				<div class="mt-8 flex justify-end">
-					<Button
-						type="button"
-						variant="primary"
-						onclick={handleSave}
-						disabled={saving}
-						class="px-6 py-2.5"
-					>
-						{#if saving}
-							<span
-								class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white"
-							></span>
-							Guardando...
-						{:else}
-							Guardar cambios
-						{/if}
-					</Button>
+<div class="flex h-full flex-col overflow-scroll p-2">
+	<h2 class="text-xl font-bold tracking-tight text-slate-100">Configuración de Empresa</h2>
+	<p class="text-sm leading-relaxed text-neutral-300">
+		Esta información se mostrará en los comprobantes.
+	</p>
+	<!-- Reusamos el componente StepEmpresa -->
+	<StepEmpresa
+		bind:ruc
+		bind:razonSocial
+		bind:nombreComercial
+		bind:departamento
+		bind:direccion
+		bind:telefono
+		bind:email
+		bind:rucValid
+		bind:rucValidating
+		{validateRuc}
+		onSave={handleSave}
+		{saving}
+	>
+		{#snippet messages()}
+			{#if errorMsg}
+				<div
+					class="flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400"
+				>
+					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="mt-0.5 shrink-0">
+						<circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
+						<path
+							d="M8 5v4M8 11v.5"
+							stroke="currentColor"
+							stroke-width="1.5"
+							stroke-linecap="round"
+						/>
+					</svg>
+					{errorMsg}
 				</div>
-			</div>
-		</div>
-	</div>
+			{/if}
+
+			{#if successMsg}
+				<div
+					class="flex items-start gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-400"
+				>
+					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="mt-0.5 shrink-0">
+						<circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
+						<path
+							d="M5 8l2 2 4-4"
+							stroke="currentColor"
+							stroke-width="1.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						/>
+					</svg>
+					{successMsg}
+				</div>
+			{/if}
+		{/snippet}
+	</StepEmpresa>
 </div>

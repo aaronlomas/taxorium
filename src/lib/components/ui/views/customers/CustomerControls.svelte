@@ -127,7 +127,6 @@
 				</div>
 			</div>
 			<TableFilter
-				label="Columnas"
 				storageKey="clientes_v2"
 				legacyStorageKeys={['clientes']}
 				bind:items={columnas}

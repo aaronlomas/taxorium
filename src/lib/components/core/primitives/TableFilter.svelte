@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { IconAdjustments, IconCheck, IconSquare } from '@tabler/icons-svelte';
+	import Hint from './Hint.svelte';
 
 	export interface CheckItem {
 		id: string;
@@ -17,7 +18,7 @@
 	}
 
 	let {
-		label = 'Columnas',
+		label = undefined,
 		items = $bindable([]),
 		storageKey = '',
 		legacyStorageKeys = [],
@@ -105,14 +106,16 @@
 
 <div class="relative flex flex-col {containerClass}" bind:this={wrapperElement}>
 	<!-- BOTÓN PRINCIPAL -->
-	<button
-		type="button"
-		onclick={toggleDropdown}
-		class="flex items-center gap-2 rounded-sm border border-neutral-800 bg-neutral-900 px-3 py-1 text-sm text-neutral-300 hover:border-neutral-700 hover:text-neutral-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none {className}"
-	>
-		<IconAdjustments size={20} class="text-neutral-400" />
-		<span class="font-medium">{label}</span>
-	</button>
+	<Hint text="Columnas" side="bottom">
+		<button
+			type="button"
+			onclick={toggleDropdown}
+			class="flex items-center rounded-sm border border-neutral-800 bg-neutral-900 p-1 text-sm text-neutral-300 hover:border-neutral-700 hover:text-neutral-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none {className}"
+		>
+			<IconAdjustments size={20} class="text-neutral-400" />
+			<span class="font-medium">{label}</span>
+		</button>
+	</Hint>
 
 	<!-- LISTA DESPLEGABLE DE CHECKBOXES -->
 	{#if isOpen}

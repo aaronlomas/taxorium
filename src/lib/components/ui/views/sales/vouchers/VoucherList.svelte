@@ -172,7 +172,7 @@
 					>
 				</div>
 			</div>
-			<TableFilter label="Columnas" storageKey="comprobantes" bind:items={columnas} />
+			<TableFilter storageKey="comprobantes" bind:items={columnas} />
 		{/snippet}
 
 		{#snippet filters()}

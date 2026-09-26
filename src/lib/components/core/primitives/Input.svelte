@@ -65,6 +65,7 @@
 		<input
 			{id}
 			bind:value
+			{required}
 			class="border-none bg-transparent px-2 text-sm text-neutral-200 outline-none focus:ring-0"
 			{...rest}
 		/>

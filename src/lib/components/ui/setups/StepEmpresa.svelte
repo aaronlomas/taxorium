@@ -1,5 +1,7 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import Input from '$lib/components/core/primitives/Input.svelte';
+	import Button from '$lib/components/core/primitives/Button.svelte';
 
 	let {
 		ruc = $bindable(),
@@ -11,7 +13,12 @@
 		email = $bindable(),
 		rucValid = $bindable(),
 		rucValidating = $bindable(),
-		validateRuc
+		validateRuc,
+		onSave,
+		saving = false,
+		submitLabel = 'Guardar cambios',
+		savingLabel = 'Guardando...',
+		messages
 	}: {
 		ruc: string;
 		razonSocial: string;
@@ -23,25 +30,35 @@
 		rucValid: boolean | null;
 		rucValidating: boolean;
 		validateRuc: () => void;
+		/** Acción a ejecutar al enviar el formulario. */
+		onSave: () => void;
+		/** Bloquea el botón mientras la acción se ejecuta. */
+		saving?: boolean;
+		submitLabel?: string;
+		savingLabel?: string;
+		/** Contenido opcional a renderizar justo encima del botón (mensajes de error/éxito). */
+		messages?: Snippet;
 	} = $props();
+
+	function handleSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		if (saving) return;
+		onSave();
+	}
 </script>
 
-<div class="mb-6">
-	<h2 class="mb-1 text-xl font-bold tracking-tight text-slate-100">Datos de tu empresa</h2>
-	<p class="mb-7 text-sm leading-relaxed text-slate-400">
-		Esta información aparecerá en todos tus comprobantes electrónicos.
-	</p>
-
+<form class="flex flex-col gap-4 border border-neutral-900 p-2 rounded-md" onsubmit={handleSubmit}>
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 		<div class="md:col-span-2">
 			<Input
 				id="ruc"
 				type="text"
 				bind:value={ruc}
-				label="RUC *"
+				label="RUC"
 				placeholder="20123456789"
 				maxlength={11}
-				class="rounded-xl border bg-white/5 text-slate-100 transition-all {rucValid === true
+				required
+				class=" {rucValid === true
 					? 'border-emerald-500/50'
 					: rucValid === false
 						? 'border-red-500/50'
@@ -71,9 +88,9 @@
 				id="razon-social"
 				type="text"
 				bind:value={razonSocial}
-				label="Razón social *"
+				label="Razón social"
 				placeholder="EMPRESA SAC"
-				class="rounded-xl border border-white/10 bg-white/5 text-slate-100 transition-all focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20"
+				required
 			/>
 		</div>
 
@@ -83,7 +100,6 @@
 			bind:value={nombreComercial}
 			label="Nombre comercial"
 			placeholder="Mi Tienda (opcional)"
-			class="rounded-xl border border-white/10 bg-white/5 text-slate-100 transition-all focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20"
 		/>
 
 		<Input
@@ -92,7 +108,7 @@
 			bind:value={departamento}
 			label="Departamento"
 			placeholder="Lima"
-			class="rounded-xl border border-white/10 bg-white/5 text-slate-100 transition-all focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20"
+			required
 		/>
 
 		<div class="md:col-span-2">
@@ -100,9 +116,9 @@
 				id="direccion"
 				type="text"
 				bind:value={direccion}
-				label="Dirección fiscal *"
+				label="Dirección fiscal"
 				placeholder="Av. Javier Prado Este 123, San Isidro"
-				class="rounded-xl border border-white/10 bg-white/5 text-slate-100 transition-all focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20"
+				required
 			/>
 		</div>
 
@@ -112,7 +128,6 @@
 			bind:value={telefono}
 			label="Teléfono"
 			placeholder="01-234-5678"
-			class="rounded-xl border border-white/10 bg-white/5 text-slate-100 transition-all focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20"
 		/>
 
 		<Input
@@ -121,7 +136,26 @@
 			bind:value={email}
 			label="Email de empresa"
 			placeholder="contacto@empresa.com"
-			class="rounded-xl border border-white/10 bg-white/5 text-slate-100 transition-all focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20"
 		/>
 	</div>
-</div>
+
+	<!-- MENSAJES / ACCIONES -->
+	{#if messages}
+		<div class="mt-4">
+			{@render messages()}
+		</div>
+	{/if}
+
+	<div class="flex justify-end">
+		<Button type="submit" variant="primary" disabled={saving} class="px-6 py-2.5">
+			{#if saving}
+				<span
+					class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white"
+				></span>
+				{savingLabel}
+			{:else}
+				{submitLabel}
+			{/if}
+		</Button>
+	</div>
+</form>
