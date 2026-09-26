@@ -9,11 +9,15 @@
 
 	let {
 		label,
-		value = $bindable(today()),
+		value = $bindable(),
 		id = crypto.randomUUID(),
 		containerClass = '',
 		class: className = ''
 	}: Props = $props();
+
+	$effect(() => {
+		if (!value) value = today();
+	});
 
 	let isOpen = $state(false);
 	let wrapperEl: HTMLDivElement | undefined = $state();
@@ -106,14 +110,14 @@
 
 <div class="relative flex w-full flex-col {containerClass}" bind:this={wrapperEl}>
 	{#if label}
-		<label for={id} class="block text-sm font-medium text-neutral-400 whitespace-nowrap">
+		<label for={id} class="block text-sm font-medium whitespace-nowrap text-neutral-400">
 			{label}
 		</label>
 	{/if}
 
 	<!-- Input Fecha -->
 	<div
-		class="relative flex w-full overflow-hidden border border-neutral-800 bg-neutral-900 text-sm rounded-sm {isOpen
+		class="relative flex w-full rounded-sm border border-neutral-800 bg-neutral-900 text-sm {isOpen
 			? 'border-blue-500 ring-1 ring-blue-500'
 			: ''} {className}"
 	>
@@ -123,7 +127,7 @@
 			type="button"
 			onclick={toggle}
 			title="Abrir calendario"
-			class="absolute bottom-0 right-0 top-0 flex h-full items-center border-l border-neutral-700 bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white"
+			class="absolute top-0 right-0 bottom-0 flex h-full items-center border-l border-neutral-700 bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white"
 		>
 			<svg fill="none" stroke="currentColor" class="size-4" viewBox="0 0 24 24"
 				><path

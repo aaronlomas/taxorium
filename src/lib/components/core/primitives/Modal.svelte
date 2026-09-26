@@ -87,7 +87,7 @@
 				<button
 					type="button"
 					onclick={onClose}
-          onpointerdown={(e) => e.stopPropagation()}
+					onpointerdown={(e) => e.stopPropagation()}
 					class="rounded text-white transition-colors hover:text-red-700"
 					aria-label="Cerrar modal"
 				>

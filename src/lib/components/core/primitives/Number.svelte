@@ -78,7 +78,7 @@
 	{/if}
 
 	<div
-		class="flex w-full overflow-hidden border border-neutral-800 bg-neutral-900 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 rounded-sm {error
+		class="flex w-full overflow-hidden rounded-sm border border-neutral-800 bg-neutral-900 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 {error
 			? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500'
 			: ''}"
 	>
@@ -87,12 +87,12 @@
 			{id}
 			type="text"
 			inputmode="decimal"
-			value={value}
+			{value}
 			oninput={handleInput}
 			onblur={handleBlur}
-			class="h-full w-full bg-transparent px-3 text-sm text-neutral-200 outline-none border-none focus:ring-0 focus:outline-none {className}"
+			class="h-full w-full border-none bg-transparent px-3 text-sm text-neutral-200 outline-none focus:ring-0 focus:outline-none {className}"
 		/>
-		
+
 		<div class="flex flex-col border-l border-neutral-700">
 			<button
 				aria-label="Incrementar"

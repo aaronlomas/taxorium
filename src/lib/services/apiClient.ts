@@ -70,7 +70,7 @@ export class ApiClient {
 
 			const fetchOptions: RequestInit = {
 				...options,
-				headers,
+				headers
 			};
 
 			if (payload !== undefined) {

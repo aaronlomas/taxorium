@@ -15,7 +15,7 @@
 	import { customersStore, editingCustomer } from '$lib/stores/customers';
 	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
 	import type { Customer } from '$lib/services/customers/clientCustomer';
-	
+
 	let isModalOpen = $state(false);
 
 	onMount(() => {
@@ -31,7 +31,7 @@
 		$editingCustomer = customer;
 		isModalOpen = true;
 	}
-	
+
 	let searchTerm = $state('');
 	let searchBy = $state('');
 	const SEARCH_OPTIONS = [
@@ -40,7 +40,7 @@
 		{ value: 'dni', label: 'DNI' },
 		{ value: 'ruc', label: 'RUC' }
 	];
-	
+
 	async function handleExportFile(format: ExportFormat) {
 		// implement export logic here if needed
 	}
@@ -53,14 +53,14 @@
 		{ id: 'tipo_documento', key: 'tipo_documento', label: 'Tipo doc. identidad', checked: true },
 		{ id: 'numero_documento', key: 'numero_documento', label: 'Número', checked: true },
 		{ id: 'nombre', key: 'nombre', label: 'Nombre', checked: true },
-		{ id: 'nombre_comercial', key: 'nombre_comercial', label: 'Nombre Comercial', checked: true },
-		{ id: 'pais', key: 'pais', label: 'Pais', checked: true },
-		{ id: 'departamento', key: 'departamento', label: 'Departamente', checked: true },
-		{ id: 'provincia', key: 'provincia', label: 'Provincia', checked: true },
-		{ id: 'distrito', key: 'distrito', label: 'Distrito', checked: true },
-		{ id: 'direccion', key: 'direccion', label: 'Direccion', checked: true },
-		{ id: 'telefono', key: 'telefono', label: 'Teléfono', checked: true },
-		{ id: 'correo', key: 'correo', label: 'Correo electrónico', checked: true }
+		{ id: 'nombre_comercial', key: 'nombre_comercial', label: 'Nombre Comercial', checked: false },
+		{ id: 'pais', key: 'pais', label: 'Pais', checked: false },
+		{ id: 'departamento', key: 'departamento', label: 'Departamente', checked: false },
+		{ id: 'provincia', key: 'provincia', label: 'Provincia', checked: false },
+		{ id: 'distrito', key: 'distrito', label: 'Distrito', checked: false },
+		{ id: 'direccion', key: 'direccion', label: 'Direccion', checked: false },
+		{ id: 'telefono', key: 'telefono', label: 'Teléfono', checked: false },
+		{ id: 'correo', key: 'correo', label: 'Correo electrónico', checked: false }
 	]);
 
 	let columnasVisibles = $derived(columnas.filter((c) => c.checked));
@@ -126,7 +126,12 @@
 					>
 				</div>
 			</div>
-			<TableFilter label="Columnas" storageKey="clientes" bind:items={columnas} />
+			<TableFilter
+				label="Columnas"
+				storageKey="clientes_v2"
+				legacyStorageKeys={['clientes']}
+				bind:items={columnas}
+			/>
 		{/snippet}
 		<!-- FILTROS -->
 		{#snippet filters()}

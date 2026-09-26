@@ -7,7 +7,14 @@
 
 	import { productClient, type CreateProductPayload } from '$lib/services/products/clientProducts';
 	import { productsStore, editingProduct } from '$lib/stores/products';
-	import { catalogoStore, monedasOptions, unidadesOptions, sedesOptions, afectacionesVentaOptions, afectacionesCompraOptions } from '$lib/stores/catalogos';
+	import {
+		catalogoStore,
+		monedasOptions,
+		unidadesOptions,
+		sedesOptions,
+		afectacionesVentaOptions,
+		afectacionesCompraOptions
+	} from '$lib/stores/catalogos';
 	import { taxoLog } from '$lib/stores/taxoLog';
 	import { onMount } from 'svelte';
 
@@ -159,7 +166,6 @@
 				.filter((c): c is string => Boolean(c))
 		)
 	]);
-
 </script>
 
 <Modal
@@ -173,7 +179,13 @@
 		<!-- Fila 1 -->
 		<Input id="codigoInterno" label="Código Interno" variant="simple" bind:value={codigoInterno} />
 
-		<Select id="unidad" label="Unidad" bind:value={unidad} options={$unidadesOptions} editable={true} />
+		<Select
+			id="unidad"
+			label="Unidad"
+			bind:value={unidad}
+			options={$unidadesOptions}
+			editable={true}
+		/>
 
 		<div class="col-span-2">
 			<Input
@@ -245,13 +257,7 @@
 
 		<!-- Fila 6 -->
 		<div class="col-span-2">
-			<Select
-				id="sede"
-				options={$sedesOptions}
-				editable={true}
-				label="Sede"
-				bind:value={sede}
-			/>
+			<Select id="sede" options={$sedesOptions} editable={true} label="Sede" bind:value={sede} />
 		</div>
 	</div>
 

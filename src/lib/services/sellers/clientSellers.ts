@@ -43,13 +43,9 @@ class SellerClient extends ApiClient {
 	}
 
 	async updateSeller(id: number, payload: UpdateSellerPayload): Promise<Seller> {
-		return this.request<Seller>(
-			`api/sellers/${id}`,
-			'update_seller',
-			{ method: 'PUT' },
-			payload,
-			{ id }
-		);
+		return this.request<Seller>(`api/sellers/${id}`, 'update_seller', { method: 'PUT' }, payload, {
+			id
+		});
 	}
 
 	async deleteSeller(id: number): Promise<void> {

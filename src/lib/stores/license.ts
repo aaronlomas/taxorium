@@ -59,7 +59,15 @@ function createLicenseStore() {
 		init() {
 			const lease = leerLeaseLocal();
 			if (!lease) {
-				set({ valid: false, initialized: true, expiresAt: null, tenantId: null, leaseToken: null, activating: false, error: null });
+				set({
+					valid: false,
+					initialized: true,
+					expiresAt: null,
+					tenantId: null,
+					leaseToken: null,
+					activating: false,
+					error: null
+				});
 				return;
 			}
 
@@ -90,7 +98,11 @@ function createLicenseStore() {
 			try {
 				deviceId = await invoke<string>('get_device_id');
 			} catch {
-				update((s) => ({ ...s, activating: false, error: 'No se pudo obtener el ID del dispositivo.' }));
+				update((s) => ({
+					...s,
+					activating: false,
+					error: 'No se pudo obtener el ID del dispositivo.'
+				}));
 				return false;
 			}
 
@@ -127,7 +139,11 @@ function createLicenseStore() {
 
 				return true;
 			} catch {
-				update((s) => ({ ...s, activating: false, error: 'Sin conexión. Verifica tu internet e intenta de nuevo.' }));
+				update((s) => ({
+					...s,
+					activating: false,
+					error: 'Sin conexión. Verifica tu internet e intenta de nuevo.'
+				}));
 				return false;
 			}
 		},

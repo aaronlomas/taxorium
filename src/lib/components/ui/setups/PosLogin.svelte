@@ -82,7 +82,9 @@
 </script>
 
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/95 backdrop-blur-md">
-	<div class="flex w-full max-w-2xl flex-col rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 shadow-2xl">
+	<div
+		class="flex w-full max-w-2xl flex-col rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 shadow-2xl"
+	>
 		<div class="mb-8 text-center">
 			<h1 class="text-3xl font-bold tracking-tight text-neutral-100">Taxorium POS</h1>
 			<p class="mt-2 text-neutral-400">Selecciona tu usuario para iniciar turno</p>
@@ -98,18 +100,25 @@
 			</div>
 		{:else if !selectedSeller}
 			{#if sellers.length === 0}
-				<div class="rounded-lg border border-amber-500/20 bg-amber-500/10 p-6 text-center text-amber-400">
+				<div
+					class="rounded-lg border border-amber-500/20 bg-amber-500/10 p-6 text-center text-amber-400"
+				>
 					<p class="mb-2 font-medium">No hay vendedores registrados.</p>
-					<p class="text-sm">El Administrador debe crear un vendedor en "Configuración > Administrar Cuentas" antes de poder usar la caja.</p>
+					<p class="text-sm">
+						El Administrador debe crear un vendedor en "Configuración > Administrar Cuentas" antes
+						de poder usar la caja.
+					</p>
 				</div>
 			{:else}
 				<div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
 					{#each sellers as seller (seller.id)}
 						<button
 							onclick={() => selectSeller(seller)}
-							class="group flex flex-col items-center justify-center gap-3 rounded-xl border border-neutral-800 bg-neutral-900 p-6 transition-all hover:border-blue-500 hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="group flex flex-col items-center justify-center gap-3 rounded-xl border border-neutral-800 bg-neutral-900 p-6 transition-all hover:border-blue-500 hover:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 						>
-							<div class="flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/10 text-xl font-bold text-blue-400 transition-transform group-hover:scale-110">
+							<div
+								class="flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/10 text-xl font-bold text-blue-400 transition-transform group-hover:scale-110"
+							>
 								{getInitials(seller)}
 							</div>
 							<div class="text-center">
@@ -131,7 +140,9 @@
 				</button>
 
 				<div class="mb-6 flex items-center gap-4">
-					<div class="flex h-14 w-14 items-center justify-center rounded-full bg-blue-500/10 text-lg font-bold text-blue-400">
+					<div
+						class="flex h-14 w-14 items-center justify-center rounded-full bg-blue-500/10 text-lg font-bold text-blue-400"
+					>
 						{getInitials(selectedSeller)}
 					</div>
 					<div>

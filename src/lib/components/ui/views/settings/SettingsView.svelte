@@ -11,10 +11,10 @@
 	let direccion = $state($currentTenant?.direccion ?? '');
 	let telefono = $state($currentTenant?.telefono ?? '');
 	let email = $state($currentTenant?.email ?? '');
-	
+
 	let rucValid = $state<boolean | null>(true);
 	let rucValidating = $state(false);
-	
+
 	let saving = $state(false);
 	let errorMsg = $state('');
 	let successMsg = $state('');
@@ -37,10 +37,19 @@
 	async function handleSave() {
 		errorMsg = '';
 		successMsg = '';
-		
-		if (!ruc || !isValidRuc(ruc)) { errorMsg = 'Ingresa un RUC válido (11 dígitos).'; return; }
-		if (!razonSocial.trim()) { errorMsg = 'La razón social es obligatoria.'; return; }
-		if (!direccion.trim()) { errorMsg = 'La dirección fiscal es obligatoria.'; return; }
+
+		if (!ruc || !isValidRuc(ruc)) {
+			errorMsg = 'Ingresa un RUC válido (11 dígitos).';
+			return;
+		}
+		if (!razonSocial.trim()) {
+			errorMsg = 'La razón social es obligatoria.';
+			return;
+		}
+		if (!direccion.trim()) {
+			errorMsg = 'La dirección fiscal es obligatoria.';
+			return;
+		}
 
 		saving = true;
 		try {
@@ -88,24 +97,28 @@
 			saving = false;
 			// Limpiar mensaje de éxito después de unos segundos
 			if (successMsg) {
-				setTimeout(() => { successMsg = ''; }, 3000);
+				setTimeout(() => {
+					successMsg = '';
+				}, 3000);
 			}
 		}
 	}
 </script>
 
-<div class="flex flex-col overflow-scroll h-full">
+<div class="flex h-full flex-col overflow-scroll">
 	<div class="settings-header">
 		<div>
-			<h2 class="text-xl font-bold text-slate-100 tracking-tight">Configuración de empresa</h2>
-			<p class="text-sm text-slate-400 mt-1">Gestiona los datos de tu empresa para la emisión de comprobantes</p>
+			<h2 class="text-xl font-bold tracking-tight text-slate-100">Configuración de empresa</h2>
+			<p class="mt-1 text-sm text-slate-400">
+				Gestiona los datos de tu empresa para la emisión de comprobantes
+			</p>
 		</div>
 	</div>
 
 	<div class="p-2">
 		<div class="max-w-3xl">
 			<!-- Reusamos el componente StepEmpresa -->
-			<div class="bg-neutral-900 border border-neutral-800 rounded-xl p-2 shadow-sm">
+			<div class="rounded-xl border border-neutral-800 bg-neutral-900 p-2 shadow-sm">
 				<StepEmpresa
 					bind:ruc
 					bind:razonSocial
@@ -120,29 +133,52 @@
 				/>
 
 				{#if errorMsg}
-					<div class="mt-4 flex items-start gap-2 bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg text-sm">
-						<svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="shrink-0 mt-0.5">
+					<div
+						class="mt-4 flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400"
+					>
+						<svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="mt-0.5 shrink-0">
 							<circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
-							<path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+							<path
+								d="M8 5v4M8 11v.5"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+							/>
 						</svg>
 						{errorMsg}
 					</div>
 				{/if}
 
 				{#if successMsg}
-					<div class="mt-4 flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3 rounded-lg text-sm">
-						<svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="shrink-0 mt-0.5">
+					<div
+						class="mt-4 flex items-start gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-400"
+					>
+						<svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="mt-0.5 shrink-0">
 							<circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
-							<path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+							<path
+								d="M5 8l2 2 4-4"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
 						</svg>
 						{successMsg}
 					</div>
 				{/if}
 
 				<div class="mt-8 flex justify-end">
-					<Button type="button" variant="primary" onclick={handleSave} disabled={saving} class="px-6 py-2.5">
+					<Button
+						type="button"
+						variant="primary"
+						onclick={handleSave}
+						disabled={saving}
+						class="px-6 py-2.5"
+					>
 						{#if saving}
-							<span class="inline-block w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2"></span>
+							<span
+								class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white"
+							></span>
 							Guardando...
 						{:else}
 							Guardar cambios

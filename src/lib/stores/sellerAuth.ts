@@ -1,5 +1,9 @@
 import { writable } from 'svelte/store';
-import { sellerClient, type Seller, type LoginSellerPayload } from '$lib/services/sellers/clientSellers';
+import {
+	sellerClient,
+	type Seller,
+	type LoginSellerPayload
+} from '$lib/services/sellers/clientSellers';
 
 function createSellerAuth() {
 	// Initialize from localStorage if running in browser

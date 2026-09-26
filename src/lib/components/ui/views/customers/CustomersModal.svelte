@@ -161,13 +161,7 @@
 		</div>
 
 		<div class="grid grid-cols-2 gap-4">
-			<Input
-				id="nombre"
-				label="Nombre"
-				required
-				variant="simple"
-				bind:value={nombre}
-			/>
+			<Input id="nombre" label="Nombre" required variant="simple" bind:value={nombre} />
 			<Input
 				id="nombre_comercial"
 				label="Nombre comercial"

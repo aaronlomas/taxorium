@@ -6,40 +6,44 @@
 	<div class="flex items-center justify-center font-extrabold text-white">
 		<p>Reportes de Ventas/Compras</p>
 	</div>
-	<div class="flex justify-end p-4 border-t border-t-neutral-800">
+	<div class="flex justify-end border-t border-t-neutral-800 p-4">
 		<div>
 			<div class="flex items-center rounded-lg border border-neutral-800 px-4">
-				<IconSearch size={16}/>
-				<input type="text" placeholder="Buscar" class="w-full border-0 bg-transparent focus:ring-0" />
+				<IconSearch size={16} />
+				<input
+					type="text"
+					placeholder="Buscar"
+					class="w-full border-0 bg-transparent focus:ring-0"
+				/>
 			</div>
 		</div>
 	</div>
 
-  <!-- Tabla de reportes -->
+	<!-- Tabla de reportes -->
 
-  <div class="text-sm border border-neutral-800">
-    <table class="bg-neutral-900 table-auto w-full">
-      <thead class="border-b border-neutral-800">
-        <tr>
-          <th class="align-top">#</th>
-          <th class="align-top">Producto</th>
-          <th class="align-top">Precio</th>
-          <th class="align-top">Stock</th>
-          <th class="align-top">Acciones</th>
-        </tr>
-      </thead>
-      <tbody class="text-center border-b border-blue-700">
-        <tr>
-          <td class="align-top">1</td>
-          <td class="align-top">Producto 1</td>
-          <td class="align-top">10</td>
-          <td class="align-top">10</td>
-          <td class="align-top">
-            <button>Editar</button>
-            <button>Eliminar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+	<div class="border border-neutral-800 text-sm">
+		<table class="w-full table-auto bg-neutral-900">
+			<thead class="border-b border-neutral-800">
+				<tr>
+					<th class="align-top">#</th>
+					<th class="align-top">Producto</th>
+					<th class="align-top">Precio</th>
+					<th class="align-top">Stock</th>
+					<th class="align-top">Acciones</th>
+				</tr>
+			</thead>
+			<tbody class="border-b border-blue-700 text-center">
+				<tr>
+					<td class="align-top">1</td>
+					<td class="align-top">Producto 1</td>
+					<td class="align-top">10</td>
+					<td class="align-top">10</td>
+					<td class="align-top">
+						<button>Editar</button>
+						<button>Eliminar</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
 </div>

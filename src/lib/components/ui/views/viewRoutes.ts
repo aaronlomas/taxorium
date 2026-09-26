@@ -24,7 +24,6 @@ import CuentaView from './account/accountView.svelte';
  *   3. Añade la entrada al mapa
  */
 export const viewRoutes: Record<string, Component<any>> = {
-
 	//SECCIÓN DE REGISTROS GENERALES
 	Dashboard: DashboardView,
 	Productos: ProductsView,
@@ -38,8 +37,8 @@ export const viewRoutes: Record<string, Component<any>> = {
 	'Panel de Ventas': PanelSalesView,
 
 	//CONFIGURACIÓN
-	'Configuración': SettingsView,
-	'Panel de Cuenta': CuentaView,
+	Configuración: SettingsView,
+	'Panel de Cuenta': CuentaView
 };
 
 /** Devuelve el componente para un id de pestaña, o null si no existe */

@@ -75,18 +75,18 @@
 
 	// Show PosLogin ONLY on client (caja) nodes when no seller is logged in.
 	// Server nodes go directly to the full app (admin already authenticated via Supabase).
-	let showPosLogin = $derived(
-		$configStore.role === 'client' && !$sellerAuth
-	);
+	let showPosLogin = $derived($configStore.role === 'client' && !$sellerAuth);
 </script>
 
 {#if showPosLogin}
 	<PosLogin />
 {:else}
-	<div class="grid grid-rows-[1fr_24px] grid-cols-[auto_1fr] h-full w-full bg-neutral-950 font-sans text-neutral-300">
+	<div
+		class="grid h-full w-full grid-cols-[auto_1fr] grid-rows-[1fr_24px] bg-neutral-950 font-sans text-neutral-300"
+	>
 		<Sidebar on:seleccionarOpcion={manejarSeleccionSidebar} />
 
-		<div class="flex min-w-0 min-h-0 overflow-hidden flex-col bg-neutral-950">
+		<div class="flex min-h-0 min-w-0 flex-col overflow-hidden bg-neutral-950">
 			<TabBar>
 				{#each pestanas as pestana (pestana.id)}
 					<Tab
@@ -101,7 +101,7 @@
 			</TabBar>
 
 			<!-- El área de contenido renderiza dinámicamente según el registro de vistas -->
-			<div class="flex-1 overflow-hidden min-h-0">
+			<div class="min-h-0 flex-1 overflow-hidden">
 				{#if pestanas.length === 0}
 					<div class="flex h-full items-center justify-center text-sm text-neutral-500">
 						Selecciona una opción para comenzar
@@ -112,15 +112,11 @@
 					{@const Icon = pestanaActiva?.icono}
 					<div class="flex h-full flex-col items-center justify-center gap-3 text-neutral-500">
 						{#if Icon}
-							<Icon
-								size={48}
-								stroke={1.5}
-								class="text-neutral-700"
-							/>
+							<Icon size={48} stroke={1.5} class="text-neutral-700" />
 						{/if}
 						<p class="text-sm">
-							El módulo <span class="font-medium text-neutral-400">{pestanaActiva?.titulo}</span> está en
-							desarrollo.
+							El módulo <span class="font-medium text-neutral-400">{pestanaActiva?.titulo}</span> está
+							en desarrollo.
 						</p>
 					</div>
 				{/if}

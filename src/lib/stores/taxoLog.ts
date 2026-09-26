@@ -37,7 +37,7 @@ function createTaxoLogStore() {
 		info: (msg: string, src?: string) => push('info', msg, src),
 		warn: (msg: string, src?: string) => push('warn', msg, src),
 		error: (msg: string, src?: string) => push('error', msg, src),
-		initListener,
+		initListener
 	};
 }
 

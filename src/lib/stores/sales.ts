@@ -18,8 +18,7 @@ function createSalesStore() {
 
 	return {
 		subscribe,
-		add: (item: Omit<SaleItem, 'id'>) =>
-			update((items) => [...items, { ...item, id: Date.now() }]),
+		add: (item: Omit<SaleItem, 'id'>) => update((items) => [...items, { ...item, id: Date.now() }]),
 		remove: (id: number) => update((items) => items.filter((i) => i.id !== id)),
 		clear: () => set([])
 	};

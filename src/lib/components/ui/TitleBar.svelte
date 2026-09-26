@@ -30,13 +30,10 @@
 </script>
 
 <div
-	class="flex h-8 shrink-0 select-none items-center justify-between border-b border-neutral-900 bg-neutral-950"
+	class="flex h-8 shrink-0 items-center justify-between border-b border-neutral-900 bg-neutral-950 select-none"
 >
 	<!-- Región de arrastre: cubre toda la barra excepto los botones -->
-	<div
-		data-tauri-drag-region
-		class="flex h-full flex-1 cursor-default items-center gap-2 px-4"
-	>
+	<div data-tauri-drag-region class="flex h-full flex-1 cursor-default items-center gap-2 px-4">
 		<div
 			class="pointer-events-none flex h-4 w-4 items-center justify-center rounded-sm bg-blue-600"
 		>
@@ -73,7 +70,11 @@
 			type="button"
 			tabindex="-1"
 		>
-			<IconX size={16} stroke={1.5} class="text-neutral-400 transition-colors group-hover:text-white" />
+			<IconX
+				size={16}
+				stroke={1.5}
+				class="text-neutral-400 transition-colors group-hover:text-white"
+			/>
 		</button>
 	</div>
 </div>

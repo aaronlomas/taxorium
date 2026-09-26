@@ -62,11 +62,15 @@
 	// Filtrar la lista si está en modo editable y el usuario está escribiendo usando el buscador reactivo
 	let filteredOptions = $derived(
 		editable && filterOptions && searchInput && isOpen
-			? normalizedOptions.filter((opt) => opt.label.toLowerCase().includes(searchInput.toLowerCase()))
+			? normalizedOptions.filter((opt) =>
+					opt.label.toLowerCase().includes(searchInput.toLowerCase())
+				)
 			: normalizedOptions
 	);
 
-	let selectedLabel = $derived(normalizedOptions.find((opt) => opt.value === value)?.label || placeholder);
+	let selectedLabel = $derived(
+		normalizedOptions.find((opt) => opt.value === value)?.label || placeholder
+	);
 
 	function toggle() {
 		if (disabled) return;
@@ -122,32 +126,39 @@
 					value={displayValue}
 					{disabled}
 					oninput={handleInput}
-					onfocus={() => { if (disabled) return; isOpen = true; const matched = normalizedOptions.find((opt) => opt.value === value); searchInput = matched ? matched.label : String(value ?? ''); }}
+					onfocus={() => {
+						if (disabled) return;
+						isOpen = true;
+						const matched = normalizedOptions.find((opt) => opt.value === value);
+						searchInput = matched ? matched.label : String(value ?? '');
+					}}
 					{placeholder}
-					class="h-9 w-full border-0 bg-transparent text-sm text-neutral-100 placeholder-neutral-500 focus:ring-0 {disabled ? 'opacity-50 cursor-not-allowed' : ''}"
+					class="h-9 w-full border-0 bg-transparent text-sm text-neutral-100 placeholder-neutral-500 focus:ring-0 {disabled
+						? 'cursor-not-allowed opacity-50'
+						: ''}"
 				/>
-			<button
-				type="button"
-				tabindex="-1"
-				onclick={toggle}
-				aria-label="Abrir opciones"
-				class="px-2 text-neutral-400 hover:text-neutral-200 focus:outline-none {disabled ? 'opacity-50 cursor-not-allowed' : ''}"
-			>
-				<IconChevronDown class="size-4 transition-transform {isOpen ? 'rotate-180' : ''}" />
-			</button>
+				<button
+					type="button"
+					tabindex="-1"
+					onclick={toggle}
+					aria-label="Abrir opciones"
+					class="px-2 text-neutral-400 hover:text-neutral-200 focus:outline-none {disabled
+						? 'cursor-not-allowed opacity-50'
+						: ''}"
+				>
+					<IconChevronDown class="size-4 transition-transform {isOpen ? 'rotate-180' : ''}" />
+				</button>
 			</div>
 		{:else}
 			<!-- MODO FIJO / SELECT (Solo selección de lista) -->
 			<button
 				type="button"
 				{id}
-				disabled={disabled}
+				{disabled}
 				onclick={toggle}
 				class="flex w-full items-center justify-between rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none {disabled
-					? 'opacity-50 cursor-not-allowed'
-					: ''} {error
-					? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-					: ''} {className}"
+					? 'cursor-not-allowed opacity-50'
+					: ''} {error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''} {className}"
 			>
 				<span class="truncate {value ? 'text-neutral-100' : 'text-neutral-500'}">
 					{selectedLabel}

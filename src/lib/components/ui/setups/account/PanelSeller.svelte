@@ -71,11 +71,12 @@
 					usuario,
 					clave_plana: clavePlana || undefined,
 					accesos: accesosSeleccionados || undefined,
-					dominio: (!dominioSeleccionado || dominioSeleccionado === 'null') ? undefined : dominioSeleccionado
+					dominio:
+						!dominioSeleccionado || dominioSeleccionado === 'null' ? undefined : dominioSeleccionado
 				});
 				// Update password cache if a new password was provided
 				if (clavePlana.trim()) {
-					sellerPasswordCache.update(cache => ({ ...cache, [editId]: clavePlana }));
+					sellerPasswordCache.update((cache) => ({ ...cache, [editId]: clavePlana }));
 				}
 				successMsg = 'Vendedor actualizado correctamente';
 			} else {
@@ -85,11 +86,12 @@
 					usuario,
 					clave_plana: clavePlana,
 					accesos: accesosSeleccionados || undefined,
-					dominio: (!dominioSeleccionado || dominioSeleccionado === 'null') ? undefined : dominioSeleccionado
+					dominio:
+						!dominioSeleccionado || dominioSeleccionado === 'null' ? undefined : dominioSeleccionado
 				};
 				const newSeller = await sellerClient.createSeller(payload);
 				// Store password in memory cache for display in table
-				sellerPasswordCache.update(cache => ({ ...cache, [newSeller.id]: clavePlana }));
+				sellerPasswordCache.update((cache) => ({ ...cache, [newSeller.id]: clavePlana }));
 				successMsg = 'Vendedor registrado correctamente';
 			}
 			$editingSeller = null;
@@ -143,7 +145,11 @@
 
 		<div class="flex flex-col">
 			<Option label="Asignar Accesos" options={MODULOS} bind:value={accesosSeleccionados} />
-			<Option label="Asignar Dominio / Puesto" options={DOMINIOS} bind:value={dominioSeleccionado} />
+			<Option
+				label="Asignar Dominio / Puesto"
+				options={DOMINIOS}
+				bind:value={dominioSeleccionado}
+			/>
 
 			<Input
 				label="Contraseña{$editingSeller ? ' (dejar vacío para no cambiar)' : ''}"

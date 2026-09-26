@@ -19,7 +19,7 @@
 		taxoLog.initListener();
 		// Inicializar configuración del nodo (Servidor/Cliente)
 		await configStore.init();
-		
+
 		let unsub = configStore.subscribe((config) => {
 			if (config.role === null && $page.url.pathname !== '/setup-node') {
 				goto('/setup-node');
@@ -38,10 +38,10 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<div class="flex flex-col h-screen w-full bg-neutral-950">
+<div class="flex h-screen w-full flex-col bg-neutral-950">
 	<ResizeBorder />
 	<TitleBar />
-	<div class="flex-1 w-full h-full relative">
+	<div class="relative h-full w-full flex-1">
 		{@render children()}
 	</div>
 </div>

@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import Modal from '$lib/components/core/primitives/Modal.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
-	import Input from '$lib/components/core/primitives/Input.svelte';
 	import Select from '$lib/components/core/primitives/Select.svelte';
 	import Number from '$lib/components/core/primitives/Number.svelte';
 	import { productsStore } from '$lib/stores/products';
@@ -80,16 +79,24 @@
 	<div class="grid h-full w-full grid-cols-2 gap-4 p-2">
 		<!-- Contenido -->
 		<div>
-			<Select label='Producto/Servicio' options={productosOptions} bind:value={productoSeleccionado} />
+			<Select
+				label="Producto/Servicio"
+				options={productosOptions}
+				bind:value={productoSeleccionado}
+			/>
 		</div>
 		<div>
-			<Number label='Cantidad' bind:value={cantidad} />
+			<Number label="Cantidad" bind:value={cantidad} />
 		</div>
 		<div>
-			<Number label='Precio Unitario' bind:value={precioUnitario} />
+			<Number label="Precio Unitario" bind:value={precioUnitario} />
 		</div>
 		<div>
-			<Select label='Afectación IGV' options={$afectacionesVentaOptions} bind:value={afectacionIgv} />
+			<Select
+				label="Afectación IGV"
+				options={$afectacionesVentaOptions}
+				bind:value={afectacionIgv}
+			/>
 		</div>
 	</div>
 

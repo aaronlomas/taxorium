@@ -82,7 +82,7 @@
 							{index + 1}
 						{/snippet}
 						{@render cell({ class: 'px-3 py-2 text-neutral-500', children: cellIndex })}
-						
+
 						{#each columnas as col (col.id)}
 							{#snippet cellVal()}
 								{formatCellValue(customer, col.key)}

@@ -46,7 +46,7 @@
 						<button
 							type="button"
 							on:click={() => dispatch('seleccionarOpcion', subitem)}
-							class="block w-full text-left truncate px-2 py-1 text-sm font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
+							class="block w-full truncate px-2 py-1 text-left text-sm font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
 						>
 							{subitem.nombre}
 						</button>

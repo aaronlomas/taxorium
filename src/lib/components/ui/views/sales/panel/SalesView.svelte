@@ -4,7 +4,7 @@
 	import SalesDetails from './SalesDetails.svelte';
 </script>
 
-<main class="flex flex-col p-2 gap-2">
+<main class="flex flex-col gap-2 p-2">
 	<PanelVentas />
 	<TableSales />
 	<SalesDetails />

@@ -47,14 +47,16 @@
 	<!-- Base Container -->
 	<div
 		class="
-      grid w-full items-center border border-neutral-800 bg-neutral-900 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 rounded-sm
+      grid w-full items-center rounded-sm border border-neutral-800 bg-neutral-900 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500
       {variants[variant]}
       {error ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500' : ''} 
       {className}
     "
 	>
 		{#if variant === 'triple' && icon}
-			<div class="flex shrink-0 items-center justify-center text-neutral-400 border-r border-neutral-800 h-full px-2">
+			<div
+				class="flex h-full shrink-0 items-center justify-center border-r border-neutral-800 px-2 text-neutral-400"
+			>
 				{@render icon()}
 			</div>
 		{/if}
@@ -63,7 +65,7 @@
 		<input
 			{id}
 			bind:value
-			class="border-none bg-transparent text-sm text-neutral-200 outline-none focus:ring-0 px-2"
+			class="border-none bg-transparent px-2 text-sm text-neutral-200 outline-none focus:ring-0"
 			{...rest}
 		/>
 

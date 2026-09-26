@@ -7,7 +7,9 @@
 		IconFileCode,
 		IconDownload,
 		IconCircleCheck,
-		IconAlertTriangle
+		IconAlertTriangle,
+		IconReceipt,
+		IconFile
 	} from '@tabler/icons-svelte';
 	import { salesStore } from '$lib/stores/sales';
 	import { customersStore } from '$lib/stores/customers';
@@ -15,11 +17,12 @@
 	import { voucherConfigStore } from './voucherContext';
 	import {
 		buildVoucherData,
-		generateVoucherPdf,
 		generateVoucherXml,
 		type VoucherData,
 		type VoucherFormat
 	} from './voucherGenerator';
+	import { generateProfessionalPdf } from './pdfGenerator';
+	import type { PaperFormat } from './pdfTemplateConfig';
 	import { saveVoucherFile } from './voucherFile';
 	import { voucherClient } from '$lib/services/vouchers/clientVoucher';
 
@@ -40,6 +43,7 @@
 	];
 
 	let formatoSeleccionado = $state<VoucherFormat>('pdf');
+	let papelSeleccionado = $state<PaperFormat>('a4');
 	let estado = $state<'idle' | 'generando' | 'exito' | 'error'>('idle');
 	let mensaje = $state('');
 	let archivosGuardados = $state<string[]>([]);
@@ -106,7 +110,7 @@
 
 		const guardados: string[] = [];
 		if (formatoSeleccionado === 'pdf' || formatoSeleccionado === 'ambos') {
-			const pdf = generateVoucherPdf(voucherData);
+			const pdf = generateProfessionalPdf(voucherData, papelSeleccionado);
 			const ruta = await saveVoucherFile(pdf, `${voucherData.numeroCompleto}.pdf`, 'pdf');
 			if (ruta) guardados.push(`${voucherData.numeroCompleto}.pdf`);
 		}
@@ -203,6 +207,41 @@
 				</div>
 			</div>
 
+			<!-- Tamaño de papel (solo cuando se elige PDF) -->
+			{#if formatoSeleccionado === 'pdf' || formatoSeleccionado === 'ambos'}
+				<div>
+					<span class="mb-2 block text-sm font-medium text-neutral-400">Tamaño de papel</span>
+					<div class="grid grid-cols-2 gap-2">
+						<button
+							type="button"
+							class="flex items-center gap-2 rounded-sm border p-2.5 text-left text-sm transition-colors {papelSeleccionado === 'a4'
+								? 'border-blue-500 bg-blue-900/30 text-white'
+								: 'border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700'}"
+							onclick={() => (papelSeleccionado = 'a4')}
+						>
+							<IconFile size={16} class="text-blue-400" />
+							<span>
+								<span class="block font-medium">A4</span>
+								<span class="text-xs opacity-70">Factura/boleta oficial</span>
+							</span>
+						</button>
+						<button
+							type="button"
+							class="flex items-center gap-2 rounded-sm border p-2.5 text-left text-sm transition-colors {papelSeleccionado === 'ticket80mm'
+								? 'border-blue-500 bg-blue-900/30 text-white'
+								: 'border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700'}"
+							onclick={() => (papelSeleccionado = 'ticket80mm')}
+						>
+							<IconReceipt size={16} class="text-blue-400" />
+							<span>
+								<span class="block font-medium">Ticket 80mm</span>
+								<span class="text-xs opacity-70">Impresora térmica</span>
+							</span>
+						</button>
+					</div>
+				</div>
+			{/if}
+
 			{#if sinItems}
 				<div class="flex items-center gap-2 text-sm text-amber-400">
 					<IconAlertTriangle size={16} />
@@ -213,7 +252,10 @@
 			{#if voucherData?.tipoComprobante === '01' && (!voucherData.cliente || (voucherData.cliente.tipoDocumento !== '6' && voucherData.cliente.tipoDocumento.toUpperCase() !== 'RUC'))}
 				<div class="flex items-center gap-2 text-sm text-red-400">
 					<IconAlertTriangle size={16} class="shrink-0" />
-					<span>Para emitir una Factura Electrónica es obligatorio seleccionar un cliente con RUC válido.</span>
+					<span
+						>Para emitir una Factura Electrónica es obligatorio seleccionar un cliente con RUC
+						válido.</span
+					>
 				</div>
 			{/if}
 
@@ -230,10 +272,15 @@
 						Cerrar
 					{/snippet}
 				</Button>
-				<Button 
-					variant="primary" 
-					onclick={generar} 
-					disabled={estado === 'generando' || sinItems || (voucherData?.tipoComprobante === '01' && (!voucherData.cliente || (voucherData.cliente.tipoDocumento !== '6' && voucherData.cliente.tipoDocumento.toUpperCase() !== 'RUC')))}
+				<Button
+					variant="primary"
+					onclick={generar}
+					disabled={estado === 'generando' ||
+						sinItems ||
+						(voucherData?.tipoComprobante === '01' &&
+							(!voucherData.cliente ||
+								(voucherData.cliente.tipoDocumento !== '6' &&
+									voucherData.cliente.tipoDocumento.toUpperCase() !== 'RUC')))}
 				>
 					{#snippet children()}
 						{#if estado === 'generando'}Generando...{:else}Generar{/if}

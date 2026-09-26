@@ -11,6 +11,7 @@
 		label?: string;
 		items?: CheckItem[];
 		storageKey?: string;
+		legacyStorageKeys?: string[];
 		containerClass?: string;
 		class?: string;
 	}
@@ -19,6 +20,7 @@
 		label = 'Columnas',
 		items = $bindable([]),
 		storageKey = '',
+		legacyStorageKeys = [],
 		containerClass = '',
 		class: className = ''
 	}: Props = $props();
@@ -37,6 +39,17 @@
 
 	function storagePath() {
 		return `taxorium.columnas.${storageKey}`;
+	}
+
+	function clearLegacy() {
+		try {
+			if (typeof localStorage === 'undefined') return;
+			for (const legacyKey of legacyStorageKeys) {
+				localStorage.removeItem(`taxorium.columnas.${legacyKey}`);
+			}
+		} catch {
+			console.error('Error limpiando configuración de columnas anterior');
+		}
 	}
 
 	function loadSaved(): Record<string, boolean> | null {
@@ -68,6 +81,7 @@
 
 		if (!restored) {
 			restored = true;
+			clearLegacy();
 			const saved = loadSaved();
 			if (saved) {
 				items = items.map((item) =>
@@ -103,7 +117,7 @@
 	<!-- LISTA DESPLEGABLE DE CHECKBOXES -->
 	{#if isOpen}
 		<div
-			class="absolute z-10 top-full min-w-48 rounded-sm border border-neutral-700 bg-neutral-900 py-1 text-sm shadow-lg focus:outline-none"
+			class="absolute top-full z-10 min-w-48 rounded-sm border border-neutral-700 bg-neutral-900 py-1 text-sm shadow-lg focus:outline-none"
 		>
 			<div class="flex flex-col">
 				{#each items as item (item.id)}

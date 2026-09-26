@@ -1,18 +1,20 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher } from 'svelte';
 
 	// Revizar navegation.ts para agregar nuevos elementos u opciones
 	import { navegacionVentas } from '../navegation';
 
-  const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher();
 </script>
+
 <!-- PANEL ESPECÍFICO DE VENTA RÁPIDA -->
 <nav class="flex flex-1 flex-col overflow-y-auto">
 	<p class="p-2 text-sm text-neutral-400 italic">Operaciones</p>
 	{#each navegacionVentas as elemento}
 		<button
 			type="button"
-			on:click={() => dispatch('seleccionarOpcion', { nombre: elemento.nombre, ruta: elemento.ruta })}
+			on:click={() =>
+				dispatch('seleccionarOpcion', { nombre: elemento.nombre, ruta: elemento.ruta })}
 			class="flex items-center gap-2 p-2 text-sm font-medium transition-colors hover:bg-neutral-800"
 		>
 			{#if elemento.icono}

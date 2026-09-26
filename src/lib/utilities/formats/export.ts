@@ -76,10 +76,10 @@ export async function exportData(
 	if (format === 'csv-comma' || format === 'csv-semicolon') {
 		const separator = format === 'csv-comma' ? ',' : ';';
 		const csv = generateCSV(data, columns, separator);
-		
+
 		const textEncoder = new TextEncoder();
 		const csvBuffer = textEncoder.encode(csv);
-		
+
 		// Agregar BOM para que Excel lea correctamente el UTF-8 en CSV
 		const contentWithBOM = new Uint8Array(3 + csvBuffer.length);
 		contentWithBOM.set([0xef, 0xbb, 0xbf], 0);
@@ -107,7 +107,7 @@ export async function exportData(
 		XLSX.utils.book_append_sheet(workbook, worksheet, 'Datos');
 
 		const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-		
+
 		return await saveFileNative(new Uint8Array(excelBuffer), `${filename}.xlsx`, [
 			{ name: 'Excel', extensions: ['xlsx'] }
 		]);

@@ -24,12 +24,28 @@
 		customersStore.load();
 	});
 
+	/**
+	 * Determina si el tipo de comprobante es una factura (requiere RUC).
+	 * '01' = Factura, '03' = Boleta (y otros).
+	 */
+	const esFactura = $derived($voucherConfigStore.tipoComprobante === '01');
+
+	/**
+	 * Filtra los clientes según el tipo de comprobante seleccionado:
+	 * - Factura → solo clientes con RUC
+	 * - Boleta u otro → clientes sin RUC (DNI, CE, PASAPORTE, etc.)
+	 */
 	let clientesOptions = $derived(
-		$customersStore.map((c: Customer) => ({
-			value: c.id,
-			label: `${c.tipo_documento} ${c.numero_documento} - ${c.nombre}`
-		}))
+		$customersStore
+			.filter((c: Customer) =>
+				esFactura ? c.tipo_documento === 'RUC' : c.tipo_documento !== 'RUC'
+			)
+			.map((c: Customer) => ({
+				value: c.id,
+				label: `${c.tipo_documento} ${c.numero_documento} - ${c.nombre}`
+			}))
 	);
+
 	let isModalOpen = $state(false);
 	let isCustomersModalOpen = $state(false);
 
@@ -41,6 +57,20 @@
 			!seriesDisponibles.some((s) => s.value === $voucherConfigStore.serie)
 		) {
 			voucherConfigStore.updateField('serie', String(seriesDisponibles[0].value));
+		}
+	});
+
+	/**
+	 * Resetea el cliente seleccionado al cambiar el tipo de comprobante.
+	 * `prevTipoComprobante` es una variable plain (no $state) para evitar
+	 * que Svelte programe renders extra al escribirla dentro del $effect.
+	 */
+	let prevTipoComprobante = $voucherConfigStore.tipoComprobante;
+	$effect(() => {
+		const current = $voucherConfigStore.tipoComprobante;
+		if (current !== prevTipoComprobante) {
+			prevTipoComprobante = current;
+			voucherConfigStore.updateField('clienteId', '');
 		}
 	});
 </script>
@@ -78,7 +108,11 @@
 				>
 			</div>
 
-			<Input id="infoAdicional" label="Información Adicional" bind:value={$voucherConfigStore.infoAdicional} />
+			<Input
+				id="infoAdicional"
+				label="Información Adicional"
+				bind:value={$voucherConfigStore.infoAdicional}
+			/>
 		</div>
 		<!-- BOTONES DEL PANEL -->
 		<div>
@@ -120,9 +154,17 @@
 		</div>
 
 		<div class="grid">
-			<Fecha id="fechaEmision" label="Fecha de Emisión" bind:value={$voucherConfigStore.fechaEmision} />
+			<Fecha
+				id="fechaEmision"
+				label="Fecha de Emisión"
+				bind:value={$voucherConfigStore.fechaEmision}
+			/>
 
-			<Fecha id="fechaVencimiento" label="Fecha de Vencimiento" bind:value={$voucherConfigStore.fechaVencimiento} />
+			<Fecha
+				id="fechaVencimiento"
+				label="Fecha de Vencimiento"
+				bind:value={$voucherConfigStore.fechaVencimiento}
+			/>
 
 			<Select
 				id="establecimiento"
