@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/Table.svelte';
 	import { salesStore } from '$lib/stores/sales';
+	import { getUnitDisplay } from '$lib/stores/catalogos';
 
 	const CURRENCY_SYMBOL: Record<string, string> = {
 		PEN: 'S/.',
@@ -62,7 +63,7 @@
 					{/snippet}
 					{@render cell({ children: cellDesc })}
 					{#snippet cellUnidad()}
-						{item.unidad}
+						{getUnitDisplay(item.unidad)}
 					{/snippet}
 					{@render cell({ children: cellUnidad })}
 					{#snippet cellCantidad()}

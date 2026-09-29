@@ -13,6 +13,9 @@ export interface TenantRow {
 	distrito: string | null;
 	telefono: string | null;
 	email: string | null;
+	usuario_sol: string | null;
+	clave_sol: string | null;
+	certificado_path: string | null;
 	configurado: boolean;
 	activo: boolean;
 	created_at: string;

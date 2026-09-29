@@ -151,11 +151,8 @@ pub fn core_update_customer(
 }
 
 pub fn core_delete_customer(db: &Connection, id: i64) -> Result<(), String> {
-    db.execute(
-        "UPDATE clientes SET activo = 0 WHERE id = ?1",
-        params![id],
-    )
-    .map_err(|e| e.to_string())?;
+    db.execute("UPDATE clientes SET activo = 0 WHERE id = ?1", params![id])
+        .map_err(|e| e.to_string())?;
     Ok(())
 }
 

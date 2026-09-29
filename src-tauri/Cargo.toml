@@ -29,7 +29,7 @@ rusqlite = { version = "0.32", features = ["bundled-sqlcipher"] }
 
 # Para manejo de errores y utilidades
 thiserror = "2.0"
-reqwest = { version = "0.13.3", features = ["json"] }
+reqwest = { version = "0.13.3", features = ["form", "json"] }
 hmac = "0.12.1"
 sha2 = "0.10.9"
 subtle = "2.5"
@@ -44,3 +44,5 @@ tokio = { version = "1", features = ["full"] }
 tower-http = { version = "0.5", features = ["cors"] }
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
+quick-xml = "0.37"
+zip = "4.2.0"

@@ -54,10 +54,7 @@ pub const TIPOS_OPERACION: &[(&str, &str)] = &[
     ("0102", "Venta Interna - Anticipos"),
 ];
 
-pub const TIPOS_PAGO: &[(&str, &str)] = &[
-    ("Contado", "Contado"),
-    ("Credito", "Crédito"),
-];
+pub const TIPOS_PAGO: &[(&str, &str)] = &[("Contado", "Contado"), ("Credito", "Crédito")];
 
 pub const TIPOS_COMPROBANTE: &[(&str, &str)] = &[
     ("01", "Factura Electrónica"),
@@ -68,7 +65,9 @@ pub const TIPOS_COMPROBANTE: &[(&str, &str)] = &[
 
 pub fn core_get_monedas(db: &Connection) -> Result<Vec<CatalogoMoneda>, String> {
     let mut stmt = db
-        .prepare("SELECT codigo, descripcion, simbolo FROM monedas WHERE activo = 1 ORDER BY codigo")
+        .prepare(
+            "SELECT codigo, descripcion, simbolo FROM monedas WHERE activo = 1 ORDER BY codigo",
+        )
         .map_err(|e| e.to_string())?;
 
     let rows = stmt
@@ -197,7 +196,9 @@ pub fn get_sedes(state: State<'_, AppState>) -> Result<Vec<CatalogoSede>, String
 }
 
 #[tauri::command]
-pub fn get_afectaciones_venta(state: State<'_, AppState>) -> Result<Vec<CatalogoAfectacion>, String> {
+pub fn get_afectaciones_venta(
+    state: State<'_, AppState>,
+) -> Result<Vec<CatalogoAfectacion>, String> {
     let db_guard = state.db.lock().map_err(|e| e.to_string())?;
     let db = db_guard.as_ref().ok_or("Database not initialized.")?;
     core_get_afectaciones_venta(db)
@@ -276,7 +277,9 @@ pub fn core_get_tipos_comprobante(db: &Connection) -> Result<Vec<CatalogoTipoCom
 }
 
 #[tauri::command]
-pub fn get_tipos_operacion(state: State<'_, AppState>) -> Result<Vec<CatalogoTipoOperacion>, String> {
+pub fn get_tipos_operacion(
+    state: State<'_, AppState>,
+) -> Result<Vec<CatalogoTipoOperacion>, String> {
     let db_guard = state.db.lock().map_err(|e| e.to_string())?;
     let db = db_guard.as_ref().ok_or("Database not initialized.")?;
     core_get_tipos_operacion(db)
@@ -290,7 +293,9 @@ pub fn get_tipos_pago(state: State<'_, AppState>) -> Result<Vec<CatalogoTipoPago
 }
 
 #[tauri::command]
-pub fn get_tipos_comprobante(state: State<'_, AppState>) -> Result<Vec<CatalogoTipoComprobante>, String> {
+pub fn get_tipos_comprobante(
+    state: State<'_, AppState>,
+) -> Result<Vec<CatalogoTipoComprobante>, String> {
     let db_guard = state.db.lock().map_err(|e| e.to_string())?;
     let db = db_guard.as_ref().ok_or("Database not initialized.")?;
     core_get_tipos_comprobante(db)

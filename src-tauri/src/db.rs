@@ -11,9 +11,9 @@ use std::fs;
 use tauri::{AppHandle, Manager};
 
 fn obtener_migraciones() -> Migrations<'static> {
-    Migrations::new(vec![
-        M::up(include_str!("../migrations/01_esquema_inicial.sql")),
-    ])
+    Migrations::new(vec![M::up(include_str!(
+        "../migrations/01_esquema_inicial.sql"
+    ))])
 }
 
 #[cfg(test)]
@@ -48,7 +48,8 @@ pub fn init_db(app: &AppHandle, password: &str) -> Result<Connection, String> {
     let db_path = app_dir.join("taxorium.db");
     let mut conn = Connection::open(&db_path).map_err(|e| e.to_string())?;
 
-    conn.pragma_update(None, "key", &password).map_err(|e| e.to_string())?;
+    conn.pragma_update(None, "key", &password)
+        .map_err(|e| e.to_string())?;
 
     conn.execute_batch(
         "PRAGMA journal_mode = WAL;
@@ -107,7 +108,11 @@ fn seed_monedas(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
     }
     tx.commit().map_err(|e| e.to_string())?;
 
-    emit::info(app, "db", format!("Se sembraron {} monedas", TIPO_MONEDA.len()));
+    emit::info(
+        app,
+        "db",
+        format!("Se sembraron {} monedas", TIPO_MONEDA.len()),
+    );
     Ok(())
 }
 
@@ -166,7 +171,9 @@ fn seed_sedes(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
 fn seed_afectaciones(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
     // 1. Sembrar Afectaciones de Venta
     let count_v: i64 = conn
-        .query_row("SELECT COUNT(*) FROM afectaciones_venta", [], |row| row.get(0))
+        .query_row("SELECT COUNT(*) FROM afectaciones_venta", [], |row| {
+            row.get(0)
+        })
         .unwrap_or(0);
 
     if count_v == 0 {
@@ -186,7 +193,9 @@ fn seed_afectaciones(conn: &mut Connection, app: &AppHandle) -> Result<(), Strin
 
     // 2. Sembrar Afectaciones de Compra
     let count_c: i64 = conn
-        .query_row("SELECT COUNT(*) FROM afectaciones_compra", [], |row| row.get(0))
+        .query_row("SELECT COUNT(*) FROM afectaciones_compra", [], |row| {
+            row.get(0)
+        })
         .unwrap_or(0);
 
     if count_c == 0 {
@@ -204,7 +213,11 @@ fn seed_afectaciones(conn: &mut Connection, app: &AppHandle) -> Result<(), Strin
         tx.commit().map_err(|e| e.to_string())?;
     }
 
-    emit::info(app, "db", "Se sembraron los catálogos de afectación de ventas y compras SUNAT".to_string());
+    emit::info(
+        app,
+        "db",
+        "Se sembraron los catálogos de afectación de ventas y compras SUNAT".to_string(),
+    );
     Ok(())
 }
 
@@ -230,7 +243,11 @@ fn seed_tipos_operacion(conn: &mut Connection, app: &AppHandle) -> Result<(), St
     }
     tx.commit().map_err(|e| e.to_string())?;
 
-    emit::info(app, "db", format!("Se sembraron {} tipos de operación", TIPOS_OPERACION.len()));
+    emit::info(
+        app,
+        "db",
+        format!("Se sembraron {} tipos de operación", TIPOS_OPERACION.len()),
+    );
     Ok(())
 }
 
@@ -256,13 +273,19 @@ fn seed_tipos_pago(conn: &mut Connection, app: &AppHandle) -> Result<(), String>
     }
     tx.commit().map_err(|e| e.to_string())?;
 
-    emit::info(app, "db", format!("Se sembraron {} tipos de pago", TIPOS_PAGO.len()));
+    emit::info(
+        app,
+        "db",
+        format!("Se sembraron {} tipos de pago", TIPOS_PAGO.len()),
+    );
     Ok(())
 }
 
 fn seed_tipos_comprobante(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
     let count: i64 = conn
-        .query_row("SELECT COUNT(*) FROM tipos_comprobante", [], |row| row.get(0))
+        .query_row("SELECT COUNT(*) FROM tipos_comprobante", [], |row| {
+            row.get(0)
+        })
         .unwrap_or(0);
 
     if count > 0 {
@@ -282,7 +305,14 @@ fn seed_tipos_comprobante(conn: &mut Connection, app: &AppHandle) -> Result<(), 
     }
     tx.commit().map_err(|e| e.to_string())?;
 
-    emit::info(app, "db", format!("Se sembraron {} tipos de comprobante", TIPOS_COMPROBANTE.len()));
+    emit::info(
+        app,
+        "db",
+        format!(
+            "Se sembraron {} tipos de comprobante",
+            TIPOS_COMPROBANTE.len()
+        ),
+    );
     Ok(())
 }
 
@@ -298,7 +328,9 @@ fn seed_series(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
     let tx = conn.transaction().map_err(|e| e.to_string())?;
     {
         let mut stmt = tx
-            .prepare("INSERT INTO series (codigo, tipo_documento, numero_actual) VALUES (?1, ?2, ?3)")
+            .prepare(
+                "INSERT INTO series (codigo, tipo_documento, numero_actual) VALUES (?1, ?2, ?3)",
+            )
             .map_err(|e| e.to_string())?;
 
         for item in SERIES_DEFECTO {
@@ -308,6 +340,10 @@ fn seed_series(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
     }
     tx.commit().map_err(|e| e.to_string())?;
 
-    emit::info(app, "db", format!("Se sembraron {} series por defecto", SERIES_DEFECTO.len()));
+    emit::info(
+        app,
+        "db",
+        format!("Se sembraron {} series por defecto", SERIES_DEFECTO.len()),
+    );
     Ok(())
 }

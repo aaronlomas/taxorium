@@ -1,11 +1,20 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { IconPlus, IconDatabaseImport, IconDatabaseExport, IconEye } from '@tabler/icons-svelte';
+	import {
+		IconPlus,
+		IconDatabaseImport,
+		IconDatabaseExport,
+		IconEye,
+		IconSend
+	} from '@tabler/icons-svelte';
 	import TableFilter, { type CheckItem } from '$lib/components/core/primitives/TableFilter.svelte';
 	import TableToolbar from '$lib/components/core/primitives/TableToolbar.svelte';
 	import Select from '$lib/components/core/primitives/Select.svelte';
 	import Search from '$lib/components/core/primitives/Search.svelte';
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/Table.svelte';
+	import { invoke } from '@tauri-apps/api/core';
+	import { get } from 'svelte/store';
+	import { tenantStore } from '$lib/stores/tenant';
 
 	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
 	import { taxoLog } from '$lib/stores/taxoLog';
@@ -46,8 +55,7 @@
 		try {
 			vouchers = await voucherClient.getVouchers();
 		} catch (e) {
-			const msg =
-				e instanceof Error ? e.message : typeof e === 'string' ? e : JSON.stringify(e);
+			const msg = e instanceof Error ? e.message : typeof e === 'string' ? e : JSON.stringify(e);
 			taxoLog.error(`Error al cargar los comprobantes: ${msg}`, 'comprobantes');
 		} finally {
 			isLoading = false;
@@ -88,6 +96,51 @@
 
 	function handleConsultar(voucher: Voucher) {
 		taxoLog.info(`Consultando comprobante ${voucher.numero_comprobante}`, 'comprobantes');
+	}
+
+	let isEmitting = $state<number | null>(null);
+
+	async function handleEmitir(voucher: Voucher) {
+		if (voucher.estado_sunat !== 0) {
+			taxoLog.warn('Este comprobante ya fue emitido a SUNAT.', 'comprobantes');
+			return;
+		}
+
+		const tenant = get(tenantStore).tenant;
+		if (!tenant || !tenant.usuario_sol || !tenant.clave_sol || !tenant.ruc) {
+			taxoLog.error('Faltan configurar las credenciales SOL de la empresa.', 'comprobantes');
+			return;
+		}
+
+		isEmitting = voucher.id;
+		taxoLog.info(`Enviando comprobante ${voucher.numero_comprobante} a SUNAT...`, 'comprobantes');
+
+		try {
+			const res = await invoke('enviar_a_sunat', {
+				payload: {
+					ruc: tenant.ruc,
+					usuario_sol: tenant.usuario_sol,
+					clave_sol: tenant.clave_sol,
+					client_id: (tenant as any).sunat_client_id || '25f61db1-0854-4efb-bc54-c1f10cf8db17',
+					client_secret:
+						(tenant as any).sunat_client_secret || 'rvSu0MjYw+hB+vxONyA7jA==',
+					ambiente: 'beta', // Cambiar a 'produccion' luego
+					voucher_id: voucher.id
+				}
+			});
+
+			taxoLog.info(
+				`Comprobante aceptado por SUNAT. CDR: ${(res as any).descripcion}`,
+				'comprobantes'
+			);
+
+			// Recargar comprobantes
+			vouchers = await voucherClient.getVouchers();
+		} catch (e) {
+			taxoLog.error(`Error de SUNAT: ${e}`, 'comprobantes');
+		} finally {
+			isEmitting = null;
+		}
 	}
 
 	const CURRENCY_SYMBOL: Record<string, string> = {
@@ -261,10 +314,29 @@
 						{/each}
 						{#snippet cellActions()}
 							<div class="flex items-center justify-center gap-2">
+								{#if voucher.estado_sunat === 0}
+									<button
+										class="flex cursor-pointer items-center gap-1 rounded-sm border border-emerald-500/40 px-2 py-0.5 text-emerald-400 transition-colors hover:bg-emerald-500/10 disabled:opacity-50"
+										onclick={() => handleEmitir(voucher)}
+										title="Emitir a SUNAT"
+										disabled={isEmitting === voucher.id}
+									>
+										{#if isEmitting === voucher.id}
+											<span
+												class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent"
+											></span>
+											Enviando...
+										{:else}
+											<IconSend size={14} />
+											Emitir
+										{/if}
+									</button>
+								{/if}
 								<button
-									class="flex cursor-pointer items-center gap-1 rounded-sm border border-blue-500/40 px-2 py-0.5 text-blue-400 transition-colors hover:bg-blue-500/10"
+									class="flex cursor-pointer items-center gap-1 rounded-sm border border-blue-500/40 px-2 py-0.5 text-blue-400 transition-colors hover:bg-blue-500/10 disabled:opacity-50"
 									onclick={() => handleConsultar(voucher)}
 									title="Consultar comprobante"
+									disabled={isEmitting === voucher.id}
 								>
 									<IconEye size={14} />
 									Consultar

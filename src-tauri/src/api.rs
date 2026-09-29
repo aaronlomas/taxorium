@@ -9,12 +9,11 @@ use tower_http::cors::{Any, CorsLayer};
 
 use crate::emit;
 use crate::models::catalogos::{
-    core_get_afectaciones_compra, core_get_afectaciones_venta, core_get_monedas,
-    core_get_sedes, core_get_tipos_comprobante, core_get_tipos_operacion, core_get_tipos_pago,
-    core_get_unidades, CatalogoAfectacion, CatalogoMoneda, CatalogoSede, CatalogoTipoComprobante,
+    core_get_afectaciones_compra, core_get_afectaciones_venta, core_get_monedas, core_get_sedes,
+    core_get_tipos_comprobante, core_get_tipos_operacion, core_get_tipos_pago, core_get_unidades,
+    CatalogoAfectacion, CatalogoMoneda, CatalogoSede, CatalogoTipoComprobante,
     CatalogoTipoOperacion, CatalogoTipoPago, CatalogoUnidad,
 };
-use crate::models::series::{core_get_series, Serie};
 use crate::models::customers::{
     core_create_customer, core_delete_customer, core_get_customers, core_update_customer,
     CreateCustomerPayload, Customer,
@@ -27,6 +26,7 @@ use crate::models::sellers::{
     core_create_seller, core_delete_seller, core_get_sellers, core_login_seller,
     core_update_seller, CreateSellerPayload, LoginSellerPayload, Seller, UpdateSellerPayload,
 };
+use crate::models::series::{core_get_series, Serie};
 use crate::models::vouchers::{
     core_create_voucher, core_get_vouchers, core_next_correlativo, CreateVoucherPayload, Voucher,
 };
@@ -64,15 +64,15 @@ pub fn build_router(app: AppHandle) -> Router {
         .route("/api/unidades", get(get_unidades_api))
         .route("/api/sedes", get(get_sedes_api))
         .route("/api/afectaciones/venta", get(get_afectaciones_venta_api))
-        .route(
-            "/api/afectaciones/compra",
-            get(get_afectaciones_compra_api),
-        )
+        .route("/api/afectaciones/compra", get(get_afectaciones_compra_api))
         .route("/api/tipos_operacion", get(get_tipos_operacion_api))
         .route("/api/tipos_pago", get(get_tipos_pago_api))
         .route("/api/tipos_comprobante", get(get_tipos_comprobante_api))
         .route("/api/series", get(get_series_api))
-        .route("/api/vouchers", get(get_vouchers_api).post(create_voucher_api))
+        .route(
+            "/api/vouchers",
+            get(get_vouchers_api).post(create_voucher_api),
+        )
         .route(
             "/api/vouchers/next_correlativo/:serie",
             get(get_next_correlativo_api),
@@ -319,9 +319,7 @@ async fn get_tipos_comprobante_api(
     Ok(Json(items))
 }
 
-async fn get_series_api(
-    state: State<ApiState>,
-) -> Result<Json<Vec<Serie>>, (StatusCode, String)> {
+async fn get_series_api(state: State<ApiState>) -> Result<Json<Vec<Serie>>, (StatusCode, String)> {
     let items = run_db_task(state, |db| core_get_series(db)).await?;
     Ok(Json(items))
 }

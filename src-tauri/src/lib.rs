@@ -1,10 +1,12 @@
 mod api;
+pub mod c14n;
 mod config;
 mod db;
 mod emit;
 mod models;
+pub mod sunat;
+pub mod validaciones;
 pub mod xml_builder;
-
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager, State};
 
@@ -81,7 +83,9 @@ pub fn run() {
             models::series::delete_serie,
             models::vouchers::get_vouchers,
             models::vouchers::create_voucher,
-            models::vouchers::get_next_correlativo
+            models::vouchers::get_next_correlativo,
+            sunat::enviar_a_sunat,
+            sunat::firmar_factura_sunat
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {

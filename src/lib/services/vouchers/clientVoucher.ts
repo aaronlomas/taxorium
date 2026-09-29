@@ -18,6 +18,18 @@ export interface Voucher {
 	descripcion_cdr: string | null;
 }
 
+export interface VoucherItem {
+	unidad: string;
+	cantidad: number;
+	/** Precio unitario final, con IGV incluido. */
+	precio_unitario: number;
+	/** Importe total de la línea con IGV incluido. */
+	total: number;
+	/** Código de afectación del catálogo 07 de SUNAT. */
+	afectacion: string;
+	descripcion: string;
+}
+
 export interface CreateVoucherPayload {
 	fecha_de_emision: string;
 	cliente: string;
@@ -26,10 +38,17 @@ export interface CreateVoucherPayload {
 	correlativo: number;
 	tipo_comprobante: string;
 	moneda: string;
-	gravado: number;
-	igv: number;
-	total: number;
 	estado_pago?: 'pendiente' | 'pagado';
+	emisor_ruc: string;
+	emisor_razon_social: string;
+	emisor_ubigeo: string;
+	emisor_direccion: string;
+	receptor_tipo_doc: string;
+	receptor_num_doc: string;
+	tipo_operacion: string;
+	p12_bytes: number[];
+	p12_password: string;
+	items: VoucherItem[];
 }
 
 class VoucherClient extends ApiClient {

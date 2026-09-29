@@ -99,7 +99,11 @@ pub fn core_create_serie(db: &Connection, payload: CreateSeriePayload) -> Result
     })
 }
 
-pub fn core_update_serie(db: &Connection, id: i64, payload: CreateSeriePayload) -> Result<Serie, String> {
+pub fn core_update_serie(
+    db: &Connection,
+    id: i64,
+    payload: CreateSeriePayload,
+) -> Result<Serie, String> {
     if !is_valid_serie(&payload.codigo, &payload.tipo_documento) {
         return Err(format!(
             "La serie {} no es válida para el tipo de documento {}. Revisa los prefijos permitidos.",
@@ -143,14 +147,21 @@ pub fn get_series(state: State<'_, AppState>) -> Result<Vec<Serie>, String> {
 }
 
 #[tauri::command]
-pub fn create_serie(payload: CreateSeriePayload, state: State<'_, AppState>) -> Result<Serie, String> {
+pub fn create_serie(
+    payload: CreateSeriePayload,
+    state: State<'_, AppState>,
+) -> Result<Serie, String> {
     let db_guard = state.db.lock().map_err(|e| e.to_string())?;
     let db = db_guard.as_ref().ok_or("Database not initialized.")?;
     core_create_serie(db, payload)
 }
 
 #[tauri::command]
-pub fn update_serie(id: i64, payload: CreateSeriePayload, state: State<'_, AppState>) -> Result<Serie, String> {
+pub fn update_serie(
+    id: i64,
+    payload: CreateSeriePayload,
+    state: State<'_, AppState>,
+) -> Result<Serie, String> {
     let db_guard = state.db.lock().map_err(|e| e.to_string())?;
     let db = db_guard.as_ref().ok_or("Database not initialized.")?;
     core_update_serie(db, id, payload)

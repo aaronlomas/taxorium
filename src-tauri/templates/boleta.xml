@@ -60,6 +60,7 @@
         </cac:Party>
     </cac:AccountingSupplierParty>
     
+    {% if cliente_num_doc and cliente_num_doc != "" and cliente_num_doc != "-" %}
     <cac:AccountingCustomerParty>
         <cac:Party>
             <cac:PartyIdentification>
@@ -70,6 +71,18 @@
             </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingCustomerParty>
+    {% else %}
+    <cac:AccountingCustomerParty>
+        <cac:Party>
+            <cac:PartyIdentification>
+                <cbc:ID schemeID="0" schemeName="Documento de Identidad" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">0</cbc:ID>
+            </cac:PartyIdentification>
+            <cac:PartyLegalEntity>
+                <cbc:RegistrationName><![CDATA[Sin Nombre]]></cbc:RegistrationName>
+            </cac:PartyLegalEntity>
+        </cac:Party>
+    </cac:AccountingCustomerParty>
+    {% endif %}
     
     <cac:TaxTotal>
         <cbc:TaxAmount currencyID="{{ moneda }}">{{ total_impuestos }}</cbc:TaxAmount>

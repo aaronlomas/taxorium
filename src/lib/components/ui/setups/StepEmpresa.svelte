@@ -11,9 +11,15 @@
 		direccion = $bindable(),
 		telefono = $bindable(),
 		email = $bindable(),
+		ubigeo = $bindable(),
+		usuarioSol = $bindable(),
+		claveSol = $bindable(),
+		certificadoPath = $bindable(),
+		certificadoPassword = $bindable(),
 		rucValid = $bindable(),
 		rucValidating = $bindable(),
 		validateRuc,
+		onSelectCertificado,
 		onSave,
 		saving = false,
 		submitLabel = 'Guardar cambios',
@@ -27,9 +33,15 @@
 		direccion: string;
 		telefono: string;
 		email: string;
+		ubigeo?: string;
+		usuarioSol?: string;
+		claveSol?: string;
+		certificadoPath?: string;
+		certificadoPassword?: string;
 		rucValid: boolean | null;
 		rucValidating: boolean;
 		validateRuc: () => void;
+		onSelectCertificado?: () => void;
 		/** Acción a ejecutar al enviar el formulario. */
 		onSave: () => void;
 		/** Bloquea el botón mientras la acción se ejecuta. */
@@ -47,7 +59,7 @@
 	}
 </script>
 
-<form class="flex flex-col gap-4 border border-neutral-900 p-2 rounded-md" onsubmit={handleSubmit}>
+<form class="flex flex-col gap-4 rounded-md border border-neutral-900 p-2" onsubmit={handleSubmit}>
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 		<div class="md:col-span-2">
 			<Input
@@ -137,6 +149,66 @@
 			label="Email de empresa"
 			placeholder="contacto@empresa.com"
 		/>
+
+		<Input
+			id="ubigeo"
+			type="text"
+			bind:value={ubigeo}
+			label="Ubigeo"
+			placeholder="150101 (Código INEI de 6 dígitos)"
+			maxlength={6}
+		/>
+
+		<!-- SECCIÓN CREDENCIALES SUNAT -->
+		<div class="mt-4 border-t border-neutral-800 pt-6 md:col-span-2">
+			<h3 class="mb-4 text-lg font-semibold text-slate-100">Credenciales SUNAT</h3>
+			<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<Input
+					id="usuario-sol"
+					type="text"
+					bind:value={usuarioSol}
+					label="Usuario SOL"
+					placeholder="MODDATOS"
+				/>
+				<Input
+					id="clave-sol"
+					type="password"
+					bind:value={claveSol}
+					label="Clave SOL"
+					placeholder="••••••••"
+				/>
+				<div class="md:col-span-2">
+					<label for="" class="mb-2 block text-sm font-medium text-neutral-300"
+						>Certificado Digital (.p12)</label
+					>
+					<div class="flex gap-2">
+						<Input
+							id="certificado-path"
+							type="text"
+							bind:value={certificadoPath}
+							placeholder="/ruta/al/certificado.p12"
+							class="flex-1"
+							readonly
+						/>
+						{#if onSelectCertificado}
+							<Button type="button" variant="secondary" onclick={onSelectCertificado}>
+								Examinar
+							</Button>
+						{/if}
+					</div>
+					<p class="mt-1 text-xs text-neutral-500">
+						Selecciona el archivo .p12 de tu certificado digital para la firma de comprobantes.
+					</p>
+				</div>
+				<Input
+					id="certificado-password"
+					type="password"
+					bind:value={certificadoPassword}
+					label="Contraseña del Certificado"
+					placeholder="••••••••"
+				/>
+			</div>
+		</div>
 	</div>
 
 	<!-- MENSAJES / ACCIONES -->

@@ -6,7 +6,7 @@
 	import Number from '$lib/components/core/primitives/Number.svelte';
 	import { productsStore } from '$lib/stores/products';
 	import { salesStore } from '$lib/stores/sales';
-	import { catalogoStore, afectacionesVentaOptions, getUnitDisplay } from '$lib/stores/catalogos';
+	import { catalogoStore, afectacionesVentaOptions } from '$lib/stores/catalogos';
 
 	let { isOpen = $bindable(false), onClose }: { isOpen: boolean; onClose: () => void } = $props();
 
@@ -29,6 +29,10 @@
 				const producto = $productsStore.find((p) => String(p.id) === String(productoSeleccionado));
 				if (producto) {
 					precioUnitario = String(producto.precio_unitario_venta);
+					// Cada producto nace con su afectación de venta: si el catálogo todavía
+					// no cargó, la línea se agregaría sin código de afectación y el backend
+					// la rechazaría al emitir.
+					afectacionIgv = producto.afectacion_venta || afectacionIgv;
 				}
 			} else {
 				precioUnitario = '0';
@@ -60,12 +64,14 @@
 		salesStore.add({
 			productoId: producto.id,
 			descripcion: producto.nombre,
-			unidad: getUnitDisplay(producto.codigo_unidad),
+			// El código del catálogo 03 viaja tal cual al `cbc:InvoicedQuantity/@unitCode`;
+			// el nombre con símbolo se arma al mostrarlo con `getUnitDisplay`.
+			unidad: producto.codigo_unidad || 'NIU',
 			cantidad,
 			precioUnitario: precio,
 			subtotal,
 			total: subtotal,
-			afectacion: afectacionIgv,
+			afectacion: afectacionIgv || producto.afectacion_venta || '20',
 			moneda: producto.moneda
 		});
 

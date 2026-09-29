@@ -1,8 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { buildVoucherData, generateVoucherPdf, generateVoucherXml } from './voucherGenerator';
+import {
+	buildVoucherData,
+	generateVoucherPdf,
+	generateVoucherXml,
+	estadoPagoDesdeTipoPago
+} from './voucherGenerator';
 import type { VoucherConfig } from './voucherContext';
 
-function sampleConfig(): VoucherConfig {
+function sampleConfig(overrides: Partial<VoucherConfig> = {}): VoucherConfig {
 	return {
 		tipoComprobante: '03',
 		clienteId: 1,
@@ -18,7 +23,8 @@ function sampleConfig(): VoucherConfig {
 		infoAdicional: '',
 		ordenCompra: '',
 		tipoCambio: '',
-		montoRecibido: '120'
+		montoRecibido: '120',
+		...overrides
 	};
 }
 
@@ -76,5 +82,39 @@ describe('voucherGenerator', () => {
 		expect(xml).toContain('urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
 		expect(xml).toContain(data.numeroCompleto);
 		expect(xml).toContain('<cbc:IssueDate>2026-09-04</cbc:IssueDate>');
+	});
+});
+
+describe('estadoPagoDesdeTipoPago', () => {
+	it('marca pagado el contado, con o sin monto recibido', () => {
+		expect(estadoPagoDesdeTipoPago('Contado')).toBe('pagado');
+
+		const sinMonto = buildVoucherData(
+			sampleConfig({ montoRecibido: '0' }),
+			null,
+			sampleItems(),
+			null
+		);
+		expect(sinMonto.estadoPago).toBe('pagado');
+
+		const pagoExacto = buildVoucherData(
+			sampleConfig({ montoRecibido: '118' }),
+			null,
+			sampleItems(),
+			null
+		);
+		expect(pagoExacto.estadoPago).toBe('pagado');
+	});
+
+	it('marca pendiente el crédito aunque se registre un monto', () => {
+		expect(estadoPagoDesdeTipoPago('Credito')).toBe('pendiente');
+
+		const conMonto = buildVoucherData(
+			sampleConfig({ tipoPago: 'Credito', montoRecibido: '118' }),
+			null,
+			sampleItems(),
+			null
+		);
+		expect(conMonto.estadoPago).toBe('pendiente');
 	});
 });

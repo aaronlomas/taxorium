@@ -11,6 +11,7 @@
  */
 
 import { jsPDF } from 'jspdf';
+import { getUnitDisplay } from '$lib/stores/catalogos';
 import type { VoucherData } from './voucherGenerator';
 import type { PdfTemplateConfig, PaperFormat } from './pdfTemplateConfig';
 import { DEFAULT_PDF_CONFIG, TICKET_PDF_CONFIG } from './pdfTemplateConfig';
@@ -225,7 +226,9 @@ function generateA4Pdf(data: VoucherData, cfg: PdfTemplateConfig): Uint8Array {
 		doc.text(formatNum(item.cantidad), colsA4.cant.x + colsA4.cant.w / 2, cy, {
 			align: 'center'
 		});
-		doc.text(item.unidad, colsA4.unidad.x + colsA4.unidad.w / 2, cy, { align: 'center' });
+		doc.text(getUnitDisplay(item.unidad), colsA4.unidad.x + colsA4.unidad.w / 2, cy, {
+			align: 'center'
+		});
 
 		// Descripción con truncado
 		const maxDescW = colsA4.descripcion.w - 2;

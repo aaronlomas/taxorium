@@ -2,6 +2,7 @@
 	import { auth } from '$lib/stores/auth';
 	import { currentTenant, tenantStore } from '$lib/stores/tenant';
 	import StepEmpresa from '$lib/components/ui/setups/StepEmpresa.svelte';
+	import { open } from '@tauri-apps/plugin-dialog';
 
 	let ruc = $state($currentTenant?.ruc ?? '');
 	let razonSocial = $state($currentTenant?.razon_social ?? '');
@@ -10,6 +11,13 @@
 	let direccion = $state($currentTenant?.direccion ?? '');
 	let telefono = $state($currentTenant?.telefono ?? '');
 	let email = $state($currentTenant?.email ?? '');
+
+	// Campos SUNAT
+	let ubigeo = $state($currentTenant?.ubigeo ?? '');
+	let usuarioSol = $state($currentTenant?.usuario_sol ?? '');
+	let claveSol = $state($currentTenant?.clave_sol ?? '');
+	let certificadoPath = $state($currentTenant?.certificado_path ?? '');
+	let certificadoPassword = $state(localStorage.getItem('taxorium_cert_pwd') || '');
 
 	let rucValid = $state<boolean | null>(true);
 	let rucValidating = $state(false);
@@ -20,6 +28,20 @@
 
 	function isValidRuc(r: string): boolean {
 		return /^(10|20)\d{9}$/.test(r);
+	}
+
+	async function handleSelectCertificado() {
+		try {
+			const selected = await open({
+				multiple: false,
+				filters: [{ name: 'Certificados', extensions: ['p12', 'pfx'] }]
+			});
+			if (selected && typeof selected === 'string') {
+				certificadoPath = selected;
+			}
+		} catch (err) {
+			console.error('Error al seleccionar certificado:', err);
+		}
 	}
 
 	async function validateRuc() {
@@ -60,8 +82,13 @@
 					direccion: direccion.trim(),
 					departamento: departamento.trim() || null,
 					telefono: telefono.trim() || null,
-					email: email.trim() || null
+					email: email.trim() || null,
+					ubigeo: ubigeo.trim() || null,
+					usuario_sol: usuarioSol.trim() || null,
+					clave_sol: claveSol.trim() || null,
+					certificado_path: certificadoPath.trim() || null
 				});
+				localStorage.setItem('taxorium_cert_pwd', certificadoPassword);
 			} else {
 				if (!$auth.user) {
 					errorMsg = 'Debes iniciar sesión primero.';
@@ -77,9 +104,14 @@
 					departamento: departamento.trim() || null,
 					telefono: telefono.trim() || null,
 					email: email.trim() || null,
+					ubigeo: ubigeo.trim() || null,
+					usuario_sol: usuarioSol.trim() || null,
+					clave_sol: claveSol.trim() || null,
+					certificado_path: certificadoPath.trim() || null,
 					configurado: true,
 					activo: true
 				});
+				localStorage.setItem('taxorium_cert_pwd', certificadoPassword);
 				if (tenant) {
 					await tenantStore.markConfigured(tenant.id);
 				}
@@ -118,9 +150,15 @@
 		bind:direccion
 		bind:telefono
 		bind:email
+		bind:ubigeo
+		bind:usuarioSol
+		bind:claveSol
+		bind:certificadoPath
+		bind:certificadoPassword
 		bind:rucValid
 		bind:rucValidating
 		{validateRuc}
+		onSelectCertificado={handleSelectCertificado}
 		onSave={handleSave}
 		{saving}
 	>

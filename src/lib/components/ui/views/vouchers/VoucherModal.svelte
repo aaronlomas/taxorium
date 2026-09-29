@@ -25,6 +25,7 @@
 	import type { PaperFormat } from './pdfTemplateConfig';
 	import { saveVoucherFile } from './voucherFile';
 	import { voucherClient } from '$lib/services/vouchers/clientVoucher';
+	import { readFile } from '@tauri-apps/plugin-fs';
 
 	let { isOpen = $bindable(false), onClose }: { isOpen: boolean; onClose: () => void } = $props();
 
@@ -89,6 +90,23 @@
 		mensaje = '';
 
 		try {
+			let p12_bytes: number[] = [];
+			const config = get(voucherConfigStore);
+			const tenant = get(tenantStore).tenant;
+
+			if (tenant?.certificado_path) {
+				try {
+					const bytes = await readFile(tenant.certificado_path);
+					p12_bytes = Array.from(bytes);
+				} catch (err) {
+					throw new Error('No se pudo leer el archivo de certificado (.p12). Verifica la ruta.');
+				}
+			} else {
+				throw new Error('La empresa no tiene un certificado configurado.');
+			}
+
+			const p12_password = localStorage.getItem('taxorium_cert_pwd') || '';
+
 			await voucherClient.createVoucher({
 				fecha_de_emision: `${voucherData.fechaEmision} ${voucherData.horaEmision}`,
 				cliente: voucherData.cliente?.nombre ?? 'Clientes Varios',
@@ -97,10 +115,31 @@
 				correlativo: voucherData.correlativo,
 				tipo_comprobante: voucherData.tipoComprobante,
 				moneda: voucherData.moneda,
-				gravado: voucherData.opGravadas + voucherData.opExoneradas,
-				igv: voucherData.igv,
-				total: voucherData.total,
-				estado_pago: voucherData.montoPagado > 0 ? 'pagado' : 'pendiente'
+				estado_pago: voucherData.estadoPago,
+
+				// Campos SUNAT requeridos por el backend para generar XML y firmar
+				emisor_ruc: tenant.ruc,
+				emisor_razon_social: tenant.razon_social,
+				emisor_ubigeo: tenant.ubigeo || '',
+				emisor_direccion: tenant.direccion,
+				receptor_tipo_doc: voucherData.cliente?.tipoDocumento || '0',
+				receptor_num_doc: voucherData.cliente?.numeroDocumento || '0',
+				tipo_operacion: config.tipoOperacion || '0101',
+				p12_bytes,
+				p12_password,
+				// El precio se captura con IGV incluido, así que solo viaja el importe de
+				// la línea. La base imponible y el IGV los reparte el backend a partir del
+				// tributo de la afectación: calcularlo acá duplicaba el criterio y por eso
+				// una línea gravada con otra afectación (11, por ejemplo) salía con
+				// Tributo 1000 y monto 0.00, que es la observación 3111 de SUNAT.
+				items: voucherData.items.map((item) => ({
+					unidad: item.unidad,
+					cantidad: item.cantidad,
+					precio_unitario: item.precioUnitario,
+					total: item.total,
+					afectacion: item.afectacion,
+					descripcion: item.descripcion
+				}))
 			});
 		} catch (e) {
 			estado = 'error';
@@ -214,7 +253,8 @@
 					<div class="grid grid-cols-2 gap-2">
 						<button
 							type="button"
-							class="flex items-center gap-2 rounded-sm border p-2.5 text-left text-sm transition-colors {papelSeleccionado === 'a4'
+							class="flex items-center gap-2 rounded-sm border p-2.5 text-left text-sm transition-colors {papelSeleccionado ===
+							'a4'
 								? 'border-blue-500 bg-blue-900/30 text-white'
 								: 'border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700'}"
 							onclick={() => (papelSeleccionado = 'a4')}
@@ -227,7 +267,8 @@
 						</button>
 						<button
 							type="button"
-							class="flex items-center gap-2 rounded-sm border p-2.5 text-left text-sm transition-colors {papelSeleccionado === 'ticket80mm'
+							class="flex items-center gap-2 rounded-sm border p-2.5 text-left text-sm transition-colors {papelSeleccionado ===
+							'ticket80mm'
 								? 'border-blue-500 bg-blue-900/30 text-white'
 								: 'border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700'}"
 							onclick={() => (papelSeleccionado = 'ticket80mm')}

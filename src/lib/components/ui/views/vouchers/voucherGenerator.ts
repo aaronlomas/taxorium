@@ -42,7 +42,10 @@ export interface VoucherData {
 	total: number;
 	montoPagado: number;
 	vuelto: number;
+	estadoPago: EstadoPago;
 }
+
+export type EstadoPago = 'pagado' | 'pendiente';
 
 const CURRENCY_SYMBOL: Record<string, string> = {
 	PEN: 'S/',
@@ -67,6 +70,16 @@ export function formatoMetodoPago(codigo: string): string {
 		'003': 'Transferencia de Fondos (Yape/Plin)'
 	};
 	return metodos[codigo] ?? codigo;
+}
+
+/**
+ * El estado de pago lo determina la condición de pago, no el monto recibido.
+ * Una venta al contado se cobra en el momento (queda pagada aunque el usuario
+ * no digite el monto, p. ej. pago exacto con tarjeta o transferencia); una
+ * venta a crédito queda pendiente hasta su cancelación.
+ */
+export function estadoPagoDesdeTipoPago(tipoPago: string): EstadoPago {
+	return tipoPago === 'Contado' ? 'pagado' : 'pendiente';
 }
 
 /**
@@ -105,6 +118,7 @@ export function buildVoucherData(
 	const moneda = config.moneda || 'PEN';
 	const montoPagado = Math.max(0, Number(config.montoRecibido) || 0);
 	const vuelto = montoPagado > 0 ? montoPagado - total : 0;
+	const estadoPago = estadoPagoDesdeTipoPago(config.tipoPago);
 
 	const fecha = parseFecha(config.fechaEmision) ?? new Date();
 	const fechaEmision = config.fechaEmision
@@ -117,7 +131,10 @@ export function buildVoucherData(
 		tipoComprobanteLabel: tipoComprobanteLabel(config.tipoComprobante),
 		serie,
 		correlativo: correlativoUsado,
-		numeroCompleto: `${serie}-${String(correlativoUsado).padStart(7, '0')}`,
+		// 8 dígitos, igual que el backend al firmar el XML (`{:08}`). Con 7 el
+		// número guardado en BD no coincidía con el `cbc:ID` del XML firmado y
+		// SUNAT rechazaba el ZIP con la observación 1036.
+		numeroCompleto: `${serie}-${String(correlativoUsado).padStart(8, '0')}`,
 		moneda,
 		monedaSimbolo: CURRENCY_SYMBOL[moneda] ?? 'S/',
 		fechaEmision,
@@ -148,7 +165,8 @@ export function buildVoucherData(
 		icbper,
 		total,
 		montoPagado,
-		vuelto
+		vuelto,
+		estadoPago
 	};
 }
 

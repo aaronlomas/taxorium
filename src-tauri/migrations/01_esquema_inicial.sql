@@ -122,6 +122,7 @@ CREATE TABLE IF NOT EXISTS comprobantes (
     numero_comprobante TEXT NOT NULL UNIQUE,
     estado_validez TEXT NOT NULL DEFAULT 'registrado' CHECK (estado_validez IN ('registrado', 'rechazado', 'aceptado')),
     estado_pago TEXT NOT NULL DEFAULT 'pendiente' CHECK (estado_pago IN ('pendiente', 'pagado')),
+    xml_firmado TEXT,
     moneda TEXT NOT NULL DEFAULT 'PEN',
     gravado REAL NOT NULL DEFAULT 0,
     igv REAL NOT NULL DEFAULT 0,
