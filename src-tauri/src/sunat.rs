@@ -416,13 +416,52 @@ pub async fn enviar_a_sunat(
         let estado_sunat = if cdr.codigo == "0" { 1 } else { 2 };
 
         db.execute(
-            "UPDATE comprobantes SET estado_validez = ?1, estado_sunat = ?2, codigo_cdr = ?3, descripcion_cdr = ?4 WHERE id = ?5",
-            rusqlite::params![estado_validez, estado_sunat, cdr.codigo, cdr.descripcion, payload.voucher_id],
+            "UPDATE comprobantes SET estado_validez = ?1, estado_sunat = ?2, codigo_cdr = ?3, descripcion_cdr = ?4, xml_cdr = ?5 WHERE id = ?6",
+            rusqlite::params![estado_validez, estado_sunat, cdr.codigo, cdr.descripcion, cdr.xml_cdr, payload.voucher_id],
         )
         .map_err(|e| e.to_string())?;
     }
 
     Ok(cdr)
+}
+
+#[tauri::command]
+pub fn descargar_documento_sunat(
+    voucher_id: i64,
+    tipo: String, // "XML" o "CDR"
+    db_state: State<'_, crate::AppState>,
+) -> Result<Vec<u8>, String> {
+    let mut db_guard = db_state
+        .db
+        .lock()
+        .map_err(|_| "Error al bloquear la base de datos".to_string())?;
+    let db = db_guard
+        .as_mut()
+        .ok_or("Base de datos no inicializada".to_string())?;
+
+    let column = if tipo == "XML" {
+        "xml_firmado"
+    } else if tipo == "CDR" {
+        "xml_cdr"
+    } else {
+        return Err(format!("Tipo de documento desconocido: {}", tipo));
+    };
+
+    let query = format!("SELECT {} FROM comprobantes WHERE id = ?1", column);
+    let mut stmt = db.prepare(&query).map_err(|e| e.to_string())?;
+
+    let mut rows = stmt.query([voucher_id]).map_err(|e| e.to_string())?;
+
+    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        let content: Option<String> = row.get(0).map_err(|e| e.to_string())?;
+        if let Some(xml_str) = content {
+            Ok(xml_str.into_bytes())
+        } else {
+            Err(format!("El comprobante no tiene {} disponible.", tipo))
+        }
+    } else {
+        Err("Comprobante no encontrado.".to_string())
+    }
 }
 
 /// Comando Tauri para firmar un XML (o su hash) con el certificado .p12

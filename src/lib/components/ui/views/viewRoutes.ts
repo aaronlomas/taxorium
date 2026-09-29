@@ -31,7 +31,7 @@ export const viewRoutes: Record<string, Component<any>> = {
 	Clientes: CustomersView,
 	// Sub Opciones de Registros/ventas/
 	'Lista de Comprobantes': ComprobantesSalesView,
-	'Lista de Resúmenes': SalesSummaryView,
+	'Envíos SUNAT': SalesSummaryView,
 
 	//SECCIÓN DE OPERACIONES
 	'Panel de Ventas': PanelSalesView,

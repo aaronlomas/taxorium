@@ -131,7 +131,8 @@ CREATE TABLE IF NOT EXISTS comprobantes (
     hash_cpe TEXT,
     estado_sunat INTEGER NOT NULL DEFAULT 0,
     codigo_cdr TEXT,
-    descripcion_cdr TEXT
+    descripcion_cdr TEXT,
+    xml_cdr TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_comprobantes_numero ON comprobantes(numero_comprobante);

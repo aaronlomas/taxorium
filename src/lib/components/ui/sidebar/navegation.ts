@@ -29,7 +29,7 @@ export const navegacionRegistros: ElementoNavegacion[] = [
 		icono: IconReportMoney,
 		subitems: [
 			{ nombre: 'Lista de Comprobantes', ruta: '/sales/vouchers' },
-			{ nombre: 'Lista de Resúmenes', ruta: '/sales/summary' }
+			{ nombre: 'Envíos SUNAT', ruta: '/sales/summary' }
 		]
 	},
 	{ nombre: 'Productos', icono: IconPackage, ruta: '/productos' },

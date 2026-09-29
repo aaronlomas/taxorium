@@ -183,6 +183,7 @@
 		}
 	}
 
+
 	function estadoPagoClass(estado: Voucher['estado_pago']): string {
 		return estado === 'pagado' ? 'text-emerald-400' : 'text-amber-400';
 	}

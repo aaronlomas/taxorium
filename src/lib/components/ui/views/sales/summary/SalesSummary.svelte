@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import {
 		IconDatabaseImport,
 		IconDatabaseExport,
@@ -15,45 +16,28 @@
 	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
 	import { taxoLog } from '$lib/stores/taxoLog';
 	import { formatFecha, parseFecha } from '$lib/components/ui/views/vouchers/voucherContext';
-
-	interface Resumen {
-		id: number;
-		fecha_emision: string;
-		fecha_referencia: string;
-		identificador: string;
-		estado: 'registrado' | 'rechazado' | 'aceptado';
-		ticket: string;
-	}
+	import { voucherClient, type Voucher } from '$lib/services/vouchers/clientVoucher';
+	import { invoke } from '@tauri-apps/api/core';
+	import { get } from 'svelte/store';
+	import { tenantStore } from '$lib/stores/tenant';
+	import { save } from '@tauri-apps/plugin-dialog';
+	import { writeFile } from '@tauri-apps/plugin-fs';
 
 	interface ColumnConfig extends CheckItem {
-		key: keyof Resumen;
+		key: string;
 	}
 
 	let columnas = $state<ColumnConfig[]>([
-		{ id: 'fecha_emision', key: 'fecha_emision', label: 'Fecha de Emisión', checked: true },
-		{
-			id: 'fecha_referencia',
-			key: 'fecha_referencia',
-			label: 'Fecha de Referencia',
-			checked: true
-		},
-		{ id: 'identificador', key: 'identificador', label: 'Identificador', checked: true },
-		{ id: 'estado', key: 'estado', label: 'Estado', checked: true },
+		{ id: 'fecha_de_emision', key: 'fecha_de_emision', label: 'Fecha Emisión', checked: true },
+		{ id: 'fecha_referencia', key: 'fecha_de_emision', label: 'Fecha Referencia', checked: true },
+		{ id: 'estado_validez', key: 'estado_validez', label: 'Estado', checked: true },
 		{ id: 'ticket', key: 'ticket', label: 'Ticket', checked: true }
 	]);
 
 	let columnasVisibles = $derived(columnas.filter((c) => c.checked));
 
-	let resumenes = $state<Resumen[]>([
-		{
-			id: 1,
-			fecha_emision: '2026-08-01',
-			fecha_referencia: '2026-08-01',
-			identificador: 'RC-2026081-1',
-			estado: 'aceptado',
-			ticket: '12334235135123'
-		}
-	]);
+	let vouchers = $state<Voucher[]>([]);
+	let isLoading = $state(true);
 
 	let searchTerm = $state('');
 	let searchBy = $state('');
@@ -61,64 +45,132 @@
 
 	const SEARCH_OPTIONS = [
 		{ value: '', label: 'Todos' },
-		{ value: 'identificador', label: 'Identificador' },
 		{ value: 'estado', label: 'Estado' },
 		{ value: 'ticket', label: 'Ticket' }
 	];
 
-	let resumenesFiltrados = $derived(
-		resumenes.filter((r) => {
+	onMount(async () => {
+		try {
+			// En el futuro, aquí se consultaría una tabla o vista unificada "envios_sunat"
+			// que devuelva tanto comprobantes individuales como resúmenes diarios (RC/RA).
+			// Por ahora mostramos los comprobantes.
+			vouchers = await voucherClient.getVouchers();
+		} catch (e) {
+			taxoLog.error(`Error al cargar documentos SUNAT: ${e}`, 'sunat');
+		} finally {
+			isLoading = false;
+		}
+	});
+
+	let enviosFiltrados = $derived(
+		vouchers.filter((v) => {
 			if (fechaDesde) {
 				const desde = parseFecha(fechaDesde);
-				const referencia = parseFecha(r.fecha_referencia);
-				if (desde && referencia && referencia < desde) return false;
+				const emision = parseFecha(v.fecha_de_emision);
+				if (desde && emision && emision < desde) return false;
 			}
 
 			if (!searchTerm.trim()) return true;
 			const term = searchTerm.toLowerCase();
 
-			if (searchBy === 'identificador') {
-				return r.identificador.toLowerCase().includes(term);
-			} else if (searchBy === 'estado') {
-				return r.estado.toLowerCase().includes(term);
+			if (searchBy === 'estado') {
+				return v.estado_validez.toLowerCase().includes(term);
 			} else if (searchBy === 'ticket') {
-				return r.ticket.toLowerCase().includes(term);
+				return (v as any).ticket?.toString().toLowerCase().includes(term);
 			}
 
 			return (
-				r.identificador.toLowerCase().includes(term) ||
-				r.estado.toLowerCase().includes(term) ||
-				r.ticket.toLowerCase().includes(term)
+				v.estado_validez.toLowerCase().includes(term) ||
+				(v as any).ticket?.toString().toLowerCase().includes(term)
 			);
 		})
 	);
 
 	async function handleExportFile(format: ExportFormat) {
-		const savedPath = await exportData(resumenesFiltrados, columnasVisibles, 'resumenes', format);
+		const savedPath = await exportData(enviosFiltrados, columnasVisibles, 'envios_sunat', format);
 		if (savedPath) {
-			taxoLog.info(`Exportado exitosamente en: ${savedPath}`, 'resumenes');
+			taxoLog.info(`Exportado exitosamente en: ${savedPath}`, 'sunat');
 		}
 	}
 
-	function handleEmitir(resumen: Resumen) {
-		taxoLog.info(`Emitiendo resumen ${resumen.identificador} a SUNAT`, 'resumenes');
+	let isEmitting = $state<number | null>(null);
+
+	async function handleEmitir(doc: Voucher) {
+		if (doc.estado_sunat !== 0) {
+			taxoLog.warn('Este comprobante ya fue emitido a SUNAT.', 'sunat');
+			return;
+		}
+
+		const tenant = get(tenantStore).tenant;
+		if (!tenant || !tenant.usuario_sol || !tenant.clave_sol || !tenant.ruc) {
+			taxoLog.error('Faltan configurar las credenciales SOL de la empresa.', 'sunat');
+			return;
+		}
+
+		isEmitting = doc.id;
+		taxoLog.info(`Enviando ${doc.numero_comprobante} a SUNAT...`, 'sunat');
+
+		try {
+			const res = await invoke('enviar_a_sunat', {
+				payload: {
+					ruc: tenant.ruc,
+					usuario_sol: tenant.usuario_sol,
+					clave_sol: tenant.clave_sol,
+					client_id: (tenant as any).sunat_client_id || '25f61db1-0854-4efb-bc54-c1f10cf8db17',
+					client_secret: (tenant as any).sunat_client_secret || 'rvSu0MjYw+hB+vxONyA7jA==',
+					ambiente: 'beta',
+					voucher_id: doc.id
+				}
+			});
+			taxoLog.info(
+				`Comprobante aceptado por SUNAT. CDR: ${(res as any).descripcion}`,
+				'sunat'
+			);
+			vouchers = await voucherClient.getVouchers();
+		} catch (e) {
+			taxoLog.error(`Error de SUNAT: ${e}`, 'sunat');
+		} finally {
+			isEmitting = null;
+		}
 	}
 
-	function handleDescargar(resumen: Resumen, tipo: 'XML' | 'CDR') {
-		taxoLog.info(`Descargando ${tipo} del resumen ${resumen.identificador}`, 'resumenes');
+	async function handleDescargar(doc: Voucher, tipo: 'XML' | 'CDR') {
+		try {
+			const contenido = await invoke<number[]>('descargar_documento_sunat', {
+				voucherId: doc.id,
+				tipo
+			});
+			const nombreArchivo = `${doc.numero_comprobante.replace(/[^a-zA-Z0-9-]/g, '_')}_${tipo}.xml`;
+			const filePath = await save({
+				defaultPath: nombreArchivo,
+				filters: [{ name: 'XML', extensions: ['xml', 'zip'] }]
+			});
+			if (filePath) {
+				await writeFile(filePath, new Uint8Array(contenido));
+				taxoLog.info(`Archivo ${tipo} guardado en: ${filePath}`, 'sunat');
+			}
+		} catch (e) {
+			taxoLog.error(`Error al descargar ${tipo}: ${e}`, 'sunat');
+		}
 	}
 
-	function formatCellValue(resumen: Resumen, key: keyof Resumen): string {
-		const val = resumen[key];
+	function formatCellValue(doc: Voucher, key: string): string {
+		const val = (doc as any)[key];
 		if (val === null || val === undefined) return '-';
-		if (key === 'fecha_emision' || key === 'fecha_referencia') {
+		if (key === 'fecha_de_emision') {
 			const s = String(val);
 			return /^\d{2}\/\d{2}\/\d{4}/.test(s) ? s.slice(0, 10) : formatFecha(s);
+		}
+		if (key === 'codigo_cdr') {
+			const code = String(val);
+			if (code === '0') return 'Aceptado';
+			if (parseInt(code) > 0) return `Error (${code})`;
+			return '-';
 		}
 		return String(val);
 	}
 
-	function estadoClass(estado: Resumen['estado']): string {
+	function estadoClass(estado: string): string {
 		switch (estado) {
 			case 'aceptado':
 				return 'text-emerald-400';
@@ -127,6 +179,12 @@
 			default:
 				return 'text-amber-400';
 		}
+	}
+
+	function cdrClass(codigo: string | null): string {
+		if (codigo === '0') return 'text-emerald-400';
+		if (codigo && parseInt(codigo) > 0) return 'text-red-400';
+		return 'text-neutral-500';
 	}
 </script>
 
@@ -162,7 +220,7 @@
 					>
 				</div>
 			</div>
-			<TableFilter storageKey="resumenes" bind:items={columnas} />
+			<TableFilter storageKey="envios_sunat" bind:items={columnas} />
 		{/snippet}
 
 		{#snippet filters()}
@@ -215,10 +273,21 @@
 		{/snippet}
 
 		{#snippet body()}
-			{#if resumenesFiltrados.length === 0}
+			{#if isLoading}
+				<tr>
+					{#snippet loadingState()}
+						Cargando documentos SUNAT...
+					{/snippet}
+					{@render cell({
+						colspan: columnasVisibles.length + 3,
+						class: 'py-8 text-neutral-500',
+						children: loadingState
+					})}
+				</tr>
+			{:else if enviosFiltrados.length === 0}
 				<tr>
 					{#snippet emptyState()}
-						No hay resúmenes registrados.
+						No hay documentos enviados a SUNAT.
 					{/snippet}
 					{@render cell({
 						colspan: columnasVisibles.length + 3,
@@ -227,7 +296,7 @@
 					})}
 				</tr>
 			{:else}
-				{#each resumenesFiltrados as resumen, index (resumen.id)}
+				{#each enviosFiltrados as doc, index (doc.id)}
 					{#snippet rowData()}
 						{#snippet cellIndex()}
 							{index + 1}
@@ -235,12 +304,12 @@
 						{@render cell({ class: 'px-3 py-2 text-neutral-500', children: cellIndex })}
 						{#each columnasVisibles as col (col.id)}
 							{#snippet cellVal()}
-								{#if col.key === 'estado'}
-									<span class={estadoClass(resumen.estado)}>
-										{resumen.estado}
+								{#if col.key === 'estado_validez'}
+									<span class={estadoClass(doc.estado_validez)}>
+										{doc.estado_validez.charAt(0).toUpperCase() + doc.estado_validez.slice(1)}
 									</span>
 								{:else}
-									{formatCellValue(resumen, col.key)}
+									{formatCellValue(doc, col.key)}
 								{/if}
 							{/snippet}
 							{@render cell({ children: cellVal })}
@@ -249,16 +318,17 @@
 							<div class="flex items-center justify-center gap-2">
 								<button
 									class="flex cursor-pointer items-center gap-1 rounded-sm border border-blue-500/40 px-2 py-0.5 text-blue-400 transition-colors hover:bg-blue-500/10"
-									onclick={() => handleDescargar(resumen, 'XML')}
+									onclick={() => handleDescargar(doc, 'XML')}
 									title="Descargar XML"
 								>
 									<IconDownload size={14} />
 									XML
 								</button>
 								<button
-									class="flex cursor-pointer items-center gap-1 rounded-sm border border-blue-500/40 px-2 py-0.5 text-blue-400 transition-colors hover:bg-blue-500/10"
-									onclick={() => handleDescargar(resumen, 'CDR')}
+									class="flex cursor-pointer items-center gap-1 rounded-sm border border-blue-500/40 px-2 py-0.5 text-blue-400 transition-colors hover:bg-blue-500/10 disabled:opacity-50"
+									onclick={() => handleDescargar(doc, 'CDR')}
 									title="Descargar CDR"
+									disabled={!doc.codigo_cdr}
 								>
 									<IconDownload size={14} />
 									CDR
@@ -268,14 +338,24 @@
 						{@render cell({ children: cellDownload })}
 						{#snippet cellActions()}
 							<div class="flex items-center justify-center gap-2">
-								<button
-									class="flex cursor-pointer items-center gap-1 rounded-sm border border-blue-500/40 px-2 py-0.5 text-blue-400 transition-colors hover:bg-blue-500/10"
-									onclick={() => handleEmitir(resumen)}
-									title="Emitir a SUNAT"
-								>
-									<IconSend size={14} />
-									Emitir
-								</button>
+								{#if doc.estado_sunat === 0}
+									<button
+										class="flex cursor-pointer items-center gap-1 rounded-sm border border-emerald-500/40 px-2 py-0.5 text-emerald-400 transition-colors hover:bg-emerald-500/10 disabled:opacity-50"
+										onclick={() => handleEmitir(doc)}
+										title="Emitir a SUNAT"
+										disabled={isEmitting === doc.id}
+									>
+										{#if isEmitting === doc.id}
+											<span
+												class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent"
+											></span>
+											Enviando...
+										{:else}
+											<IconSend size={14} />
+											Emitir
+										{/if}
+									</button>
+								{/if}
 							</div>
 						{/snippet}
 						{@render cell({ children: cellActions })}
