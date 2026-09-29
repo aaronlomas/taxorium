@@ -78,6 +78,7 @@
             <cbc:TaxableAmount currencyID="{{ moneda }}">{{ grupo.base }}</cbc:TaxableAmount>
             <cbc:TaxAmount currencyID="{{ moneda }}">{{ grupo.impuesto }}</cbc:TaxAmount>
             <cac:TaxCategory>
+                <cbc:ID>{{ grupo.categoria_id }}</cbc:ID>
                 <cbc:Percent>{{ grupo.porcentaje }}</cbc:Percent>
                 <cbc:TaxExemptionReasonCode listAgencyName="PE:SUNAT" listName="Afectacion del IGV" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo07">{{ grupo.afectacion }}</cbc:TaxExemptionReasonCode>
                 <cac:TaxScheme>
@@ -113,6 +114,7 @@
                 <cbc:TaxableAmount currencyID="{{ moneda }}">{{ item.subtotal }}</cbc:TaxableAmount>
                 <cbc:TaxAmount currencyID="{{ moneda }}">{{ item.igv }}</cbc:TaxAmount>
                 <cac:TaxCategory>
+                    <cbc:ID>{{ item.categoria_id }}</cbc:ID>
                     <cbc:Percent>{{ item.porcentaje }}</cbc:Percent>
                     <cbc:TaxExemptionReasonCode listAgencyName="PE:SUNAT" listName="Afectacion del IGV" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo07">{{ item.afectacion }}</cbc:TaxExemptionReasonCode>
                     <cac:TaxScheme>

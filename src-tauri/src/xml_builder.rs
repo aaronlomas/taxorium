@@ -119,15 +119,15 @@ pub struct FacturaItem {
 pub fn redondear(valor: f64) -> f64 {
     (valor * 100.0).round() / 100.0
 }
-
-/// Cómo se declara un tributo en el XML, derivado del código de afectación
-/// (catálogo 07 de SUNAT) de cada ítem.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Tributo {
     pub porcentaje: &'static str,
     pub esquema_id: &'static str,
     pub esquema_nombre: &'static str,
     pub tipo_impuesto: &'static str,
+    /// Catálogo N° 16 de SUNAT: código de categoría del tributo.
+    /// "S" = gravado con IGV, "E" = exonerado, "O" = inafecto, "K" = ISC.
+    pub categoria_id: &'static str,
 }
 
 impl Tributo {
@@ -145,49 +145,57 @@ impl Tributo {
 
 /// Resuelve el tributo que corresponde a una afectación del catálogo 07.
 ///
-/// La plantilla antes fijaba `1000`/IGV/`18.00` para todas las líneas, así que un
-/// ítem exonerado o inafecto quedaba contradiciéndose: 18% de IGV con monto 0.00, y
-/// SUNAT lo rechazaba con la observación 3111
-/// (`cac:TaxSubtotal/cbc:TaxAmount` valor `"0.00"`, Tributo 1000).
+/// SUNAT exige esquemas distintos según el tipo de operación (Catálogo N° 05):
+///   - IGV gravado (10-17): esquema 1000, nombre "IGV", categoría "S"
+///   - Exonerado (20-29):   esquema 9997, nombre "EXO", categoría "E"
+///   - Inafecto  (30-49):   esquema 9998, nombre "INA", categoría "O"
+///   - ICBPer   (71-76):    esquema 7152, nombre "ICBPER", categoría "K"
 ///
-/// Los ítems gravados siguen del 18% (Catálogo Nro 01), los exonerados e inafectos
-/// al 0% pero con IGV declarado, y los de ICBPer con el esquema 2000 (ISC).
-///
-/// Este es el único criterio de tributación del sistema: el importe que se declara en
-/// la línea sale de aquí (ver [`ItemVenta::into_item`]), nunca de una comparación de
-/// códigos hecha en otro lenguaje.
+/// Usar 1000 (IGV) con TaxAmount 0.00 para exonerados/inafectos es exactamente
+/// lo que provoca la observación 3111 de SUNAT.
 pub fn tributo_de(afectacion: &str) -> Tributo {
     const IGV_18: Tributo = Tributo {
         porcentaje: "18.00",
         esquema_id: "1000",
         esquema_nombre: "IGV",
         tipo_impuesto: "VAT",
+        categoria_id: "S",
     };
-    const IGV_0: Tributo = Tributo {
+    const EXONERADO: Tributo = Tributo {
         porcentaje: "0.00",
-        esquema_id: "1000",
-        esquema_nombre: "IGV",
+        esquema_id: "9997",
+        esquema_nombre: "EXO",
         tipo_impuesto: "VAT",
+        categoria_id: "E",
     };
-    const ISC: Tributo = Tributo {
+    const INAFECTO: Tributo = Tributo {
         porcentaje: "0.00",
-        esquema_id: "2000",
-        esquema_nombre: "ISC",
-        tipo_impuesto: "TAX",
+        esquema_id: "9998",
+        esquema_nombre: "INA",
+        tipo_impuesto: "FRE",
+        categoria_id: "O",
+    };
+    const ICBPER: Tributo = Tributo {
+        porcentaje: "0.00",
+        esquema_id: "7152",
+        esquema_nombre: "ICBPER",
+        tipo_impuesto: "OTH",
+        categoria_id: "K",
     };
 
     match afectacion {
         // Gravado - Operación Onerosa y sus variantes onerosas.
         "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" => IGV_18,
-        // Exonerado (20, 21) e Inafecto (30-37) y gratuitas (40-49).
-        "20" | "21" | "22" | "23" | "31" | "32" | "33" | "34" | "35" | "36" | "37" => IGV_0,
-        _ if afectacion.starts_with('2') || afectacion.starts_with('3') => IGV_0,
-        _ if afectacion.starts_with('4') => IGV_0,
-        // ICBPer: el impuesto al bolsón se declara con el esquema 2000 (ISC).
-        "71" | "72" | "73" | "74" | "75" | "76" => ISC,
-        // Cualquier código desconocido se trata como gravado, que es lo seguro:
-        // declarar IGV 0% sobre una venta que sí causa gravamen es lo que SUNAT
-        // rechaza, no al revés.
+        // Exonerado (20-29): Catálogo 07, esquema 9997.
+        "20" | "21" | "22" | "23" | "24" | "25" | "26" | "27" | "28" | "29" => EXONERADO,
+        _ if afectacion.starts_with('2') => EXONERADO,
+        // Inafecto (30-49): Catálogo 07, esquema 9998.
+        "30" | "31" | "32" | "33" | "34" | "35" | "36" | "37" => INAFECTO,
+        _ if afectacion.starts_with('3') => INAFECTO,
+        _ if afectacion.starts_with('4') => INAFECTO,
+        // ICBPer: impuesto al bolsón plástico, esquema 7152.
+        "71" | "72" | "73" | "74" | "75" | "76" => ICBPER,
+        // Código desconocido → tratar como gravado (más seguro que declarar 0% erróneamente).
         _ => IGV_18,
     }
 }
@@ -376,6 +384,7 @@ pub struct SubtotalImpuesto {
     pub esquema_id: String,
     pub esquema_nombre: String,
     pub tipo_impuesto: String,
+    pub categoria_id: String,
 }
 
 /// Vista de un ítem con su tributo ya resuelto, tal como la consume la plantilla.
@@ -387,6 +396,7 @@ struct ItemConTributo {
     esquema_id: String,
     esquema_nombre: String,
     tipo_impuesto: String,
+    categoria_id: String,
 }
 
 /// Payload con los tributos derivados de cada ítem y los subtotales del documento
@@ -450,6 +460,7 @@ fn payload_para_render(payload: &FacturaPayload) -> Result<PayloadParaRender<'_>
                 esquema_id: tributo.esquema_id.to_string(),
                 esquema_nombre: tributo.esquema_nombre.to_string(),
                 tipo_impuesto: tributo.tipo_impuesto.to_string(),
+                categoria_id: tributo.categoria_id.to_string(),
             }
         })
         .collect();
@@ -492,6 +503,7 @@ fn payload_para_render(payload: &FacturaPayload) -> Result<PayloadParaRender<'_>
                 esquema_id: tributo.esquema_id.to_string(),
                 esquema_nombre: tributo.esquema_nombre.to_string(),
                 tipo_impuesto: tributo.tipo_impuesto.to_string(),
+                categoria_id: tributo.categoria_id.to_string(),
             }),
         }
     }
@@ -589,8 +601,8 @@ mod tests {
     /// (SUNAT recalcula el digest por su cuenta). Los valores esperados se generaron
     /// con `lxml.etree.tostring(method="c14n", exclusive=False, with_comments=False)`
     /// sobre el mismo documento de prueba.
-    const EXPECTED_DIGEST: &str = "bpKOwT02nyp4nG4O/UQMi0DmuVYDzrK3pqpNsL2Lk3s=";
-    const EXPECTED_SIGNED_INFO_DIGEST: &str = "F2kySXNFShIbW38IpdC1O7lJk9I9Ru7vCGfgzvZ6Ls4=";
+    const EXPECTED_DIGEST: &str = "X2bdcarDsVxzGlm5IARjCwE5rHeB62xBARWEkcUy5Hc=";
+    const EXPECTED_SIGNED_INFO_DIGEST: &str = "wMYbu6wsfdv1pBs3l+Ow7I5hrXzPf1+/bJDk4nn0o30=";
 
     fn payload_firmado() -> FacturaPayload {
         let mut payload = payload_prueba();
@@ -814,17 +826,22 @@ mod tests {
                 porcentaje: "18.00",
                 esquema_id: "1000",
                 esquema_nombre: "IGV",
-                tipo_impuesto: "VAT"
+                tipo_impuesto: "VAT",
+                categoria_id: "S",
             }
         );
         assert_eq!(tributo_de("20").porcentaje, "0.00");
-        assert_eq!(tributo_de("20").esquema_id, "1000");
-        assert_eq!(tributo_de("30").porcentaje, "0.00");
+        // Exonerado usa esquema 9997, NO 1000 (observación 3111 de SUNAT).
+        assert_eq!(tributo_de("20").esquema_id, "9997");
+        assert_eq!(tributo_de("20").categoria_id, "E");
+        // Inafecto usa esquema 9998.
+        assert_eq!(tributo_de("30").esquema_id, "9998");
+        assert_eq!(tributo_de("30").categoria_id, "O");
         assert_eq!(tributo_de("31").porcentaje, "0.00");
         assert_eq!(tributo_de("40").porcentaje, "0.00");
-        // ICBPer va con el esquema 2000 (ISC), no con IGV.
-        assert_eq!(tributo_de("71").esquema_id, "2000");
-        assert_eq!(tributo_de("72").esquema_id, "2000");
+        // ICBPer va con el esquema 7152, no con IGV.
+        assert_eq!(tributo_de("71").esquema_id, "7152");
+        assert_eq!(tributo_de("72").esquema_id, "7152");
         // Un código desconocido se trata como gravado, que es lo que no rechaza SUNAT.
         assert_eq!(tributo_de("99").porcentaje, "18.00");
     }
