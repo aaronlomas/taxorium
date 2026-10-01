@@ -5,7 +5,8 @@
 		IconDatabaseImport,
 		IconDatabaseExport,
 		IconEye,
-		IconSend
+		IconSend,
+		IconDownload
 	} from '@tabler/icons-svelte';
 	import TableFilter, { type CheckItem } from '$lib/components/core/primitives/TableFilter.svelte';
 	import TableToolbar from '$lib/components/core/primitives/TableToolbar.svelte';
@@ -96,6 +97,11 @@
 
 	function handleConsultar(voucher: Voucher) {
 		taxoLog.info(`Consultando comprobante ${voucher.numero_comprobante}`, 'comprobantes');
+	}
+
+	function handleDescargar(voucher: Voucher) {
+		taxoLog.info(`Descargando comprobante ${voucher.numero_comprobante}`, 'comprobantes');
+		// TODO: Implementar lógica de descarga real
 	}
 
 	let isEmitting = $state<number | null>(null);
@@ -341,6 +347,15 @@
 								>
 									<IconEye size={14} />
 									Consultar
+								</button>
+								<button
+									class="flex cursor-pointer items-center gap-1 rounded-sm border border-purple-500/40 px-2 py-0.5 text-purple-400 transition-colors hover:bg-purple-500/10 disabled:opacity-50"
+									onclick={() => handleDescargar(voucher)}
+									title="Descargar comprobante"
+									disabled={isEmitting === voucher.id}
+								>
+									<IconDownload size={14} />
+									Descargar
 								</button>
 							</div>
 						{/snippet}

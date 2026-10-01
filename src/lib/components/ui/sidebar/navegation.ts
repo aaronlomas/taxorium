@@ -34,7 +34,8 @@ export const navegacionRegistros: ElementoNavegacion[] = [
 	},
 	{ nombre: 'Productos', icono: IconPackage, ruta: '/productos' },
 	{ nombre: 'Reportes', icono: IconReport, ruta: '/reportes' },
-	{ nombre: 'Clientes', icono: IconUsers, ruta: '/customers' }
+	{ nombre: 'Clientes', icono: IconUsers, ruta: '/customers' },
+	{ nombre: 'Diseñador de PDF', icono: IconFileInvoice, ruta: '/print/designer' }
 ];
 
 // Opciones para el panel de Operaciones

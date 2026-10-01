@@ -147,23 +147,28 @@
 			return;
 		}
 
-		const guardados: string[] = [];
-		if (formatoSeleccionado === 'pdf' || formatoSeleccionado === 'ambos') {
-			const pdf = generateProfessionalPdf(voucherData, papelSeleccionado);
-			const ruta = await saveVoucherFile(pdf, `${voucherData.numeroCompleto}.pdf`, 'pdf');
-			if (ruta) guardados.push(`${voucherData.numeroCompleto}.pdf`);
-		}
+		try {
+			const guardados: string[] = [];
+			if (formatoSeleccionado === 'pdf' || formatoSeleccionado === 'ambos') {
+				// Abre la ventana de impresión nativa de Tauri. El usuario guarda el PDF desde ahí.
+				await generateProfessionalPdf(voucherData, papelSeleccionado);
+				guardados.push(`${voucherData.numeroCompleto}.pdf (ventana de impresión abierta)`);
+			}
 
-		if (formatoSeleccionado === 'xml' || formatoSeleccionado === 'ambos') {
-			const xml = generateVoucherXml(voucherData);
-			const ruta = await saveVoucherFile(xml, `${voucherData.numeroCompleto}.xml`, 'xml');
-			if (ruta) guardados.push(`${voucherData.numeroCompleto}.xml`);
-		}
+			if (formatoSeleccionado === 'xml' || formatoSeleccionado === 'ambos') {
+				const xml = generateVoucherXml(voucherData);
+				const ruta = await saveVoucherFile(xml, `${voucherData.numeroCompleto}.xml`, 'xml');
+				if (ruta) guardados.push(`${voucherData.numeroCompleto}.xml`);
+			}
 
-		archivosGuardados = guardados;
-		estado = 'exito';
-		salesStore.clear();
-		voucherConfigStore.reset();
+			archivosGuardados = guardados;
+			estado = 'exito';
+			salesStore.clear();
+			voucherConfigStore.reset();
+		} catch (e) {
+			estado = 'error';
+			mensaje = `Error al generar archivos: ${e instanceof Error ? e.message : String(e)}`;
+		}
 	}
 </script>
 
