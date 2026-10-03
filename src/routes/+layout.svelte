@@ -14,7 +14,15 @@
 
 	let { children } = $props();
 
+	// La ruta /print se abre en una WebviewWindow independiente de Tauri.
+	// NO debe heredar el shell de la app (TitleBar, fondo oscuro, ResizeBorder)
+	// porque todo eso aparecería en el PDF al imprimir.
+	const isPrintRoute = $derived($page.url.pathname.startsWith('/print'));
+
 	onMount(async () => {
+		// La ventana de impresión es standalone — no inicializa nada del sistema.
+		if (isPrintRoute) return;
+
 		// Inicializar listener de logs del backend
 		taxoLog.initListener();
 		// Inicializar configuración del nodo (Servidor/Cliente)
@@ -38,10 +46,15 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<div class="flex h-screen w-full flex-col bg-neutral-950">
-	<ResizeBorder />
-	<TitleBar />
-	<div class="relative h-full w-full flex-1">
-		{@render children()}
+{#if isPrintRoute}
+	<!-- Ventana de impresión standalone: sin shell, sin fondo oscuro, solo el comprobante -->
+	{@render children()}
+{:else}
+	<div class="flex h-screen w-full flex-col bg-neutral-950">
+		<ResizeBorder />
+		<TitleBar />
+		<div class="relative h-full w-full flex-1">
+			{@render children()}
+		</div>
 	</div>
-</div>
+{/if}

@@ -8,7 +8,7 @@ use base64::{engine::general_purpose, Engine as _};
 use boveda_core::{parse_pkcs12, sign_hash_with_key};
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
-use tauri::State;
+use tauri::{AppHandle, Manager, State};
 
 use super::series::is_valid_serie;
 
@@ -291,14 +291,40 @@ pub fn get_vouchers(state: State<'_, AppState>) -> Result<Vec<Voucher>, String> 
     core_get_vouchers(db)
 }
 
+/// Registra el comprobante desde el frontend.
+///
+/// `core_create_voucher` es trabajo pesado y bloqueante: parsea el `.p12`,
+/// canonicaliza el XML tres veces y firma con RSA. Como comando **síncrono**
+/// Tauri lo ejecutaba en el hilo principal, que es el mismo que despacha la
+/// respuesta del `invoke`; si ese hilo quedaba bloqueado, el frontend nunca
+/// recibía respuesta y el botón se quedaba en «Generando...» para siempre.
+///
+/// Por eso el comando es `async` y delega en `spawn_blocking`, igual que hace
+/// `api::run_db_task_mut` en la ruta HTTP: el hilo principal queda libre y el
+/// invoke siempre resuelve (con `Ok` o con `Err`).
 #[tauri::command]
-pub fn create_voucher(
+pub async fn create_voucher(
+    app: AppHandle,
     payload: CreateVoucherPayload,
-    state: State<'_, AppState>,
 ) -> Result<Voucher, String> {
-    let mut db_guard = state.db.lock().map_err(|e| e.to_string())?;
-    let db = db_guard.as_mut().ok_or("Database not initialized.")?;
-    core_create_voucher(db, payload)
+    let numero = payload.numero_comprobante.clone();
+    log::info!("vouchers: create_voucher iniciado para {numero}");
+
+    let resultado = tauri::async_runtime::spawn_blocking(move || {
+        let app_state = app.state::<AppState>();
+        let mut db_guard = app_state.db.lock().map_err(|e| e.to_string())?;
+        let db = db_guard.as_mut().ok_or("Database not initialized.")?;
+        core_create_voucher(db, payload)
+    })
+    .await
+    .map_err(|e| format!("La tarea de registro no se pudo ejecutar: {e}"))?;
+
+    match &resultado {
+        Ok(v) => log::info!("vouchers: {} registrado con id {}", v.numero_comprobante, v.id),
+        Err(e) => log::error!("vouchers: create_voucher fallo para {numero}: {e}"),
+    }
+
+    resultado
 }
 
 #[cfg(test)]

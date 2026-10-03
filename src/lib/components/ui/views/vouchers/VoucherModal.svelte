@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { get } from 'svelte/store';
+	import { onMount, onDestroy } from 'svelte';
 	import Modal from '$lib/components/core/primitives/Modal.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
 	import {
 		IconFileText,
 		IconFileCode,
 		IconDownload,
-		IconCircleCheck,
 		IconAlertTriangle,
 		IconReceipt,
-		IconFile
+		IconFile,
+		IconEye
 	} from '@tabler/icons-svelte';
 	import { salesStore } from '$lib/stores/sales';
 	import { customersStore } from '$lib/stores/customers';
@@ -17,15 +18,14 @@
 	import { voucherConfigStore } from './voucherContext';
 	import {
 		buildVoucherData,
-		generateVoucherXml,
 		type VoucherData,
 		type VoucherFormat
 	} from './voucherGenerator';
-	import { generateProfessionalPdf } from './pdfGenerator';
+	import { openVoucherPreview } from './pdfGenerator';
 	import type { PaperFormat } from './pdfTemplateConfig';
-	import { saveVoucherFile } from './voucherFile';
 	import { voucherClient } from '$lib/services/vouchers/clientVoucher';
 	import { readFile } from '@tauri-apps/plugin-fs';
+	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 
 	let { isOpen = $bindable(false), onClose }: { isOpen: boolean; onClose: () => void } = $props();
 
@@ -45,17 +45,34 @@
 
 	let formatoSeleccionado = $state<VoucherFormat>('pdf');
 	let papelSeleccionado = $state<PaperFormat>('a4');
-	let estado = $state<'idle' | 'generando' | 'exito' | 'error'>('idle');
+	let estado = $state<'idle' | 'preparando' | 'error'>('idle');
 	let mensaje = $state('');
-	let archivosGuardados = $state<string[]>([]);
 	let voucherData = $state<VoucherData | null>(null);
 	const sinItems = $derived($salesStore.length === 0);
+	const sinRucEnFactura = $derived(
+		voucherData?.tipoComprobante === '01' &&
+			(!voucherData.cliente ||
+				(voucherData.cliente.tipoDocumento !== '6' &&
+					voucherData.cliente.tipoDocumento.toUpperCase() !== 'RUC'))
+	);
+
+	// Escuchar el evento que emite la ventana de preview cuando el usuario confirma.
+	// Los stores se limpian SOLO si el usuario realmente pulsó "Confirmar y Generar".
+	let unlistenConfirmed: UnlistenFn | null = null;
+	onMount(async () => {
+		unlistenConfirmed = await listen('taxorium:voucher-confirmed', () => {
+			salesStore.clear();
+			voucherConfigStore.reset();
+		});
+	});
+	onDestroy(() => {
+		unlistenConfirmed?.();
+	});
 
 	$effect(() => {
 		if (isOpen && !voucherData) {
 			estado = 'idle';
 			mensaje = '';
-			archivosGuardados = [];
 			const config = get(voucherConfigStore);
 			const cliente =
 				get(customersStore).find((c) => String(c.id) === String(config.clienteId)) ?? null;
@@ -71,7 +88,6 @@
 					voucherData = buildVoucherData(config, tenant, items, cliente, n);
 				})
 				.catch(() => {
-					// Si la base de datos no responde, usa el correlativo de sesión.
 					if (!activo) return;
 					voucherData = buildVoucherData(config, tenant, items, cliente);
 				});
@@ -84,30 +100,39 @@
 		}
 	});
 
-	async function generar() {
-		if (!voucherData) return;
-		estado = 'generando';
+	/**
+	 * Valida el certificado, construye el payload de registro y abre la ventana
+	 * de previsualización SIN guardar nada en la base de datos todavía.
+	 *
+	 * El registro real ocurre solo si el usuario pulsa "Confirmar y Generar"
+	 * dentro de la ventana de previsualización.
+	 */
+	async function abrirPreview() {
+		if (!voucherData || estado === 'preparando') return;
+		estado = 'preparando';
 		mensaje = '';
 
 		try {
-			let p12_bytes: number[] = [];
 			const config = get(voucherConfigStore);
 			const tenant = get(tenantStore).tenant;
 
-			if (tenant?.certificado_path) {
-				try {
-					const bytes = await readFile(tenant.certificado_path);
-					p12_bytes = Array.from(bytes);
-				} catch (err) {
-					throw new Error('No se pudo leer el archivo de certificado (.p12). Verifica la ruta.');
-				}
-			} else {
+			if (!tenant?.certificado_path) {
 				throw new Error('La empresa no tiene un certificado configurado.');
+			}
+
+			// Verificar que el certificado sea legible ANTES de abrir el preview,
+			// así el error aparece en el modal y no en una ventana flotante.
+			try {
+				await readFile(tenant.certificado_path);
+			} catch {
+				throw new Error('No se pudo leer el archivo de certificado (.p12). Verifica la ruta.');
 			}
 
 			const p12_password = localStorage.getItem('taxorium_cert_pwd') || '';
 
-			await voucherClient.createVoucher({
+			// Los bytes del certificado NO se incluyen en la URL para no inflarla;
+			// la ventana de preview los lee desde certificado_path al confirmar.
+			const registration = {
 				fecha_de_emision: `${voucherData.fechaEmision} ${voucherData.horaEmision}`,
 				cliente: voucherData.cliente?.nombre ?? 'Clientes Varios',
 				numero_comprobante: voucherData.numeroCompleto,
@@ -116,8 +141,6 @@
 				tipo_comprobante: voucherData.tipoComprobante,
 				moneda: voucherData.moneda,
 				estado_pago: voucherData.estadoPago,
-
-				// Campos SUNAT requeridos por el backend para generar XML y firmar
 				emisor_ruc: tenant.ruc,
 				emisor_razon_social: tenant.razon_social,
 				emisor_ubigeo: tenant.ubigeo || '',
@@ -125,13 +148,9 @@
 				receptor_tipo_doc: voucherData.cliente?.tipoDocumento || '0',
 				receptor_num_doc: voucherData.cliente?.numeroDocumento || '0',
 				tipo_operacion: config.tipoOperacion || '0101',
-				p12_bytes,
+				certificado_path: tenant.certificado_path,
 				p12_password,
-				// El precio se captura con IGV incluido, así que solo viaja el importe de
-				// la línea. La base imponible y el IGV los reparte el backend a partir del
-				// tributo de la afectación: calcularlo acá duplicaba el criterio y por eso
-				// una línea gravada con otra afectación (11, por ejemplo) salía con
-				// Tributo 1000 y monto 0.00, que es la observación 3111 de SUNAT.
+				// El precio ya incluye IGV; el backend desglosa base + IGV por afectación.
 				items: voucherData.items.map((item) => ({
 					unidad: item.unidad,
 					cantidad: item.cantidad,
@@ -140,199 +159,146 @@
 					afectacion: item.afectacion,
 					descripcion: item.descripcion
 				}))
-			});
+			};
+
+			openVoucherPreview(voucherData, registration, papelSeleccionado);
+			onClose(); // Cerrar modal — el usuario continúa en la ventana de preview
 		} catch (e) {
 			estado = 'error';
-			mensaje = `No se pudo registrar el comprobante: ${e instanceof Error ? e.message : String(e)}`;
-			return;
-		}
-
-		try {
-			const guardados: string[] = [];
-			if (formatoSeleccionado === 'pdf' || formatoSeleccionado === 'ambos') {
-				// Abre la ventana de impresión nativa de Tauri. El usuario guarda el PDF desde ahí.
-				await generateProfessionalPdf(voucherData, papelSeleccionado);
-				guardados.push(`${voucherData.numeroCompleto}.pdf (ventana de impresión abierta)`);
-			}
-
-			if (formatoSeleccionado === 'xml' || formatoSeleccionado === 'ambos') {
-				const xml = generateVoucherXml(voucherData);
-				const ruta = await saveVoucherFile(xml, `${voucherData.numeroCompleto}.xml`, 'xml');
-				if (ruta) guardados.push(`${voucherData.numeroCompleto}.xml`);
-			}
-
-			archivosGuardados = guardados;
-			estado = 'exito';
-			salesStore.clear();
-			voucherConfigStore.reset();
-		} catch (e) {
-			estado = 'error';
-			mensaje = `Error al generar archivos: ${e instanceof Error ? e.message : String(e)}`;
+			mensaje = e instanceof Error ? e.message : String(e);
 		}
 	}
 </script>
 
-<Modal bind:isOpen {onClose} title="Generar Comprobante">
+<Modal bind:isOpen {onClose} title="Vista previa del Comprobante">
 	<div class="grid w-140 max-w-full gap-4 p-4">
-		{#if estado === 'exito'}
-			<div class="flex flex-col gap-3">
-				<div class="flex items-center gap-2 text-emerald-400">
-					<IconCircleCheck size={20} />
-					<span class="font-medium">Comprobante registrado correctamente</span>
-				</div>
-				{#if archivosGuardados.length > 0}
-					<ul class="list-inside list-disc text-sm text-neutral-400">
-						{#each archivosGuardados as archivo (archivo)}
-							<li>{archivo}</li>
-						{/each}
-					</ul>
-				{:else}
-					<p class="text-sm text-neutral-400">
-						Quedó registrado en la base de datos. No se guardó ningún archivo.
-					</p>
-				{/if}
-				<div class="flex justify-end gap-2">
-					<Button variant="primary" onclick={onClose}>
-						{#snippet children()}
-							Listo
-						{/snippet}
-					</Button>
-				</div>
+		<!-- Resumen del comprobante -->
+		<div
+			class="flex flex-col gap-1 rounded-sm border border-neutral-800 bg-neutral-900 p-3 text-sm"
+		>
+			<div class="flex items-center justify-between">
+				<span class="text-neutral-400">{voucherData?.tipoComprobanteLabel}</span>
+				<span class="font-mono text-blue-400">{voucherData?.numeroCompleto}</span>
 			</div>
-		{:else}
-			<!-- Resumen del comprobante -->
-			<div
-				class="flex flex-col gap-1 rounded-sm border border-neutral-800 bg-neutral-900 p-3 text-sm"
-			>
-				<div class="flex items-center justify-between">
-					<span class="text-neutral-400">{voucherData?.tipoComprobanteLabel}</span>
-					<span class="font-mono text-blue-400">{voucherData?.numeroCompleto}</span>
-				</div>
-				<div class="flex items-center justify-between">
-					<span class="text-neutral-400">Fecha de Emisión</span>
-					<span>{voucherData?.fechaEmision} {voucherData?.horaEmision}</span>
-				</div>
-				<div class="flex items-center justify-between">
-					<span class="text-neutral-400">Total a Pagar</span>
-					<span class="font-medium"
-						>{voucherData?.monedaSimbolo} {voucherData?.total.toFixed(2)}</span
-					>
-				</div>
+			<div class="flex items-center justify-between">
+				<span class="text-neutral-400">Fecha de Emisión</span>
+				<span>{voucherData?.fechaEmision} {voucherData?.horaEmision}</span>
 			</div>
-
-			<!-- Elección de formato -->
-			<div>
-				<span class="mb-2 block text-sm font-medium text-neutral-400">
-					¿En qué formato deseas generar el comprobante?
-				</span>
-				<div class="grid grid-cols-3 gap-2">
-					{#each formatos as formato (formato.value)}
-						<button
-							type="button"
-							class="flex flex-col items-start gap-1 rounded-sm border p-3 text-left transition-colors {formatoSeleccionado ===
-							formato.value
-								? 'border-blue-500 bg-blue-900/30 text-white'
-								: 'border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700'}"
-							onclick={() => (formatoSeleccionado = formato.value)}
-						>
-							<span class="flex items-center gap-2">
-								{#if formato.value === 'pdf'}
-									<IconFileText size={18} class="text-blue-400" />
-								{:else if formato.value === 'xml'}
-									<IconFileCode size={18} class="text-blue-400" />
-								{:else}
-									<IconDownload size={18} class="text-blue-400" />
-								{/if}
-								<span class="font-medium">{formato.label}</span>
-							</span>
-							<span class="text-xs">{formato.descripcion}</span>
-						</button>
-					{/each}
-				</div>
-			</div>
-
-			<!-- Tamaño de papel (solo cuando se elige PDF) -->
-			{#if formatoSeleccionado === 'pdf' || formatoSeleccionado === 'ambos'}
-				<div>
-					<span class="mb-2 block text-sm font-medium text-neutral-400">Tamaño de papel</span>
-					<div class="grid grid-cols-2 gap-2">
-						<button
-							type="button"
-							class="flex items-center gap-2 rounded-sm border p-2.5 text-left text-sm transition-colors {papelSeleccionado ===
-							'a4'
-								? 'border-blue-500 bg-blue-900/30 text-white'
-								: 'border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700'}"
-							onclick={() => (papelSeleccionado = 'a4')}
-						>
-							<IconFile size={16} class="text-blue-400" />
-							<span>
-								<span class="block font-medium">A4</span>
-								<span class="text-xs opacity-70">Factura/boleta oficial</span>
-							</span>
-						</button>
-						<button
-							type="button"
-							class="flex items-center gap-2 rounded-sm border p-2.5 text-left text-sm transition-colors {papelSeleccionado ===
-							'ticket80mm'
-								? 'border-blue-500 bg-blue-900/30 text-white'
-								: 'border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700'}"
-							onclick={() => (papelSeleccionado = 'ticket80mm')}
-						>
-							<IconReceipt size={16} class="text-blue-400" />
-							<span>
-								<span class="block font-medium">Ticket 80mm</span>
-								<span class="text-xs opacity-70">Impresora térmica</span>
-							</span>
-						</button>
-					</div>
-				</div>
-			{/if}
-
-			{#if sinItems}
-				<div class="flex items-center gap-2 text-sm text-amber-400">
-					<IconAlertTriangle size={16} />
-					<span>No hay productos en la venta. Agrega al menos un ítem antes de generar.</span>
-				</div>
-			{/if}
-
-			{#if voucherData?.tipoComprobante === '01' && (!voucherData.cliente || (voucherData.cliente.tipoDocumento !== '6' && voucherData.cliente.tipoDocumento.toUpperCase() !== 'RUC'))}
-				<div class="flex items-center gap-2 text-sm text-red-400">
-					<IconAlertTriangle size={16} class="shrink-0" />
-					<span
-						>Para emitir una Factura Electrónica es obligatorio seleccionar un cliente con RUC
-						válido.</span
-					>
-				</div>
-			{/if}
-
-			{#if estado === 'error'}
-				<div class="flex items-center gap-2 text-sm text-red-400">
-					<IconAlertTriangle size={16} />
-					<span>{mensaje}</span>
-				</div>
-			{/if}
-
-			<div class="flex items-center justify-end gap-2 border-t border-neutral-800 pt-3">
-				<Button variant="outline" onclick={onClose}>
-					{#snippet children()}
-						Cerrar
-					{/snippet}
-				</Button>
-				<Button
-					variant="primary"
-					onclick={generar}
-					disabled={estado === 'generando' ||
-						sinItems ||
-						(voucherData?.tipoComprobante === '01' &&
-							(!voucherData.cliente ||
-								(voucherData.cliente.tipoDocumento !== '6' &&
-									voucherData.cliente.tipoDocumento.toUpperCase() !== 'RUC')))}
+			<div class="flex items-center justify-between">
+				<span class="text-neutral-400">Total a Pagar</span>
+				<span class="font-medium"
+					>{voucherData?.monedaSimbolo} {voucherData?.total.toFixed(2)}</span
 				>
-					{#snippet children()}
-						{#if estado === 'generando'}Generando...{:else}Generar{/if}
-					{/snippet}
-				</Button>
+			</div>
+		</div>
+
+		<!-- Elección de formato -->
+		<div>
+			<span class="mb-2 block text-sm font-medium text-neutral-400">
+				¿En qué formato deseas generar el comprobante?
+			</span>
+			<div class="grid grid-cols-3 gap-2">
+				{#each formatos as formato (formato.value)}
+					<button
+						type="button"
+						class="flex flex-col items-start gap-1 rounded-sm border p-3 text-left transition-colors {formatoSeleccionado ===
+						formato.value
+							? 'border-blue-500 bg-blue-900/30 text-white'
+							: 'border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700'}"
+						onclick={() => (formatoSeleccionado = formato.value)}
+					>
+						<span class="flex items-center gap-2">
+							{#if formato.value === 'pdf'}
+								<IconFileText size={18} class="text-blue-400" />
+							{:else if formato.value === 'xml'}
+								<IconFileCode size={18} class="text-blue-400" />
+							{:else}
+								<IconDownload size={18} class="text-blue-400" />
+							{/if}
+							<span class="font-medium">{formato.label}</span>
+						</span>
+						<span class="text-xs">{formato.descripcion}</span>
+					</button>
+				{/each}
+			</div>
+		</div>
+
+		<!-- Tamaño de papel (solo cuando se elige PDF) -->
+		{#if formatoSeleccionado === 'pdf' || formatoSeleccionado === 'ambos'}
+			<div>
+				<span class="mb-2 block text-sm font-medium text-neutral-400">Tamaño de papel</span>
+				<div class="grid grid-cols-2 gap-2">
+					<button
+						type="button"
+						class="flex items-center gap-2 rounded-sm border p-2.5 text-left text-sm transition-colors {papelSeleccionado ===
+						'a4'
+							? 'border-blue-500 bg-blue-900/30 text-white'
+							: 'border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700'}"
+						onclick={() => (papelSeleccionado = 'a4')}
+					>
+						<IconFile size={16} class="text-blue-400" />
+						<span>
+							<span class="block font-medium">A4</span>
+							<span class="text-xs opacity-70">Factura/boleta oficial</span>
+						</span>
+					</button>
+					<button
+						type="button"
+						class="flex items-center gap-2 rounded-sm border p-2.5 text-left text-sm transition-colors {papelSeleccionado ===
+						'ticket80mm'
+							? 'border-blue-500 bg-blue-900/30 text-white'
+							: 'border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700'}"
+						onclick={() => (papelSeleccionado = 'ticket80mm')}
+					>
+						<IconReceipt size={16} class="text-blue-400" />
+						<span>
+							<span class="block font-medium">Ticket 80mm</span>
+							<span class="text-xs opacity-70">Impresora térmica</span>
+						</span>
+					</button>
+				</div>
 			</div>
 		{/if}
+
+		<!-- Advertencias -->
+		{#if sinItems}
+			<div class="flex items-center gap-2 text-sm text-amber-400">
+				<IconAlertTriangle size={16} />
+				<span>No hay productos en la venta. Agrega al menos un ítem antes de continuar.</span>
+			</div>
+		{/if}
+
+		{#if sinRucEnFactura}
+			<div class="flex items-center gap-2 text-sm text-red-400">
+				<IconAlertTriangle size={16} class="shrink-0" />
+				<span>Para emitir una Factura Electrónica es obligatorio seleccionar un cliente con RUC válido.</span>
+			</div>
+		{/if}
+
+		{#if estado === 'error'}
+			<div class="flex items-center gap-2 text-sm text-red-400">
+				<IconAlertTriangle size={16} />
+				<span>{mensaje}</span>
+			</div>
+		{/if}
+
+		<!-- Acciones -->
+		<div class="flex items-center justify-end gap-2 border-t border-neutral-800 pt-3">
+			<Button variant="outline" onclick={onClose}>
+				{#snippet children()}
+					Cancelar
+				{/snippet}
+			</Button>
+			<Button
+				variant="primary"
+				onclick={abrirPreview}
+				disabled={estado === 'preparando' || sinItems || sinRucEnFactura}
+			>
+				{#snippet children()}
+					<IconEye size={16} />
+					{estado === 'preparando' ? 'Preparando...' : 'Ver previsualización'}
+				{/snippet}
+			</Button>
+		</div>
 	</div>
 </Modal>
