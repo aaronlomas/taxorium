@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
@@ -92,4 +93,81 @@ pub fn set_node_config(
         server_ip,
     };
     save_config(&app, &config)
+}
+
+// ─── Configuración local del dispositivo ────────────────────────────────────
+//
+// A diferencia de NodeConfig (que describe el rol en la red), estos valores son
+// intrínsecos de la máquina: la ruta del .p12 y su contraseña solo significan algo
+// en el equipo donde está instalado el archivo. Por eso viven en un JSON local y
+// se acceden por Tauri IPC, nunca por HTTP — de otro modo un nodo cliente
+// recibiría la ruta del certificado del servidor, que no existe en su disco.
+
+fn get_device_config_path(app: &AppHandle) -> PathBuf {
+    let app_dir = app
+        .path()
+        .app_data_dir()
+        .expect("Failed to get app data dir");
+    if !app_dir.exists() {
+        if let Err(e) = fs::create_dir_all(&app_dir) {
+            log::error!("No se pudo crear el directorio de datos de la app: {}", e);
+        }
+    }
+    app_dir.join("device_config.json")
+}
+
+pub fn load_device_config(app: &AppHandle) -> HashMap<String, String> {
+    let path = get_device_config_path(app);
+    if !path.exists() {
+        return HashMap::new();
+    }
+    match fs::read_to_string(&path) {
+        Ok(contents) => match serde_json::from_str(&contents) {
+            Ok(config) => config,
+            Err(e) => {
+                let msg = format!("device_config.json tiene formato inválido y no se pudo leer: {e}");
+                emit::error(app, "config", &msg);
+                log::error!("{}", msg);
+                HashMap::new()
+            }
+        },
+        Err(e) => {
+            let msg = format!("No se pudo leer device_config.json: {e}");
+            emit::error(app, "config", &msg);
+            log::error!("{}", msg);
+            HashMap::new()
+        }
+    }
+}
+
+fn save_device_config(app: &AppHandle, config: &HashMap<String, String>) -> Result<(), String> {
+    let path = get_device_config_path(app);
+    let contents = serde_json::to_string_pretty(config).map_err(|e| {
+        let msg = format!("Error al serializar device_config.json: {e}");
+        emit::error(app, "config", &msg);
+        msg
+    })?;
+    fs::write(&path, contents).map_err(|e| {
+        let msg = format!("Error al guardar device_config.json en {:?}: {e}", path);
+        emit::error(app, "config", &msg);
+        msg
+    })
+}
+
+/// Devuelve toda la configuración local del dispositivo como clave-valor.
+#[tauri::command]
+pub fn get_device_config(app: AppHandle) -> HashMap<String, String> {
+    load_device_config(&app)
+}
+
+/// Guarda o actualiza un valor de la configuración local del dispositivo.
+#[tauri::command]
+pub fn set_device_config(
+    app: AppHandle,
+    clave: String,
+    valor: String,
+) -> Result<(), String> {
+    let mut config = load_device_config(&app);
+    config.insert(clave, valor);
+    save_device_config(&app, &config)
 }

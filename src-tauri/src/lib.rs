@@ -54,6 +54,8 @@ pub fn run() {
             get_device_id,
             config::get_node_config,
             config::set_node_config,
+            config::get_device_config,
+            config::set_device_config,
             init_server_db,
             models::customers::get_customers,
             models::customers::create_customer,

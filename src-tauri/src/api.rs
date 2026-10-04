@@ -4,7 +4,6 @@ use axum::{
     routing::{get, post, put},
     Json, Router,
 };
-use std::collections::HashMap;
 use tauri::{AppHandle, Manager};
 use tower_http::cors::{Any, CorsLayer};
 
@@ -78,9 +77,6 @@ pub fn build_router(app: AppHandle) -> Router {
             "/api/vouchers/next_correlativo/:serie",
             get(get_next_correlativo_api),
         )
-        // Configuración local del dispositivo (sin dependencia de internet)
-        .route("/api/config_local", get(get_config_local_api))
-        .route("/api/config_local/:clave", put(set_config_local_api))
         .with_state(ApiState { app })
         .layer(cors)
 }
@@ -351,52 +347,4 @@ async fn create_voucher_api(
 ) -> Result<Json<Voucher>, (StatusCode, String)> {
     let voucher = run_db_task_mut(state, move |db| core_create_voucher(db, payload)).await?;
     Ok(Json(voucher))
-}
-
-// ─── Config local (SQLite, sin internet) ─────────────────────────────────────
-
-/// GET /api/config_local → { "certificado_path": "/ruta/...", "clave_cert": "***", ... }
-async fn get_config_local_api(
-    state: State<ApiState>,
-) -> Result<Json<HashMap<String, String>>, (StatusCode, String)> {
-    let config = run_db_task(state, move |db| {
-        let mut stmt = db
-            .prepare("SELECT clave, valor FROM config_local")
-            .map_err(|e| e.to_string())?;
-        let rows = stmt
-            .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)))
-            .map_err(|e| e.to_string())?;
-        let mut map = HashMap::new();
-        for row in rows {
-            let (k, v) = row.map_err(|e| e.to_string())?;
-            map.insert(k, v);
-        }
-        Ok(map)
-    })
-    .await?;
-    Ok(Json(config))
-}
-
-#[derive(serde::Deserialize)]
-struct ConfigLocalValue {
-    valor: String,
-}
-
-/// PUT /api/config_local/:clave  body: { "valor": "..." }
-async fn set_config_local_api(
-    state: State<ApiState>,
-    Path(clave): Path<String>,
-    Json(body): Json<ConfigLocalValue>,
-) -> Result<StatusCode, (StatusCode, String)> {
-    run_db_task_mut(state, move |db| {
-        db.execute(
-            "INSERT INTO config_local (clave, valor) VALUES (?1, ?2)
-             ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor",
-            rusqlite::params![clave, body.valor],
-        )
-        .map_err(|e| e.to_string())?;
-        Ok(())
-    })
-    .await?;
-    Ok(StatusCode::OK)
 }
