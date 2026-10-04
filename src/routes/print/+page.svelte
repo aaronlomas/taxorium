@@ -11,6 +11,7 @@
 	let data = $state<PrintableInvoiceData | null>(null);
 	let registration = $state<PrintWindowPayload['registration'] | null>(null);
 	let paperFormat = $state<'a4' | 'ticket80mm'>('a4');
+	let viewOnly = $state(false);
 	let error = $state<string | null>(null);
 
 	// Estado del proceso de confirmación
@@ -29,6 +30,7 @@
 			data = payload.printable;
 			registration = payload.registration ?? null;
 			paperFormat = payload.paperFormat ?? 'a4';
+			viewOnly = payload.viewOnly ?? false;
 
 			// Inyectar @page según formato para que el PDF tenga el tamaño correcto.
 			const style = document.createElement('style');
@@ -235,11 +237,17 @@
 <!-- Barra de herramientas -->
 <div class="toolbar">
 	<span class="toolbar-brand">
-		⚡ Vista previa — {data?.serie_correlativo ?? '…'}
+		⚡ {viewOnly ? 'Comprobante' : 'Vista previa'} — {data?.serie_correlativo ?? '…'}
 	</span>
 
 	<div class="toolbar-actions">
-		{#if confirmState === 'exito'}
+		{#if viewOnly}
+			<!-- Modo solo lectura: comprobante ya registrado -->
+			<button class="btn btn-cancel" onclick={cerrar}>✕ Cerrar</button>
+			<button class="btn btn-confirm" onclick={() => window.print()}>
+				🖨️ Imprimir / Guardar PDF
+			</button>
+		{:else if confirmState === 'exito'}
 			<span class="success-banner" style="margin:0;">✓ Registrado correctamente</span>
 			<button class="btn btn-cancel" onclick={cerrar}>Cerrar</button>
 		{:else}

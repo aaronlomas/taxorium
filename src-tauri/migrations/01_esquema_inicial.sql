@@ -137,3 +137,12 @@ CREATE TABLE IF NOT EXISTS comprobantes (
 
 CREATE INDEX IF NOT EXISTS idx_comprobantes_numero ON comprobantes(numero_comprobante);
 CREATE INDEX IF NOT EXISTS idx_comprobantes_estado_validez ON comprobantes(estado_validez);
+
+-- Configuración local del dispositivo.
+-- Pares clave-valor para datos específicos de esta instalación que NO deben
+-- vivir en la nube: ruta al certificado .p12, contraseña, etc.
+-- Permite que la app funcione sin conexión a internet una vez configurada.
+CREATE TABLE IF NOT EXISTS config_local (
+    clave   TEXT PRIMARY KEY,
+    valor   TEXT
+);

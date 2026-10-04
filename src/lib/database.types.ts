@@ -16,6 +16,8 @@ export interface TenantRow {
 	usuario_sol: string | null;
 	clave_sol: string | null;
 	certificado_path: string | null;
+	/** Contraseña del certificado .p12. Solo texto plano en dev; cifrar en prod. */
+	clave_cert: string | null;
 	configurado: boolean;
 	activo: boolean;
 	created_at: string;

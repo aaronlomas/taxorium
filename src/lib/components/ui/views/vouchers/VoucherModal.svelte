@@ -26,6 +26,7 @@
 	import { voucherClient } from '$lib/services/vouchers/clientVoucher';
 	import { readFile } from '@tauri-apps/plugin-fs';
 	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+	import { configLocalClient } from '$lib/services/configLocal/clientConfigLocal';
 
 	let { isOpen = $bindable(false), onClose }: { isOpen: boolean; onClose: () => void } = $props();
 
@@ -116,19 +117,29 @@
 			const config = get(voucherConfigStore);
 			const tenant = get(tenantStore).tenant;
 
-			if (!tenant?.certificado_path) {
+			// Leer ruta y contraseña del certificado desde SQLite local (sin internet)
+			let certPath: string;
+			let p12_password: string;
+			try {
+				const cfg = await configLocalClient.getAll();
+				certPath = cfg.certificado_path ?? tenant?.certificado_path ?? '';
+				p12_password = cfg.clave_cert ?? localStorage.getItem('taxorium_cert_pwd') ?? '';
+			} catch {
+				// Fallback si SQLite falla
+				certPath = tenant?.certificado_path ?? '';
+				p12_password = localStorage.getItem('taxorium_cert_pwd') ?? '';
+			}
+
+			if (!certPath) {
 				throw new Error('La empresa no tiene un certificado configurado.');
 			}
 
-			// Verificar que el certificado sea legible ANTES de abrir el preview,
-			// así el error aparece en el modal y no en una ventana flotante.
+			// Verificar que el certificado sea legible ANTES de abrir el preview
 			try {
-				await readFile(tenant.certificado_path);
+				await readFile(certPath);
 			} catch {
 				throw new Error('No se pudo leer el archivo de certificado (.p12). Verifica la ruta.');
 			}
-
-			const p12_password = localStorage.getItem('taxorium_cert_pwd') || '';
 
 			// Los bytes del certificado NO se incluyen en la URL para no inflarla;
 			// la ventana de preview los lee desde certificado_path al confirmar.
@@ -141,14 +152,14 @@
 				tipo_comprobante: voucherData.tipoComprobante,
 				moneda: voucherData.moneda,
 				estado_pago: voucherData.estadoPago,
-				emisor_ruc: tenant.ruc,
-				emisor_razon_social: tenant.razon_social,
-				emisor_ubigeo: tenant.ubigeo || '',
-				emisor_direccion: tenant.direccion,
+				emisor_ruc: tenant!.ruc,
+				emisor_razon_social: tenant!.razon_social,
+				emisor_ubigeo: tenant!.ubigeo || '',
+				emisor_direccion: tenant!.direccion,
 				receptor_tipo_doc: voucherData.cliente?.tipoDocumento || '0',
 				receptor_num_doc: voucherData.cliente?.numeroDocumento || '0',
 				tipo_operacion: config.tipoOperacion || '0101',
-				certificado_path: tenant.certificado_path,
+				certificado_path: certPath,
 				p12_password,
 				// El precio ya incluye IGV; el backend desglosa base + IGV por afectación.
 				items: voucherData.items.map((item) => ({

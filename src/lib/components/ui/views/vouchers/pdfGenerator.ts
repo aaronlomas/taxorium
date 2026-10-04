@@ -37,13 +37,19 @@ export interface PrintWindowPayload {
 	 * Se ejecuta únicamente cuando el usuario pulsa "Confirmar y Generar".
 	 * Incluye el path del certificado (no los bytes, para no inflar la URL)
 	 * y la contraseña leída desde el localStorage de la ventana principal.
+	 * Omitido cuando viewOnly=true (comprobante ya registrado).
 	 */
-	registration: Omit<CreateVoucherPayload, 'p12_bytes'> & {
+	registration?: Omit<CreateVoucherPayload, 'p12_bytes'> & {
 		certificado_path: string;
 		p12_password: string;
 	};
 	/** Formato de papel para @page al imprimir */
 	paperFormat: PaperFormat;
+	/**
+	 * Si true, el comprobante ya está registrado: la ventana muestra solo
+	 * el botón "Imprimir / Guardar PDF" sin opción de registro.
+	 */
+	viewOnly?: boolean;
 }
 
 // ─── Función privada de mapeo ─────────────────────────────────────────────────

@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth';
 	import { currentTenant, tenantStore } from '$lib/stores/tenant';
 	import StepEmpresa from '$lib/components/ui/setups/StepEmpresa.svelte';
 	import { open } from '@tauri-apps/plugin-dialog';
+	import { configLocalClient } from '$lib/services/configLocal/clientConfigLocal';
 
 	let ruc = $state($currentTenant?.ruc ?? '');
 	let razonSocial = $state($currentTenant?.razon_social ?? '');
@@ -16,8 +18,10 @@
 	let ubigeo = $state($currentTenant?.ubigeo ?? '');
 	let usuarioSol = $state($currentTenant?.usuario_sol ?? '');
 	let claveSol = $state($currentTenant?.clave_sol ?? '');
-	let certificadoPath = $state($currentTenant?.certificado_path ?? '');
-	let certificadoPassword = $state(localStorage.getItem('taxorium_cert_pwd') || '');
+
+	// certificado_path y clave_cert viven en SQLite local (sin internet).
+	let certificadoPath = $state('');
+	let certificadoPassword = $state('');
 
 	let rucValid = $state<boolean | null>(true);
 	let rucValidating = $state(false);
@@ -25,6 +29,22 @@
 	let saving = $state(false);
 	let errorMsg = $state('');
 	let successMsg = $state('');
+
+	// Cargar config local al montar (SQLite, no necesita internet)
+	onMount(async () => {
+		try {
+			const cfg = await configLocalClient.getAll();
+			certificadoPath = cfg.certificado_path ?? '';
+			certificadoPassword = cfg.clave_cert ?? '';
+		} catch {
+			// Fallback si SQLite aún no tiene la tabla (primer arranque antes de reiniciar)
+			certificadoPath =
+				localStorage.getItem('taxorium_cert_path') ??
+				$currentTenant?.certificado_path ??
+				'';
+			certificadoPassword = localStorage.getItem('taxorium_cert_pwd') ?? '';
+		}
+	});
 
 	function isValidRuc(r: string): boolean {
 		return /^(10|20)\d{9}$/.test(r);
@@ -74,6 +94,7 @@
 
 		saving = true;
 		try {
+			// 1. Guardar datos de empresa en Supabase (requiere internet solo aquí)
 			if ($currentTenant) {
 				await tenantStore.updateTenant($currentTenant.id, {
 					ruc,
@@ -85,10 +106,8 @@
 					email: email.trim() || null,
 					ubigeo: ubigeo.trim() || null,
 					usuario_sol: usuarioSol.trim() || null,
-					clave_sol: claveSol.trim() || null,
-					certificado_path: certificadoPath.trim() || null
+					clave_sol: claveSol.trim() || null
 				});
-				localStorage.setItem('taxorium_cert_pwd', certificadoPassword);
 			} else {
 				if (!$auth.user) {
 					errorMsg = 'Debes iniciar sesión primero.';
@@ -107,26 +126,48 @@
 					ubigeo: ubigeo.trim() || null,
 					usuario_sol: usuarioSol.trim() || null,
 					clave_sol: claveSol.trim() || null,
-					certificado_path: certificadoPath.trim() || null,
 					configurado: true,
 					activo: true
 				});
-				localStorage.setItem('taxorium_cert_pwd', certificadoPassword);
 				if (tenant) {
 					await tenantStore.markConfigured(tenant.id);
 				}
 			}
-			successMsg = 'Configuración de empresa actualizada correctamente.';
+
+			// 2. Guardar certificado y contraseña en SQLite LOCAL (independiente de internet)
+			// Fallo aquí no impide guardar los datos de empresa — se avisa aparte.
+			try {
+				if (certificadoPath.trim()) {
+					await configLocalClient.set('certificado_path', certificadoPath.trim());
+				}
+				if (certificadoPassword) {
+					await configLocalClient.set('clave_cert', certificadoPassword);
+				}
+			} catch (localErr) {
+				console.warn('No se pudo guardar la config local en SQLite:', localErr);
+				// Fallback: localStorage
+				if (certificadoPassword) localStorage.setItem('taxorium_cert_pwd', certificadoPassword);
+				if (certificadoPath) localStorage.setItem('taxorium_cert_path', certificadoPath);
+			}
+
+			successMsg = 'Configuración guardada correctamente.';
 		} catch (err: unknown) {
-			const msg = err instanceof Error ? err.message : 'Error al guardar';
+			// Los errores de Supabase (PostgrestError) no son instancias de Error nativo
+			// pero siempre tienen una propiedad .message
+			const extractMsg = (e: unknown): string => {
+				if (e instanceof Error) return e.message;
+				if (e && typeof e === 'object' && 'message' in e) return String((e as { message: unknown }).message);
+				if (typeof e === 'string') return e;
+				return JSON.stringify(e);
+			};
+			const msg = extractMsg(err);
 			if (msg.includes('duplicate') || msg.includes('unique')) {
 				errorMsg = 'Ya existe una empresa registrada con ese RUC.';
 			} else {
-				errorMsg = msg;
+				errorMsg = `Error: ${msg}`;
 			}
 		} finally {
 			saving = false;
-			// Limpiar mensaje de éxito después de unos segundos
 			if (successMsg) {
 				setTimeout(() => {
 					successMsg = '';
@@ -135,6 +176,7 @@
 		}
 	}
 </script>
+
 
 <div class="flex h-full flex-col overflow-scroll p-2">
 	<h2 class="text-xl font-bold tracking-tight text-slate-100">Configuración de Empresa</h2>

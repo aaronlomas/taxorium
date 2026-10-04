@@ -17,6 +17,11 @@
 		"core:webview:allow-print",
 		"dialog:default",
 		"fs:default",
-		"fs:allow-write-file"
+		"fs:allow-read-file",
+		"fs:allow-write-file",
+		"fs:scope-home-recursive",
+		"fs:scope-desktop-recursive",
+		"fs:scope-document-recursive",
+		"fs:scope-download-recursive"
 	]
 }

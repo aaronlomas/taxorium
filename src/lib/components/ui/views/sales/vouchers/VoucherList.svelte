@@ -21,6 +21,9 @@
 	import { taxoLog } from '$lib/stores/taxoLog';
 	import { voucherClient, type Voucher } from '$lib/services/vouchers/clientVoucher';
 	import { formatFecha } from '$lib/components/ui/views/vouchers/voucherContext';
+	import { configLocalClient } from '$lib/services/configLocal/clientConfigLocal';
+	import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+	import type { PrintableInvoiceData } from '$lib/components/ui/print/invoiceTypes';
 
 	interface ColumnConfig extends CheckItem {
 		key: keyof Voucher;
@@ -99,9 +102,72 @@
 		taxoLog.info(`Consultando comprobante ${voucher.numero_comprobante}`, 'comprobantes');
 	}
 
-	function handleDescargar(voucher: Voucher) {
-		taxoLog.info(`Descargando comprobante ${voucher.numero_comprobante}`, 'comprobantes');
-		// TODO: Implementar lógica de descarga real
+	async function handleDescargar(voucher: Voucher) {
+		const tenant = get(tenantStore).tenant;
+		if (!tenant) {
+			taxoLog.error('No se encontraron datos de la empresa.', 'comprobantes');
+			return;
+		}
+
+		// Construir PrintableInvoiceData con los datos disponibles en el listado.
+		// Los ítems detallados no se almacenan en la tabla comprobantes (solo el XML firmado),
+		// por lo que se muestra una línea resumen con el total.
+		const CURRENCY_LABEL: Record<string, string> = { PEN: 'SOLES', USD: 'DÓLARES', EUR: 'EUROS' };
+		const printable: PrintableInvoiceData = {
+			formato: 'A4',
+			tipo_comprobante:
+				voucher.numero_comprobante.startsWith('F') ? 'FACTURA ELECTRÓNICA' : 'BOLETA DE VENTA ELECTRÓNICA',
+			serie_correlativo: voucher.numero_comprobante,
+			fecha_emision: voucher.fecha_de_emision,
+			empresa: {
+				ruc: tenant.ruc,
+				razon_social: tenant.razon_social,
+				direccion: tenant.direccion,
+				ubigeo: tenant.ubigeo ?? '',
+				telefono: tenant.telefono ?? undefined,
+				email: tenant.email ?? undefined
+			},
+			cliente: {
+				tipo_doc: 'DNI',
+				num_doc: '',
+				nombre_o_razon_social: voucher.cliente
+			},
+			items: [
+				{
+					cantidad: 1,
+					unidad: 'NIU',
+					descripcion: `Total gravado comprobante ${voucher.numero_comprobante}`,
+					precio_unitario: voucher.gravado,
+					total: voucher.gravado
+				}
+			],
+			totales: {
+				moneda: voucher.moneda,
+				gravado: voucher.gravado,
+				igv: voucher.igv,
+				total: voucher.total,
+				total_letras: `SON: ${voucher.total.toFixed(2)} ${CURRENCY_LABEL[voucher.moneda] ?? voucher.moneda}`
+			},
+			hash_cpe: voucher.hash_cpe ?? undefined
+		};
+
+		// Abrir en modo viewOnly — el comprobante ya está registrado
+		const base = window.location.origin;
+		const encoded = encodeURIComponent(
+			JSON.stringify({ printable, paperFormat: 'a4', viewOnly: true })
+		);
+		new WebviewWindow(`view-${voucher.numero_comprobante}-${Date.now()}`, {
+			url: `${base}/print?d=${encoded}`,
+			title: `Comprobante — ${voucher.numero_comprobante}`,
+			width: 900,
+			height: 700,
+			center: true,
+			focus: true,
+			decorations: true,
+			resizable: true
+		});
+
+		taxoLog.info(`Abriendo comprobante ${voucher.numero_comprobante}`, 'comprobantes');
 	}
 
 	let isEmitting = $state<number | null>(null);
