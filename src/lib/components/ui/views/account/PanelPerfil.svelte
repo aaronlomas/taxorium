@@ -3,6 +3,9 @@
 	import { currentTenant } from '$lib/stores/tenant';
 	import { licenseExpiry } from '$lib/stores/license';
 	import { IconKey, IconMail, IconBuilding, IconEdit } from '@tabler/icons-svelte';
+	import ModalCompany from '$lib/components/ui/views/account/company/ModalCompany.svelte';
+
+	let modalCompanyOpen = $state(false);
 
 	function formatDate(date: Date | null): string {
 		if (!date) return '—';
@@ -87,7 +90,12 @@
 			>
 		</div>
 		<div class="text-center">
-			<button class="cursor-pointer hover:text-white">Editar Información</button>
+			<button class="cursor-pointer hover:text-white" onclick={() => (modalCompanyOpen = true)}>
+				Editar Información
+			</button>
 		</div>
 	</div>
 </div>
+
+<!-- Modal: Configuración de Empresa -->
+<ModalCompany bind:isOpen={modalCompanyOpen} onClose={() => (modalCompanyOpen = false)} />

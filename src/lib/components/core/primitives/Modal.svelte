@@ -5,10 +5,28 @@
 		isOpen: boolean;
 		onClose: () => void;
 		title?: string;
+		/**
+		 * `default` — modal centrado sobre un backdrop oscuro semitransparente.
+		 * `fullscreen` — backdrop opaco con blur, para pantallas de acceso
+		 *   (login/activación) que ocupan toda la ventana.
+		 */
+		variant?: 'default' | 'fullscreen';
+		/**
+		 * Permite cerrar con el ✕ del header y con la tecla Escape.
+		 * Poner en false para modales obligatorios (ej. login de caja).
+		 */
+		closable?: boolean;
 		children?: Snippet;
 	}
 
-	let { isOpen = $bindable(), onClose, title = 'Modal', children }: Props = $props();
+	let {
+		isOpen = $bindable(),
+		onClose,
+		title = 'Modal',
+		variant = 'default',
+		closable = true,
+		children
+	}: Props = $props();
 
 	// Estado para las coordenadas de arrastre
 	let position = $state({ x: 0, y: 0 });
@@ -16,7 +34,7 @@
 	let startCoords = { x: 0, y: 0 };
 
 	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
+		if (closable && event.key === 'Escape') {
 			onClose();
 		}
 	}
@@ -66,13 +84,19 @@
 {#if isOpen}
 	<!-- Backdrop -->
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 transition-opacity"
+		class="fixed inset-0 z-50 flex items-center justify-center transition-opacity {variant ===
+		'fullscreen'
+			? 'bg-neutral-950/95 backdrop-blur-md'
+			: 'bg-black/60'}"
 		role="dialog"
 		aria-modal="true"
 	>
 		<!-- Contenedor principal del Modal -->
 		<div
-			class="relative flex size-auto max-w-4xl flex-col border border-neutral-800 bg-neutral-950 text-slate-100 shadow-2xl transition-shadow"
+			class="relative flex size-auto flex-col border border-neutral-800 bg-neutral-950 text-slate-100 shadow-2xl transition-shadow {variant ===
+			'fullscreen'
+				? 'max-w-2xl'
+				: 'max-w-4xl'}"
 			style="transform: translate3d({position.x}px, {position.y}px, 0);"
 		>
 			<!-- Barra Superior / Header para arrastrar -->
@@ -84,15 +108,17 @@
 				onpointerup={handlePointerUp}
 			>
 				<span class="text-sm font-medium text-blue-400">{title}</span>
-				<button
-					type="button"
-					onclick={onClose}
-					onpointerdown={(e) => e.stopPropagation()}
-					class="rounded text-white transition-colors hover:text-red-700"
-					aria-label="Cerrar modal"
-				>
-					✕
-				</button>
+				{#if closable}
+					<button
+						type="button"
+						onclick={onClose}
+						onpointerdown={(e) => e.stopPropagation()}
+						class="rounded text-white transition-colors hover:text-red-700"
+						aria-label="Cerrar modal"
+					>
+						✕
+					</button>
+				{/if}
 			</div>
 
 			<!-- Contenido principal -->

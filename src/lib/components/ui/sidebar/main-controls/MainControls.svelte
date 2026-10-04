@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
 	import {
 		IconBook2,
 		IconCalculator,
@@ -8,7 +8,8 @@
 		IconLogin,
 		IconUserPlus,
 		IconLogout,
-		IconUserSquare
+		IconUserSquare,
+		IconDeviceDesktopPin
 	} from '@tabler/icons-svelte';
 	import { isAuthenticated, isLoading, auth } from '$lib/stores/auth';
 	import { currentTenant, tenantLoading } from '$lib/stores/tenant';
@@ -48,10 +49,16 @@
 		cuentaHovered = false;
 		modalRegisterOpen = true;
 	}
-	function abrirPerfil() {
+	function abrirMiCuenta() {
 		dropdownHovered = false;
 		cuentaHovered = false;
-		dispatch('seleccionarOpcion', { nombre: 'Panel de Cuenta', icono: IconUserCircle });
+		dispatch('seleccionarOpcion', { nombre: 'Mi Cuenta', icono: IconUserCircle });
+	}
+
+	function abrirPuntosVenta() {
+		dropdownHovered = false;
+		cuentaHovered = false;
+		dispatch('seleccionarOpcion', { nombre: 'Mis Puntos de Venta', icono: IconDeviceDesktopPin });
 	}
 
 	async function cerrarSesion() {
@@ -60,7 +67,9 @@
 		await auth.signOut();
 	}
 
-	// Auto-apertura única al montar si falta configurar
+	// Auto-apertura única al montar si falta autenticar.
+	// La falta de tenant NO abre ninguna pestaña: se señala con el punto ámbar
+	// del icono de usuario, y el usuario la completa desde Mi Cuenta → Editar Información.
 	let hasAutoOpened = $state(false);
 	$effect(() => {
 		if ($isLoading || $tenantLoading) return;
@@ -69,13 +78,6 @@
 		if (authPendiente) {
 			hasAutoOpened = true;
 			modalLoginOpen = true;
-		} else if (tenantPendiente) {
-			hasAutoOpened = true;
-			// Esperar al siguiente tick para que el padre esté montado y listo
-			// antes de disparar el evento, evitando la race condition en Svelte 5
-			tick().then(() => {
-				dispatch('seleccionarOpcion', { nombre: 'Configuración', icono: IconSettings });
-			});
 		}
 	});
 </script>
@@ -163,10 +165,18 @@
 						<button
 							type="button"
 							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-neutral-800"
-							onclick={abrirPerfil}
+							onclick={abrirMiCuenta}
 						>
 							<IconUserCircle size={15} stroke={1.5} />
-							Panel de Cuenta
+							Mi Cuenta
+						</button>
+						<button
+							type="button"
+							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-neutral-800"
+							onclick={abrirPuntosVenta}
+						>
+							<IconDeviceDesktopPin size={15} stroke={1.5} />
+							Mis Puntos de Venta
 						</button>
 						<button
 							type="button"
@@ -200,10 +210,10 @@
 						<button
 							type="button"
 							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-neutral-800"
-							onclick={abrirPerfil}
+							onclick={abrirMiCuenta}
 						>
 							<IconUserSquare size={15} stroke={1.5} />
-							Panel de Cuenta
+							Mi Cuenta
 						</button>
 					{/if}
 				</div>

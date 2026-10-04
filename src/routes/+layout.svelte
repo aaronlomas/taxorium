@@ -50,7 +50,7 @@
 	<!-- Ventana de impresión standalone: sin shell, sin fondo oscuro, solo el comprobante -->
 	{@render children()}
 {:else}
-	<div class="flex h-screen w-full flex-col bg-neutral-950">
+	<div class="flex h-screen w-full flex-col bg-neutral-950 overflow-hidden">
 		<ResizeBorder />
 		<TitleBar />
 		<div class="relative h-full w-full flex-1">

@@ -68,7 +68,12 @@
 				<p>Dirección:</p>
 				{data.cliente.direccion}
 			{/if}
-			<p>Tipo de Pago</p>
+			<p>Forma de Pago:</p>
+			{data.forma_pago ?? '-'}
+			{#if data.estado_pago}
+				<p>Estado:</p>
+				{data.estado_pago}
+			{/if}
 		</section>
 
 		<!-- DETALLE ITEMS -->
@@ -200,6 +205,12 @@
 				</h2>
 				<p><span class="font-semibold">Fecha de Emisión:</span> {data.fecha_emision}</p>
 				<p><span class="font-semibold">Moneda:</span> {data.totales.moneda}</p>
+				{#if data.forma_pago}
+					<p><span class="font-semibold">Forma de Pago:</span> {data.forma_pago}</p>
+				{/if}
+				{#if data.estado_pago}
+					<p><span class="font-semibold">Estado:</span> {data.estado_pago}</p>
+				{/if}
 			</div>
 		</section>
 

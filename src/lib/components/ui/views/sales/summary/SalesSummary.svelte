@@ -29,9 +29,12 @@
 
 	let columnas = $state<ColumnConfig[]>([
 		{ id: 'fecha_de_emision', key: 'fecha_de_emision', label: 'Fecha Emisión', checked: true },
-		{ id: 'fecha_referencia', key: 'fecha_de_emision', label: 'Fecha Referencia', checked: true },
+		{ id: 'numero_comprobante', key: 'numero_comprobante', label: 'Comprobante', checked: true },
+		{ id: 'cliente', key: 'cliente', label: 'Cliente', checked: true },
 		{ id: 'estado_validez', key: 'estado_validez', label: 'Estado', checked: true },
-		{ id: 'ticket', key: 'ticket', label: 'Ticket', checked: true }
+		{ id: 'estado_sunat', key: 'estado_sunat', label: 'Enviado a SUNAT', checked: true },
+		{ id: 'codigo_cdr', key: 'codigo_cdr', label: 'Código CDR', checked: true },
+		{ id: 'descripcion_cdr', key: 'descripcion_cdr', label: 'Respuesta CDR', checked: true }
 	]);
 
 	let columnasVisibles = $derived(columnas.filter((c) => c.checked));
@@ -45,8 +48,9 @@
 
 	const SEARCH_OPTIONS = [
 		{ value: '', label: 'Todos' },
-		{ value: 'estado', label: 'Estado' },
-		{ value: 'ticket', label: 'Ticket' }
+		{ value: 'comprobante', label: 'Comprobante' },
+		{ value: 'cliente', label: 'Cliente' },
+		{ value: 'estado', label: 'Estado' }
 	];
 
 	onMount(async () => {
@@ -73,15 +77,18 @@
 			if (!searchTerm.trim()) return true;
 			const term = searchTerm.toLowerCase();
 
-			if (searchBy === 'estado') {
+			if (searchBy === 'comprobante') {
+				return v.numero_comprobante.toLowerCase().includes(term);
+			} else if (searchBy === 'cliente') {
+				return v.cliente.toLowerCase().includes(term);
+			} else if (searchBy === 'estado') {
 				return v.estado_validez.toLowerCase().includes(term);
-			} else if (searchBy === 'ticket') {
-				return (v as any).ticket?.toString().toLowerCase().includes(term);
 			}
 
 			return (
-				v.estado_validez.toLowerCase().includes(term) ||
-				(v as any).ticket?.toString().toLowerCase().includes(term)
+				v.numero_comprobante.toLowerCase().includes(term) ||
+				v.cliente.toLowerCase().includes(term) ||
+				v.estado_validez.toLowerCase().includes(term)
 			);
 		})
 	);
@@ -161,6 +168,9 @@
 			const s = String(val);
 			return /^\d{2}\/\d{2}\/\d{4}/.test(s) ? s.slice(0, 10) : formatFecha(s);
 		}
+		if (key === 'estado_sunat') {
+			return Number(val) === 0 ? 'Pendiente' : 'Enviado';
+		}
 		if (key === 'codigo_cdr') {
 			const code = String(val);
 			if (code === '0') return 'Aceptado';
@@ -235,13 +245,13 @@
 				</div>
 				<Search
 					bind:value={searchTerm}
-					placeholder={searchBy === 'identificador'
-						? 'Buscar identificador...'
-						: searchBy === 'estado'
-							? 'Buscar estado...'
-							: searchBy === 'ticket'
-								? 'Buscar ticket...'
-								: 'Buscar resumen...'}
+					placeholder={searchBy === 'comprobante'
+						? 'Buscar comprobante...'
+						: searchBy === 'cliente'
+							? 'Buscar cliente...'
+							: searchBy === 'estado'
+								? 'Buscar estado...'
+								: 'Buscar en todos...'}
 				/>
 			</div>
 		{/snippet}

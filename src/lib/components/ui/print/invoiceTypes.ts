@@ -49,6 +49,12 @@ export interface PrintableInvoiceData {
 	// Detalle
 	items: PrintItemData[];
 	totales: PrintTotalsData;
+
+	// Pago
+	/** Forma de pago legible, p. ej. 'Efectivo - Contado' */
+	forma_pago?: string;
+	/** Estado de pago: 'Pagado' | 'Pendiente' */
+	estado_pago?: string;
 	
 	// Extra SUNAT
 	hash_cpe?: string;

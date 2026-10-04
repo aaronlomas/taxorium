@@ -8,8 +8,6 @@
 	import { sellerAuth } from '$lib/stores/sellerAuth';
 	import { configStore } from '$lib/stores/config';
 	import PosLogin from '$lib/components/ui/setups/PosLogin.svelte';
-	import { onMount } from 'svelte';
-	import { IconLayoutDashboard } from '@tabler/icons-svelte';
 	import Log from '$lib/components/log/TaxoLog.svelte';
 
 	$effect(() => {
@@ -23,16 +21,10 @@
 		}
 	});
 
-	// Inicializamos solo con el Dashboard
-	let pestanas = $state([
-		{
-			id: 'Dashboard',
-			titulo: 'Dashboard',
-			icono: IconLayoutDashboard,
-			colorIcono: 'text-blue-500',
-			activo: true
-		}
-	]);
+	// Sin pestañas iniciales: el usuario elige qué módulo abrir desde el sidebar.
+	let pestanas = $state<
+		{ id: string; titulo: string; icono: any; colorIcono: string; activo: boolean }[]
+	>([]);
 
 	function seleccionarPestana(id: string) {
 		pestanas = pestanas.map((p) => ({ ...p, activo: p.id === id }));
@@ -82,11 +74,11 @@
 	<PosLogin />
 {:else}
 	<div
-		class="grid h-full w-full grid-cols-[auto_1fr] grid-rows-[1fr_24px] bg-neutral-950 font-sans text-neutral-300"
+		class="grid h-full w-full grid-cols-[auto_1fr] grid-rows-[1fr_24px] overflow-hidden bg-neutral-950 font-sans text-neutral-300"
 	>
 		<Sidebar on:seleccionarOpcion={manejarSeleccionSidebar} />
 
-		<div class="flex min-h-0 min-w-0 flex-col overflow-hidden bg-neutral-950">
+		<div class="flex min-h-0 min-w-0 flex-col bg-neutral-950">
 			<TabBar>
 				{#each pestanas as pestana (pestana.id)}
 					<Tab

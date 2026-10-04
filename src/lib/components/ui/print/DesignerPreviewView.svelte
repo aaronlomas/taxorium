@@ -30,6 +30,8 @@
 			moneda: 'PEN', gravado: 200.00, igv: 36.00, total: 236.00,
 			total_letras: 'DOSCIENTOS TREINTA Y SEIS Y 00/100 SOLES'
 		},
+		forma_pago: 'Efectivo - Contado',
+		estado_pago: 'Pagado',
 		hash_cpe: 'x8+ABcDeFgHiJkLmNoPqRsTuVwXyZ=',
 		qr_code_data: '20123456789|01|F001|00000123|36.00|236.00|25/10/2023|6|20987654321|'
 	};
@@ -61,6 +63,8 @@
 			moneda: 'PEN', gravado: 21.19, igv: 3.81, total: 25.00,
 			total_letras: 'VEINTICINCO Y 00/100 SOLES'
 		},
+		forma_pago: 'Efectivo - Contado',
+		estado_pago: 'Pagado',
 		hash_cpe: 'y9+BCdEfGhIjKkLmMNoPqRsTuVwXyZ=',
 		qr_code_data: '20123456789|03|B001|00000456|3.81|25.00|25/10/2023|1|76543210|'
 	};
@@ -91,6 +95,8 @@
 			moneda: 'PEN', gravado: 21.19, igv: 3.81, total: 25.00,
 			total_letras: 'VEINTICINCO Y 00/100 SOLES'
 		},
+		forma_pago: 'Efectivo - Contado',
+		estado_pago: 'Pagado',
 		hash_cpe: 'y9+BCdEfGhIjKkLmMNoPqRsTuVwXyZ=',
 		qr_code_data: '20123456789|03|B001|00000456|3.81|25.00|25/10/2023|1|76543210|'
 	};

@@ -11,8 +11,11 @@ import SalesSummaryView from './sales/summary/SalesSummary.svelte';
 
 // CONFIGURACIÓN
 import SettingsView from './settings/SettingsView.svelte';
-import CuentaView from './account/accountView.svelte';
 import DesignerPreviewView from '../print/DesignerPreviewView.svelte';
+
+// CUENTAS
+import PerfilView from './account/PerfilView.svelte';
+import SellerView from './account/SellerView.svelte';
 
 /**
  * Mapa central de rutas de vistas de la aplicación.
@@ -20,9 +23,9 @@ import DesignerPreviewView from '../print/DesignerPreviewView.svelte';
  * que se usa en `elementosNavegacion[].nombre` del Sidebar).
  *
  * Para agregar una nueva vista:
- *   1. Crea el componente en views/<nombre>/
- *   2. Importalo aquí
- *   3. Añade la entrada al mapa
+ *   1. Crea la interfaz en views/<nombre>/
+ *   2. Crea la vista que la compone en views/<nombre>/
+ *   3. Importa la vista aquí y añade la entrada al mapa
  */
 export const viewRoutes: Record<string, Component<any>> = {
 	//SECCIÓN DE REGISTROS GENERALES
@@ -39,8 +42,11 @@ export const viewRoutes: Record<string, Component<any>> = {
 
 	//CONFIGURACIÓN
 	Configuración: SettingsView,
-	'Panel de Cuenta': CuentaView,
-	'Diseñador de PDF': DesignerPreviewView
+	'Diseñador de PDF': DesignerPreviewView,
+
+	//CUENTAS
+	'Mi Cuenta': PerfilView,
+	'Mis Puntos de Venta': SellerView
 };
 
 /** Devuelve el componente para un id de pestaña, o null si no existe */

@@ -5,6 +5,7 @@
 	import { configStore } from '$lib/stores/config';
 	import Input from '$lib/components/core/primitives/Input.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
+	import Modal from '$lib/components/core/primitives/Modal.svelte';
 
 	let sellers = $state<Seller[]>([]);
 	let loading = $state(true);
@@ -81,13 +82,15 @@
 	}
 </script>
 
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/95 backdrop-blur-md">
-	<div
-		class="flex w-full max-w-2xl flex-col rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 shadow-2xl"
-	>
+<!--
+	Login de caja: pantalla obligatoria para los nodos client sin vendedor autenticado.
+	Usa el primitivo Modal para el backdrop y el arrastre con el mouse.
+	closable={false} porque no se puede seguir operando la caja sin vendedor.
+-->
+<Modal isOpen variant="fullscreen" title="Taxorium POS" closable={false} onClose={() => {}}>
+	<div class="p-8">
 		<div class="mb-8 text-center">
-			<h1 class="text-3xl font-bold tracking-tight text-neutral-100">Taxorium POS</h1>
-			<p class="mt-2 text-neutral-400">Selecciona tu usuario para iniciar turno</p>
+			<p class="text-neutral-400">Selecciona tu usuario para iniciar turno</p>
 		</div>
 
 		{#if loading}
@@ -175,4 +178,4 @@
 			</div>
 		{/if}
 	</div>
-</div>
+</Modal>

@@ -1,27 +1,27 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+  //ICONOS
 	import {
-		IconPlus,
 		IconDatabaseImport,
 		IconDatabaseExport,
 		IconEye,
 		IconSend,
 		IconDownload
 	} from '@tabler/icons-svelte';
+  //PRIMITIVAS
 	import TableFilter, { type CheckItem } from '$lib/components/core/primitives/TableFilter.svelte';
 	import TableToolbar from '$lib/components/core/primitives/TableToolbar.svelte';
 	import Select from '$lib/components/core/primitives/Select.svelte';
 	import Search from '$lib/components/core/primitives/Search.svelte';
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/Table.svelte';
+  //SERVICIOS
 	import { invoke } from '@tauri-apps/api/core';
 	import { get } from 'svelte/store';
 	import { tenantStore } from '$lib/stores/tenant';
-
 	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
 	import { taxoLog } from '$lib/stores/taxoLog';
 	import { voucherClient, type Voucher } from '$lib/services/vouchers/clientVoucher';
 	import { formatFecha } from '$lib/components/ui/views/vouchers/voucherContext';
-	import { configLocalClient } from '$lib/services/configLocal/clientConfigLocal';
 	import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 	import type { PrintableInvoiceData } from '$lib/components/ui/print/invoiceTypes';
 
@@ -148,6 +148,8 @@
 				total: voucher.total,
 				total_letras: `SON: ${voucher.total.toFixed(2)} ${CURRENCY_LABEL[voucher.moneda] ?? voucher.moneda}`
 			},
+			// La forma de pago no se guarda en la tabla comprobantes, solo su estado.
+			estado_pago: voucher.estado_pago === 'pagado' ? 'Pagado' : 'Pendiente',
 			hash_cpe: voucher.hash_cpe ?? undefined
 		};
 
@@ -265,11 +267,6 @@
 	<!-- PRIMITIVA TOOLBAR -->
 	<TableToolbar>
 		{#snippet actions()}
-			<button
-				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
-			>
-				<IconPlus size={20} />Añadir
-			</button>
 			<button
 				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
 			>

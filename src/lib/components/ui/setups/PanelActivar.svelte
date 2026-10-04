@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { IconKey } from '@tabler/icons-svelte';
 	import { licenseStore } from '$lib/stores/license';
 	import Input from '$lib/components/core/primitives/Input.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
@@ -27,20 +28,22 @@
 	}
 </script>
 
-<div class="panel-activar">
+<div class="flex flex-col gap-4 p-3">
 	<!-- Header -->
-	<div class="activar-header">
-		<div class="activar-icon-wrap">
-			<span class="activar-icon">🔑</span>
+	<div class="flex items-start gap-3 border-b border-white/6 pb-3">
+		<div
+			class="flex size-9 shrink-0 items-center justify-center rounded-[10px] border border-blue-500/20 bg-blue-500/10"
+		>
+			<IconKey />
 		</div>
 		<div>
-			<h2 class="activar-title">Activar Taxorium</h2>
-			<p class="activar-subtitle">Ingresa la license key para desbloquear el sistema</p>
+			<h2 class="mb-0.5 text-sm font-bold text-slate-100">Activar Taxorium</h2>
+			<p class="text-xs text-slate-500">Ingresa la license key para desbloquear el sistema</p>
 		</div>
 	</div>
 
 	<!-- Input de licencia -->
-	<div class="key-section">
+	<div class="flex flex-col gap-1">
 		<Input
 			id="pa-license-key"
 			type="text"
@@ -52,34 +55,38 @@
 			maxlength={19}
 			spellcheck={false}
 			autocomplete="off"
-			class="key-input {licenseKey.length === 19 ? 'key-valid' : ''}"
+			class="text-center font-mono text-sm [&_input::placeholder]:tracking-wider {licenseKey.length ===
+			19
+				? 'border-emerald-500/50! shadow-[0_0_0_2px_#10b9811a]!'
+				: ''}"
 			disabled={$licenseStore.activating}
 		/>
-		<div class="key-meta">
-			<span class="key-format">Formato: TAXO-XXXX-XXXX-XXXX</span>
-			<span class="key-count" class:key-count-done={licenseKey.length === 19}>
+		<div class="flex items-center justify-between">
+			<span class="text-sm text-slate-600">Formato: TAXO-XXXX-XXXX-XXXX</span>
+			<span
+				class="text-xs transition-colors duration-200 {licenseKey.length === 19
+					? 'text-emerald-400'
+					: 'text-slate-600'}"
+			>
 				{licenseKey.length}/19
 			</span>
 		</div>
 	</div>
 
 	<!-- Progreso visual -->
-	<div class="key-progress-track">
+	<div class="h-0.75 overflow-hidden rounded-full bg-white/6">
 		<div
-			class="key-progress-fill"
+			class="h-full rounded-full bg-linear-to-r from-blue-500 to-cyan-500 transition-[width] duration-200"
 			style="width: {Math.min(100, (licenseKey.length / 19) * 100)}%"
 		></div>
 	</div>
 
 	{#if $licenseStore.error}
-		<div class="alert-error" role="alert">
-			<svg
-				width="14"
-				height="14"
-				viewBox="0 0 16 16"
-				fill="none"
-				style="flex-shrink:0;margin-top:1px"
-			>
+		<div
+			role="alert"
+			class="flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/8 px-3 py-1.5 text-xs leading-relaxed text-red-300"
+		>
+			<svg width="14" height="14" viewBox="0 0 16 16" fill="none" class="mt-px shrink-0">
 				<circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
 				<path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
 			</svg>
@@ -96,139 +103,16 @@
 		class="mt-2 w-full"
 	>
 		{#if $licenseStore.activating}
-			<span class="spinner"></span>
+			<span
+				class="size-3 shrink-0 animate-[spin_0.65s_linear_infinite] rounded-full border-2 border-white/25 border-t-white"
+			></span>
 			Verificando con el servidor...
 		{:else}
-			🚀 Activar licencia
+			Activar licencia
 		{/if}
 	</Button>
 
-	<p class="activar-footer">¿No tienes una licencia? Contacta con el administrador del sistema.</p>
+	<p class="m-0 text-center text-[0.6875rem] text-slate-600">
+		¿No tienes una licencia? Contacta con el administrador del sistema.
+	</p>
 </div>
-
-<style>
-	.panel-activar {
-		display: flex;
-		flex-direction: column;
-		gap: 1.125rem;
-		padding: 1.25rem;
-	}
-
-	.activar-header {
-		display: flex;
-		align-items: flex-start;
-		gap: 0.75rem;
-		padding-bottom: 0.75rem;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-	}
-	.activar-icon-wrap {
-		width: 2.25rem;
-		height: 2.25rem;
-		border-radius: 10px;
-		background: rgba(59, 130, 246, 0.1);
-		border: 1px solid rgba(59, 130, 246, 0.2);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-	.activar-icon {
-		font-size: 1.125rem;
-	}
-	.activar-title {
-		font-size: 0.9375rem;
-		font-weight: 700;
-		color: #f1f5f9;
-		margin: 0 0 0.15rem;
-		letter-spacing: -0.02em;
-	}
-	.activar-subtitle {
-		font-size: 0.7rem;
-		color: #64748b;
-		margin: 0;
-	}
-
-	.key-section {
-		display: flex;
-		flex-direction: column;
-		gap: 0.4rem;
-	}
-	:global(.key-input) {
-		text-align: center;
-		font-size: 0.9375rem;
-		font-family: 'Courier New', monospace;
-		letter-spacing: 0.15em;
-	}
-	:global(.key-input)::placeholder {
-		letter-spacing: 0.05em;
-	}
-	:global(.key-valid) {
-		border-color: rgba(16, 185, 129, 0.5) !important;
-		box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1) !important;
-	}
-	.key-meta {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-	.key-format {
-		font-size: 0.6875rem;
-		color: #475569;
-	}
-	.key-count {
-		font-size: 0.6875rem;
-		color: #475569;
-		transition: color 0.2s;
-	}
-	.key-count-done {
-		color: #34d399;
-	}
-
-	.key-progress-track {
-		height: 3px;
-		background: rgba(255, 255, 255, 0.06);
-		border-radius: 999px;
-		overflow: hidden;
-	}
-	.key-progress-fill {
-		height: 100%;
-		background: linear-gradient(90deg, #3b82f6, #06b6d4);
-		border-radius: 999px;
-		transition: width 0.2s ease;
-	}
-
-	.alert-error {
-		display: flex;
-		align-items: flex-start;
-		gap: 0.5rem;
-		background: rgba(239, 68, 68, 0.08);
-		border: 1px solid rgba(239, 68, 68, 0.2);
-		color: #fca5a5;
-		padding: 0.6rem 0.75rem;
-		border-radius: 8px;
-		font-size: 0.75rem;
-		line-height: 1.5;
-	}
-
-	.spinner {
-		width: 13px;
-		height: 13px;
-		border: 2px solid rgba(255, 255, 255, 0.25);
-		border-top-color: #fff;
-		border-radius: 50%;
-		animation: spin 0.65s linear infinite;
-		flex-shrink: 0;
-	}
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	.activar-footer {
-		text-align: center;
-		font-size: 0.6875rem;
-		color: #475569;
-		margin: 0;
-	}
-</style>

@@ -181,33 +181,10 @@
 	}
 </script>
 
-<Modal bind:isOpen {onClose} title="Vista previa del Comprobante">
+<Modal bind:isOpen {onClose} title="Tipo de formato">
 	<div class="grid w-140 max-w-full gap-4 p-4">
-		<!-- Resumen del comprobante -->
-		<div
-			class="flex flex-col gap-1 rounded-sm border border-neutral-800 bg-neutral-900 p-3 text-sm"
-		>
-			<div class="flex items-center justify-between">
-				<span class="text-neutral-400">{voucherData?.tipoComprobanteLabel}</span>
-				<span class="font-mono text-blue-400">{voucherData?.numeroCompleto}</span>
-			</div>
-			<div class="flex items-center justify-between">
-				<span class="text-neutral-400">Fecha de Emisión</span>
-				<span>{voucherData?.fechaEmision} {voucherData?.horaEmision}</span>
-			</div>
-			<div class="flex items-center justify-between">
-				<span class="text-neutral-400">Total a Pagar</span>
-				<span class="font-medium"
-					>{voucherData?.monedaSimbolo} {voucherData?.total.toFixed(2)}</span
-				>
-			</div>
-		</div>
-
 		<!-- Elección de formato -->
 		<div>
-			<span class="mb-2 block text-sm font-medium text-neutral-400">
-				¿En qué formato deseas generar el comprobante?
-			</span>
 			<div class="grid grid-cols-3 gap-2">
 				{#each formatos as formato (formato.value)}
 					<button

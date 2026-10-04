@@ -54,6 +54,11 @@ export interface PrintWindowPayload {
 
 // ─── Función privada de mapeo ─────────────────────────────────────────────────
 
+const ESTADO_PAGO_LABEL: Record<string, string> = {
+	pagado: 'Pagado',
+	pendiente: 'Pendiente'
+};
+
 function mapToPrintableData(data: VoucherData, format: PaperFormat): PrintableInvoiceData {
 	return {
 		formato: format === 'ticket80mm' ? 'TICKET' : 'A4',
@@ -100,6 +105,8 @@ function mapToPrintableData(data: VoucherData, format: PaperFormat): PrintableIn
 			total: data.total,
 			total_letras: `SON: ${data.total.toFixed(2)} ${data.moneda === 'PEN' ? 'SOLES' : data.moneda}`
 		},
+		forma_pago: [data.metodoPago, data.condicionPago].filter(Boolean).join(' - '),
+		estado_pago: ESTADO_PAGO_LABEL[data.estadoPago] ?? data.estadoPago,
 		hash_cpe: '[Generado al enviar a SUNAT]',
 		qr_code_data: '123456789'
 	};
@@ -140,7 +147,7 @@ export function openVoucherPreview(
 		title: `Vista previa — ${voucherData.numeroCompleto}`,
 		// decorations: true → el marco del OS permite mover la ventana y
 		// NO aparece en el PDF (window.print solo captura el HTML).
-		width: isTicket ? 380 : 960,
+		width: isTicket ? 768 : 960,
 		height: isTicket ? 780 : 720,
 		center: true,
 		focus: true,
@@ -166,7 +173,7 @@ export async function generateProfessionalPdf(
 	new WebviewWindow(`print-${data.numeroCompleto}-${Date.now()}`, {
 		url: `${base}/print?d=${encoded}`,
 		title: `Comprobante: ${data.numeroCompleto}`,
-		width: isTicket ? 380 : 960,
+		width: isTicket ? 768 : 960,
 		height: isTicket ? 780 : 720,
 		center: true,
 		focus: true,
