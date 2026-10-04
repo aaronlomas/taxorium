@@ -64,7 +64,7 @@ describe('voucherGenerator', () => {
 		expect(data.opExoneradas).toBe(18);
 		expect(data.opGravadas).toBe(100);
 		expect(data.vuelto).toBe(2);
-		expect(data.numeroCompleto).toMatch(/^B001-\d{7}$/);
+		expect(data.numeroCompleto).toMatch(/^B001-\d{8}$/);
 	});
 
 	it('genera un PDF con cabecera válida', () => {
