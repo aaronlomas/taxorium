@@ -5,7 +5,7 @@
 	import TableFilter, { type CheckItem } from '$lib/components/core/primitives/TableFilter.svelte';
 	import Search from '$lib/components/core/primitives/Search.svelte';
 	import Select from '$lib/components/core/primitives/Select.svelte';
-  import Hint from '$lib/components/core/primitives/Hint.svelte';
+	import Hint from '$lib/components/core/primitives/Hint.svelte';
 	import { onMount } from 'svelte';
 
 	//TABLA Y MODAL
@@ -93,14 +93,14 @@
 	<TableToolbar>
 		<!-- CONTROLES -->
 		{#snippet actions()}
-    <Hint text="Agregar Cliente" side="bottom" align="start">
-			<button
-				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
-				onclick={handleAdd}
-			>
-				<IconPlus size={20} />
-			</button>
-    </Hint>
+			<Hint text="Agregar Cliente" side="bottom" align="start">
+				<button
+					class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
+					onclick={handleAdd}
+				>
+					<IconPlus size={20} />
+				</button>
+			</Hint>
 			<button
 				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
 			>

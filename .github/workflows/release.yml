@@ -58,8 +58,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: "Taxorium ${{ github.ref_name }}"
-          releaseBody: "Release automatizado. Descarga los instaladores a continuación."
+          releaseName: 'Taxorium ${{ github.ref_name }}'
+          releaseBody: 'Release automatizado. Descarga los instaladores a continuación.'
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

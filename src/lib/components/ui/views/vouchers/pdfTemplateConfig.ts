@@ -76,10 +76,10 @@ export const DEFAULT_PDF_CONFIG: PdfTemplateConfig = {
 	logoHeight: 20,
 
 	colors: {
-		headerBg: '#1a2744',    // Azul marino oscuro
+		headerBg: '#1a2744', // Azul marino oscuro
 		headerText: '#ffffff',
-		accent: '#2563eb',      // Azul brillante
-		rowAlt: '#f1f5fb',      // Gris azulado muy claro
+		accent: '#2563eb', // Azul brillante
+		rowAlt: '#f1f5fb', // Gris azulado muy claro
 		textPrimary: '#111827',
 		textSecondary: '#6b7280',
 		totalText: '#ffffff',
@@ -124,10 +124,7 @@ export const TICKET_PDF_CONFIG: PdfTemplateConfig = {
 		totalBg: '#1a2744'
 	},
 
-	footerLines: [
-		'Gracias por su compra',
-		'Comprobante electrónico válido'
-	],
+	footerLines: ['Gracias por su compra', 'Comprobante electrónico válido'],
 
 	showQr: false,
 	hashLabel: 'Hash:',

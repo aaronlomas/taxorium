@@ -129,10 +129,7 @@
 					voucher_id: doc.id
 				}
 			});
-			taxoLog.info(
-				`Comprobante aceptado por SUNAT. CDR: ${(res as any).descripcion}`,
-				'sunat'
-			);
+			taxoLog.info(`Comprobante aceptado por SUNAT. CDR: ${(res as any).descripcion}`, 'sunat');
 			vouchers = await voucherClient.getVouchers();
 		} catch (e) {
 			taxoLog.error(`Error de SUNAT: ${e}`, 'sunat');

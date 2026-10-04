@@ -16,11 +16,7 @@
 	import { customersStore } from '$lib/stores/customers';
 	import { tenantStore } from '$lib/stores/tenant';
 	import { voucherConfigStore } from './voucherContext';
-	import {
-		buildVoucherData,
-		type VoucherData,
-		type VoucherFormat
-	} from './voucherGenerator';
+	import { buildVoucherData, type VoucherData, type VoucherFormat } from './voucherGenerator';
 	import { openVoucherPreview } from './pdfGenerator';
 	import type { PaperFormat } from './pdfTemplateConfig';
 	import { voucherClient } from '$lib/services/vouchers/clientVoucher';
@@ -259,7 +255,9 @@
 		{#if sinRucEnFactura}
 			<div class="flex items-center gap-2 text-sm text-red-400">
 				<IconAlertTriangle size={16} class="shrink-0" />
-				<span>Para emitir una Factura Electrónica es obligatorio seleccionar un cliente con RUC válido.</span>
+				<span
+					>Para emitir una Factura Electrónica es obligatorio seleccionar un cliente con RUC válido.</span
+				>
 			</div>
 		{/if}
 

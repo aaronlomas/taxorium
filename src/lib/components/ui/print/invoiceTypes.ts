@@ -41,11 +41,11 @@ export interface PrintableInvoiceData {
 	tipo_comprobante: string; // 'Factura Electrónica' o 'Boleta de Venta Electrónica'
 	serie_correlativo: string; // Ej: 'F001-00000123'
 	fecha_emision: string; // Ej: '2023-10-25 14:30:00'
-	
+
 	// Entidades
 	empresa: PrintCompanyData;
 	cliente: PrintCustomerData;
-	
+
 	// Detalle
 	items: PrintItemData[];
 	totales: PrintTotalsData;
@@ -55,7 +55,7 @@ export interface PrintableInvoiceData {
 	forma_pago?: string;
 	/** Estado de pago: 'Pagado' | 'Pendiente' */
 	estado_pago?: string;
-	
+
 	// Extra SUNAT
 	hash_cpe?: string;
 	qr_code_data?: string; // Cadena para generar el QR si lo necesitan

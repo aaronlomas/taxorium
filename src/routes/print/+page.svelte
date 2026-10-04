@@ -57,7 +57,9 @@
 				const bytes = await readFile(registration.certificado_path);
 				p12_bytes = Array.from(bytes);
 			} catch {
-				throw new Error('No se pudo leer el certificado digital (.p12). Verifica la ruta en configuración.');
+				throw new Error(
+					'No se pudo leer el certificado digital (.p12). Verifica la ruta en configuración.'
+				);
 			}
 
 			// Registrar en la base de datos
@@ -158,36 +160,52 @@
 			border: none;
 			border-radius: 8px;
 			cursor: pointer;
-			transition: opacity 0.15s, transform 0.1s;
+			transition:
+				opacity 0.15s,
+				transform 0.1s;
 			white-space: nowrap;
 		}
-		.btn:active { transform: scale(0.97); }
-		.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+		.btn:active {
+			transform: scale(0.97);
+		}
+		.btn:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
 
 		.btn-confirm {
 			background: linear-gradient(135deg, #7c3aed, #4f46e5);
 			color: white;
 		}
-		.btn-confirm:hover:not(:disabled) { opacity: 0.88; }
+		.btn-confirm:hover:not(:disabled) {
+			opacity: 0.88;
+		}
 
 		.btn-cancel {
 			background: transparent;
 			color: #9ca3af;
 			border: 1px solid #374151;
 		}
-		.btn-cancel:hover:not(:disabled) { background: #1f2937; color: #d1d5db; }
+		.btn-cancel:hover:not(:disabled) {
+			background: #1f2937;
+			color: #d1d5db;
+		}
 
 		/* Estado de carga */
 		.spinner {
 			width: 14px;
 			height: 14px;
-			border: 2px solid rgba(255,255,255,0.3);
+			border: 2px solid rgba(255, 255, 255, 0.3);
 			border-top-color: white;
 			border-radius: 50%;
 			animation: spin 0.7s linear infinite;
 			display: inline-block;
 		}
-		@keyframes spin { to { transform: rotate(360deg); } }
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
 
 		/* Banner de error */
 		.error-banner {
@@ -251,11 +269,7 @@
 			<span class="success-banner" style="margin:0;">✓ Registrado correctamente</span>
 			<button class="btn btn-cancel" onclick={cerrar}>Cerrar</button>
 		{:else}
-			<button
-				class="btn btn-cancel"
-				onclick={cerrar}
-				disabled={confirmState === 'registrando'}
-			>
+			<button class="btn btn-cancel" onclick={cerrar} disabled={confirmState === 'registrando'}>
 				✕ Cancelar
 			</button>
 			<button

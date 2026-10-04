@@ -116,10 +116,11 @@
 		try {
 			// 1. Crear el usuario en auth
 			await auth.signUp(email, password);
-			
+
 			// 2. TODO: Guardar los datos de la empresa (companyData) en tu API/BD
-			
-			successMsg = 'Cuenta y empresa creadas. Revisa tu correo para confirmar y luego inicia sesión.';
+
+			successMsg =
+				'Cuenta y empresa creadas. Revisa tu correo para confirmar y luego inicia sesión.';
 			// Limpiar todo y volver al login
 			email = '';
 			password = '';
@@ -188,7 +189,19 @@
 <div class="flex flex-col gap-5 p-5">
 	<div class="flex items-center gap-2.5 border-b border-white/6 pb-3">
 		<div class="shrink-0">
-			<svg width="28" height="28" fill="none" viewBox="0 0 48 48"><rect width="48" height="48" fill="url(#pl-grad)" rx="12"/><path fill="#fff" stroke="#fff" stroke-linejoin="round" stroke-width=".5" d="M14 10h14l-4 11h8L18 38l4-14h-8z"/><defs><linearGradient id="pl-grad" x1="0" x2="48" y1="0" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs></svg>
+			<svg width="28" height="28" fill="none" viewBox="0 0 48 48"
+				><rect width="48" height="48" fill="url(#pl-grad)" rx="12" /><path
+					fill="#fff"
+					stroke="#fff"
+					stroke-linejoin="round"
+					stroke-width=".5"
+					d="M14 10h14l-4 11h8L18 38l4-14h-8z"
+				/><defs
+					><linearGradient id="pl-grad" x1="0" x2="48" y1="0" y2="48" gradientUnits="userSpaceOnUse"
+						><stop stop-color="#3b82f6" /><stop offset="1" stop-color="#06b6d4" /></linearGradient
+					></defs
+				></svg
+			>
 		</div>
 		<div class="flex flex-col gap-0.5">
 			<span class="text-[0.9375rem] font-bold tracking-[-0.02em] text-slate-100">Taxorium</span>
@@ -200,15 +213,19 @@
 		{#if mode === 'register' || mode === 'company'}
 			<!-- Indicador de pasos -->
 			<div class="mb-1 flex items-center gap-1.5 text-[0.6875rem]">
-				<span class="flex size-4 items-center justify-center rounded-full text-[0.6rem] font-bold
-					{mode === 'company' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'}">
+				<span
+					class="flex size-4 items-center justify-center rounded-full text-[0.6rem] font-bold
+					{mode === 'company' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'}"
+				>
 					{mode === 'company' ? '✓' : '1'}
 				</span>
-				<span class="{mode === 'company' ? 'text-slate-500' : 'text-blue-400'}">Cuenta</span>
+				<span class={mode === 'company' ? 'text-slate-500' : 'text-blue-400'}>Cuenta</span>
 				<span class="text-slate-700">→</span>
-				<span class="flex size-4 items-center justify-center rounded-full text-[0.6rem] font-bold
-					{mode === 'company' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/6 text-slate-600'}">2</span>
-				<span class="{mode === 'company' ? 'text-blue-400' : 'text-slate-600'}">Empresa</span>
+				<span
+					class="flex size-4 items-center justify-center rounded-full text-[0.6rem] font-bold
+					{mode === 'company' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/6 text-slate-600'}">2</span
+				>
+				<span class={mode === 'company' ? 'text-blue-400' : 'text-slate-600'}>Empresa</span>
 			</div>
 		{/if}
 		<h2 class="m-0 text-base font-bold tracking-[-0.02em] text-slate-100">
@@ -223,7 +240,7 @@
 		<!-- Paso 2: datos de la empresa -->
 		<!-- Renderizamos FormCompany, omitiendo su título interno si es necesario, 
 		     pero reutilizando todos los campos y su botón de submit -->
-		<div class="max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+		<div class="custom-scrollbar max-h-[50vh] overflow-y-auto pr-2">
 			<FormCompany
 				bind:ruc={companyData.ruc}
 				bind:razonSocial={companyData.razonSocial}
@@ -239,7 +256,7 @@
 				bind:certificadoPassword={companyData.certificadoPassword}
 				bind:rucValid={companyData.rucValid}
 				bind:rucValidating={companyData.rucValidating}
-				validateRuc={validateRuc}
+				{validateRuc}
 				onSelectCertificado={handleSelectCertificado}
 				onSave={handleCreateAccount}
 				saving={loading}
@@ -352,8 +369,6 @@
 			</Button>
 		</form>
 	{/if}
-
-
 
 	<div class="text-center text-xs text-slate-500">
 		{#if mode === 'login'}

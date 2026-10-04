@@ -37,7 +37,7 @@
 		style="width: 80mm;"
 	>
 		<!-- CABECERA TICKET -->
-		<header class="flex flex-col text-center gap-2">
+		<header class="flex flex-col gap-2 text-center">
 			{#if data.empresa.logo_url}
 				<img src={data.empresa.logo_url} alt="Logo" class="mx-auto mb-2 h-12 object-contain" />
 			{/if}
@@ -95,7 +95,7 @@
 							<td class="py-1 align-top">{item.unidad}</td>
 							<td class="py-1 align-top">{item.descripcion}</td>
 							<td class="py-1 align-top">{item.precio_unitario}</td>
-							<td class="py-1 align-top text-right"
+							<td class="py-1 text-right align-top"
 								>{formatCurrency(item.total, data.totales.moneda)}</td
 							>
 						</tr>

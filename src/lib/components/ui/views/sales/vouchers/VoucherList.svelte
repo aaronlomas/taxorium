@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-  //ICONOS
+	//ICONOS
 	import {
 		IconDatabaseImport,
 		IconDatabaseExport,
@@ -8,13 +8,13 @@
 		IconSend,
 		IconDownload
 	} from '@tabler/icons-svelte';
-  //PRIMITIVAS
+	//PRIMITIVAS
 	import TableFilter, { type CheckItem } from '$lib/components/core/primitives/TableFilter.svelte';
 	import TableToolbar from '$lib/components/core/primitives/TableToolbar.svelte';
 	import Select from '$lib/components/core/primitives/Select.svelte';
 	import Search from '$lib/components/core/primitives/Search.svelte';
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/Table.svelte';
-  //SERVICIOS
+	//SERVICIOS
 	import { invoke } from '@tauri-apps/api/core';
 	import { get } from 'svelte/store';
 	import { tenantStore } from '$lib/stores/tenant';
@@ -115,8 +115,9 @@
 		const CURRENCY_LABEL: Record<string, string> = { PEN: 'SOLES', USD: 'DÓLARES', EUR: 'EUROS' };
 		const printable: PrintableInvoiceData = {
 			formato: 'A4',
-			tipo_comprobante:
-				voucher.numero_comprobante.startsWith('F') ? 'FACTURA ELECTRÓNICA' : 'BOLETA DE VENTA ELECTRÓNICA',
+			tipo_comprobante: voucher.numero_comprobante.startsWith('F')
+				? 'FACTURA ELECTRÓNICA'
+				: 'BOLETA DE VENTA ELECTRÓNICA',
 			serie_correlativo: voucher.numero_comprobante,
 			fecha_emision: voucher.fecha_de_emision,
 			empresa: {
@@ -196,8 +197,7 @@
 					usuario_sol: tenant.usuario_sol,
 					clave_sol: tenant.clave_sol,
 					client_id: (tenant as any).sunat_client_id || '25f61db1-0854-4efb-bc54-c1f10cf8db17',
-					client_secret:
-						(tenant as any).sunat_client_secret || 'rvSu0MjYw+hB+vxONyA7jA==',
+					client_secret: (tenant as any).sunat_client_secret || 'rvSu0MjYw+hB+vxONyA7jA==',
 					ambiente: 'beta', // Cambiar a 'produccion' luego
 					voucher_id: voucher.id
 				}
@@ -256,7 +256,6 @@
 				return 'text-amber-400';
 		}
 	}
-
 
 	function estadoPagoClass(estado: Voucher['estado_pago']): string {
 		return estado === 'pagado' ? 'text-emerald-400' : 'text-amber-400';

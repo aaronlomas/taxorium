@@ -23,11 +23,26 @@
 			direccion: 'Calle Falsa 456, Arequipa'
 		},
 		items: [
-			{ cantidad: 2, unidad: 'NIU', descripcion: 'Producto de prueba A', precio_unitario: 50.00, total: 100.00 },
-			{ cantidad: 1, unidad: 'ZZ', descripcion: 'Servicio de mantenimiento B', precio_unitario: 136.00, total: 136.00 }
+			{
+				cantidad: 2,
+				unidad: 'NIU',
+				descripcion: 'Producto de prueba A',
+				precio_unitario: 50.0,
+				total: 100.0
+			},
+			{
+				cantidad: 1,
+				unidad: 'ZZ',
+				descripcion: 'Servicio de mantenimiento B',
+				precio_unitario: 136.0,
+				total: 136.0
+			}
 		],
 		totales: {
-			moneda: 'PEN', gravado: 200.00, igv: 36.00, total: 236.00,
+			moneda: 'PEN',
+			gravado: 200.0,
+			igv: 36.0,
+			total: 236.0,
 			total_letras: 'DOSCIENTOS TREINTA Y SEIS Y 00/100 SOLES'
 		},
 		forma_pago: 'Efectivo - Contado',
@@ -57,10 +72,19 @@
 			direccion: 'Av. Siempre Viva 742'
 		},
 		items: [
-			{ cantidad: 1, unidad: 'NIU', descripcion: 'Producto de prueba C', precio_unitario: 25.00, total: 25.00 }
+			{
+				cantidad: 1,
+				unidad: 'NIU',
+				descripcion: 'Producto de prueba C',
+				precio_unitario: 25.0,
+				total: 25.0
+			}
 		],
 		totales: {
-			moneda: 'PEN', gravado: 21.19, igv: 3.81, total: 25.00,
+			moneda: 'PEN',
+			gravado: 21.19,
+			igv: 3.81,
+			total: 25.0,
 			total_letras: 'VEINTICINCO Y 00/100 SOLES'
 		},
 		forma_pago: 'Efectivo - Contado',
@@ -89,10 +113,19 @@
 			direccion: 'Av. Siempre Viva 742'
 		},
 		items: [
-			{ cantidad: 1, unidad: 'NIU', descripcion: 'Producto de prueba C', precio_unitario: 25.00, total: 25.00 }
+			{
+				cantidad: 1,
+				unidad: 'NIU',
+				descripcion: 'Producto de prueba C',
+				precio_unitario: 25.0,
+				total: 25.0
+			}
 		],
 		totales: {
-			moneda: 'PEN', gravado: 21.19, igv: 3.81, total: 25.00,
+			moneda: 'PEN',
+			gravado: 21.19,
+			igv: 3.81,
+			total: 25.0,
 			total_letras: 'VEINTICINCO Y 00/100 SOLES'
 		},
 		forma_pago: 'Efectivo - Contado',
@@ -102,47 +135,63 @@
 	};
 
 	let tipoPrueba = $state<'factura' | 'boleta' | 'ticket'>('factura');
-	let dummyData = $derived(tipoPrueba === 'factura' ? dummyFactura : tipoPrueba === 'boleta' ? dummyBoleta : dummyTicket);
+	let dummyData = $derived(
+		tipoPrueba === 'factura' ? dummyFactura : tipoPrueba === 'boleta' ? dummyBoleta : dummyTicket
+	);
 
 	function handlePrint() {
 		window.print();
 	}
 </script>
 
-<div class="h-full flex flex-col bg-neutral-900 text-white overflow-hidden p-4">
-	<div class="flex justify-between items-center mb-4">
+<div class="flex h-full flex-col overflow-hidden bg-neutral-900 p-4 text-white">
+	<div class="mb-4 flex items-center justify-between">
 		<div>
 			<h1 class="text-xl font-bold text-blue-400">Diseñador de Comprobantes</h1>
-			<p class="text-sm text-neutral-400">Edita <code>InvoiceTemplate.svelte</code> para cambiar el diseño.</p>
+			<p class="text-sm text-neutral-400">
+				Edita <code>InvoiceTemplate.svelte</code> para cambiar el diseño.
+			</p>
 		</div>
-		<div class="flex gap-4 items-center">
-			<div class="bg-neutral-800 p-1 rounded-lg flex gap-1">
-				<button 
-					onclick={() => tipoPrueba = 'factura'}
-					class="px-4 py-1 rounded-md text-sm transition-colors {tipoPrueba === 'factura' ? 'bg-blue-600 text-white' : 'text-neutral-400 hover:text-white'}">
+		<div class="flex items-center gap-4">
+			<div class="flex gap-1 rounded-lg bg-neutral-800 p-1">
+				<button
+					onclick={() => (tipoPrueba = 'factura')}
+					class="rounded-md px-4 py-1 text-sm transition-colors {tipoPrueba === 'factura'
+						? 'bg-blue-600 text-white'
+						: 'text-neutral-400 hover:text-white'}"
+				>
 					Ver Factura
 				</button>
-				<button 
-					onclick={() => tipoPrueba = 'boleta'}
-					class="px-4 py-1 rounded-md text-sm transition-colors {tipoPrueba === 'boleta' ? 'bg-blue-600 text-white' : 'text-neutral-400 hover:text-white'}">
+				<button
+					onclick={() => (tipoPrueba = 'boleta')}
+					class="rounded-md px-4 py-1 text-sm transition-colors {tipoPrueba === 'boleta'
+						? 'bg-blue-600 text-white'
+						: 'text-neutral-400 hover:text-white'}"
+				>
 					Ver Boleta
 				</button>
-				<button 
-					onclick={() => tipoPrueba = 'ticket'}
-					class="px-4 py-1 rounded-md text-sm transition-colors {tipoPrueba === 'ticket' ? 'bg-blue-600 text-white' : 'text-neutral-400 hover:text-white'}">
+				<button
+					onclick={() => (tipoPrueba = 'ticket')}
+					class="rounded-md px-4 py-1 text-sm transition-colors {tipoPrueba === 'ticket'
+						? 'bg-blue-600 text-white'
+						: 'text-neutral-400 hover:text-white'}"
+				>
 					Ver Ticket
 				</button>
 			</div>
-			<button 
+			<button
 				onclick={handlePrint}
-				class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+				class="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-500"
+			>
 				Probar Impresión (PDF)
 			</button>
 		</div>
 	</div>
 
 	<!-- Contenedor scrolleable que muestra el template en el centro -->
-	<div class="flex-1 overflow-y-auto bg-neutral-800 rounded-xl p-8 flex justify-center items-start shadow-inner">
+	<div
+		class="flex flex-1 items-start justify-center overflow-y-auto rounded-xl bg-neutral-800 p-8 shadow-inner"
+	>
 		<!-- Envolvemos el template para aislarlo visualmente -->
 		<div class="w-full max-w-4xl shadow-2xl">
 			<InvoiceTemplate data={dummyData} />
