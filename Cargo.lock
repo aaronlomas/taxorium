@@ -475,6 +475,7 @@ dependencies = [
 [[package]]
 name = "boveda-core"
 version = "0.2.1"
+source = "git+https://github.com/aaronlomas/boveda-core#bbef2501283a08d10618b881952fce3cd7909faa"
 dependencies = [
  "anyhow",
  "argon2",

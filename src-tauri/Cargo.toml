@@ -17,7 +17,7 @@ tauri-build = { version = "2.6.3", features = [] }
 
 [dependencies]
 rusqlite_migration = "1.2"
-boveda-core = { path = "/home/us-dala/Escritorio/boveda-core" }
+boveda-core = { git = "https://github.com/aaronlomas/boveda-core" }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 log = "0.4"
