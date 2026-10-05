@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { auth } from '$lib/stores/auth';
 	import { currentTenant, tenantStore } from '$lib/stores/tenant';
 	import FormCompany from '$lib/components/ui/views/account/company/FormCompany.svelte';
@@ -37,35 +38,37 @@
 	$effect(() => {
 		if (!isOpen) return;
 
-		ruc = $currentTenant?.ruc ?? '';
-		razonSocial = $currentTenant?.razon_social ?? '';
-		nombreComercial = $currentTenant?.nombre_comercial ?? '';
-		departamento = $currentTenant?.departamento ?? '';
-		direccion = $currentTenant?.direccion ?? '';
-		telefono = $currentTenant?.telefono ?? '';
-		email = $currentTenant?.email ?? '';
-		ubigeo = $currentTenant?.ubigeo ?? '';
-		usuarioSol = $currentTenant?.usuario_sol ?? '';
-		claveSol = $currentTenant?.clave_sol ?? '';
+		untrack(() => {
+			ruc = $currentTenant?.ruc ?? '';
+			razonSocial = $currentTenant?.razon_social ?? '';
+			nombreComercial = $currentTenant?.nombre_comercial ?? '';
+			departamento = $currentTenant?.departamento ?? '';
+			direccion = $currentTenant?.direccion ?? '';
+			telefono = $currentTenant?.telefono ?? '';
+			email = $currentTenant?.email ?? '';
+			ubigeo = $currentTenant?.ubigeo ?? '';
+			usuarioSol = $currentTenant?.usuario_sol ?? '';
+			claveSol = $currentTenant?.clave_sol ?? '';
 
-		errorMsg = '';
-		successMsg = '';
-		rucValid = true;
-		rucValidating = false;
+			errorMsg = '';
+			successMsg = '';
+			rucValid = true;
+			rucValidating = false;
 
-		// Config local (SQLite, no necesita internet)
-		(async () => {
-			try {
-				const cfg = await configLocalClient.getAll();
-				certificadoPath = cfg.certificado_path ?? '';
-				certificadoPassword = cfg.clave_cert ?? '';
-			} catch {
-				// Fallback si SQLite aún no tiene la tabla (primer arranque antes de reiniciar)
-				certificadoPath =
-					localStorage.getItem('taxorium_cert_path') ?? $currentTenant?.certificado_path ?? '';
-				certificadoPassword = localStorage.getItem('taxorium_cert_pwd') ?? '';
-			}
-		})();
+			// Config local (SQLite, no necesita internet)
+			(async () => {
+				try {
+					const cfg = await configLocalClient.getAll();
+					certificadoPath = cfg.certificado_path ?? '';
+					certificadoPassword = cfg.clave_cert ?? '';
+				} catch {
+					// Fallback si SQLite aún no tiene la tabla (primer arranque antes de reiniciar)
+					certificadoPath =
+						localStorage.getItem('taxorium_cert_path') ?? $currentTenant?.certificado_path ?? '';
+					certificadoPassword = localStorage.getItem('taxorium_cert_pwd') ?? '';
+				}
+			})();
+		});
 	});
 
 	function isValidRuc(r: string): boolean {

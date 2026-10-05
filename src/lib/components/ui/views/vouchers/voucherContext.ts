@@ -90,6 +90,11 @@ export function parseFecha(value?: string): Date | null {
 		const [_, d, m, y] = slash;
 		return new Date(+y, +m - 1, +d);
 	}
+	const dash = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+	if (dash) {
+		const [_, y, m, d] = dash;
+		return new Date(+y, +m - 1, +d);
+	}
 	const date = new Date(value);
 	return isNaN(date.getTime()) ? null : date;
 }
