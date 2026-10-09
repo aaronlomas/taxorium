@@ -117,24 +117,17 @@
 		<!-- BOTONES DEL PANEL -->
 		<div>
 			<Button variant="primary" size="md" onclick={() => (isModalOpen = true)}
-				>+ Agregar Producto</Button
+				>Agregar Producto</Button
 			>
-			<Button variant="primary" size="md" onclick={() => (isModalOpen = true)}>Ver Reportes</Button>
 		</div>
 	</div>
 
 	<!-- COLUMNA 2 -->
 	<!-- Otras configuraciones -->
 
-	<div class="grid grid-cols-2 gap-4 p-2">
+	<div class="grid grid-cols-2 gap-2 p-2">
 		<div class="flex flex-col">
-			<Select
-				id="serie"
-				label="Serie"
-				options={seriesDisponibles}
-				bind:value={$voucherConfigStore.serie}
-				disabled={seriesDisponibles.length === 0}
-			/>
+			<Input id="serie" label="Serie" disabled={true} bind:value={$voucherConfigStore.serie} />
 
 			<Select
 				id="tipoOperacion"
@@ -150,7 +143,11 @@
 				bind:value={$voucherConfigStore.moneda}
 			/>
 
-			<Input id="tipoCambio" label="Orden de Compra" bind:value={$voucherConfigStore.ordenCompra} />
+			<Input
+				id="OrdenDeCompra"
+				label="Orden de Compra"
+				bind:value={$voucherConfigStore.ordenCompra}
+			/>
 		</div>
 
 		<div class="grid">
@@ -173,7 +170,12 @@
 				bind:value={$voucherConfigStore.establecimiento}
 			/>
 
-			<Input id="tipoCambio" label="Tipo de Cambio" bind:value={$voucherConfigStore.tipoCambio} />
+			<Input
+				id="tipoCambio"
+				label="Tipo de Cambio"
+				disabled={true}
+				bind:value={$voucherConfigStore.tipoCambio}
+			/>
 		</div>
 	</div>
 	<SalesModal bind:isOpen={isModalOpen} onClose={() => (isModalOpen = false)} />

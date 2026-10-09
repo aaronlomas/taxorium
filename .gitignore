@@ -4,7 +4,7 @@ apoyo/
 docs/
 # vscode
 /.vscode
-
+AGENT.md*
 # Output
 .output
 .vercel

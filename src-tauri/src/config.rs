@@ -82,6 +82,23 @@ pub fn get_node_config(app: AppHandle) -> NodeConfig {
     load_config(&app)
 }
 
+/// Dirección real (`ip:puerto`) en la que este nodo servidor atiende la red local.
+#[tauri::command]
+pub fn get_local_ip() -> Result<String, String> {
+    // El connect de un UDP socket no envía paquetes: solo hace que el sistema
+    // resuelva la interfaz de la ruta por defecto.
+    let socket = std::net::UdpSocket::bind("0.0.0.0:0")
+        .map_err(|e| format!("No se pudo abrir el socket: {e}"))?;
+    socket
+        .connect("8.8.8.8:80")
+        .map_err(|e| format!("No se pudo determinar la IP local: {e}"))?;
+    let ip = socket
+        .local_addr()
+        .map_err(|e| format!("No se pudo leer la dirección local: {e}"))?
+        .ip();
+    Ok(format!("{}:{}", ip, crate::api::API_PORT))
+}
+
 #[tauri::command]
 pub fn set_node_config(
     role: String,

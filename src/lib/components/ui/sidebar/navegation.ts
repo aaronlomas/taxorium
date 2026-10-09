@@ -1,7 +1,8 @@
 import type { ComponentType } from 'svelte';
 import {
 	IconLayoutDashboard,
-	IconReportMoney,
+  IconReportMoney,
+  IconShoppingBag,
 	IconPackage,
 	IconReport,
 	IconUsers,
@@ -19,27 +20,40 @@ export interface ElementoNavegacion {
 	icono?: ComponentType;
 	ruta?: string;
 	subitems?: SubItemNavegacion[];
+	accesoRequerido?: string;
 }
 
 // Opciones para el panel de Registros
 export const navegacionRegistros: ElementoNavegacion[] = [
 	{ nombre: 'Dashboard', icono: IconLayoutDashboard, ruta: '/dashboard' },
 	{
-		nombre: 'Ventas',
-		icono: IconReportMoney,
+		nombre: 'Comprobantes',
+		icono: IconReceipt,
+		accesoRequerido: 'sales',
 		subitems: [
-			{ nombre: 'Lista de Comprobantes', ruta: '/sales/vouchers' },
+			{ nombre: 'Boleta de Venta', ruta: '/sales/vouchers/boleta' },
+			{ nombre: 'Factura', ruta: '/sales/vouchers/factura' },
 			{ nombre: 'Envíos SUNAT', ruta: '/sales/summary' }
 		]
 	},
-	{ nombre: 'Productos', icono: IconPackage, ruta: '/productos' },
-	{ nombre: 'Reportes', icono: IconReport, ruta: '/reportes' },
-	{ nombre: 'Clientes', icono: IconUsers, ruta: '/customers' },
+	{ nombre: 'Productos', icono: IconPackage, ruta: '/productos', accesoRequerido: 'products' },
+	{ nombre: 'Reportes', icono: IconReport, ruta: '/reportes', accesoRequerido: 'sales' },
+	{ nombre: 'Clientes', icono: IconUsers, ruta: '/customers', accesoRequerido: 'sales' },
 	{ nombre: 'Diseñador de PDF', icono: IconFileInvoice, ruta: '/print/designer' }
 ];
 
 // Opciones para el panel de Operaciones
-export const navegacionVentas: ElementoNavegacion[] = [
-	{ nombre: 'Panel de Ventas', icono: IconFileInvoice, ruta: '/sales/panel' },
-	{ nombre: 'Panel de Compras', icono: IconReceipt, ruta: '/sales/receipt/new' }
+export const navegacionOperaciones: ElementoNavegacion[] = [
+	{
+		nombre: 'Ventas',
+		icono: IconReportMoney,
+		ruta: '/sales/panel',
+		accesoRequerido: 'sales'
+	},
+	{
+		nombre: 'Compras',
+		icono: IconShoppingBag,
+		ruta: '/sales/receipt/new',
+		accesoRequerido: 'shop'
+	}
 ];

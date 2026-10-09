@@ -1,16 +1,53 @@
 <script lang="ts">
+	import { invoke } from '@tauri-apps/api/core';
 	import { currentUser } from '$lib/stores/auth';
 	import { currentTenant } from '$lib/stores/tenant';
+	import { configStore } from '$lib/stores/config';
 	import { licenseExpiry } from '$lib/stores/license';
 	import { IconKey, IconMail, IconBuilding, IconEdit } from '@tabler/icons-svelte';
 	import ModalCompany from '$lib/components/ui/views/account/company/ModalCompany.svelte';
 
 	let modalCompanyOpen = $state(false);
+	let dominioAsignado = $state('…');
 
 	function formatDate(date: Date | null): string {
 		if (!date) return '—';
 		return date.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
 	}
+
+	function conProtocolo(direccion: string): string {
+		return direccion.startsWith('http://') || direccion.startsWith('https://')
+			? direccion
+			: `http://${direccion}`;
+	}
+
+	$effect(() => {
+		const rol = $configStore.role;
+		const ipServidor = $configStore.server_ip;
+
+		if (rol === 'client') {
+			dominioAsignado = ipServidor ? conProtocolo(ipServidor) : '—';
+			return;
+		}
+		if (rol !== 'server') {
+			dominioAsignado = '—';
+			return;
+		}
+
+		let vivo = true;
+		invoke<string>('get_local_ip')
+			.then((direccion) => {
+				if (vivo) dominioAsignado = conProtocolo(direccion);
+			})
+			.catch((e) => {
+				console.error('No se pudo obtener la IP local:', e);
+				if (vivo) dominioAsignado = '—';
+			});
+
+		return () => {
+			vivo = false;
+		};
+	});
 </script>
 
 <div class="grid grid-cols-2 gap-2 overflow-scroll rounded-xl border border-neutral-800 p-2">
@@ -72,7 +109,7 @@
 			</div>
 			<div class="text-sm">
 				<h1 class="text-blue-400">Dominio Asignado:</h1>
-				<span>Ej: http://198.168.1.2/root</span>
+				<span class="text-sm">{dominioAsignado}</span>
 			</div>
 		</div>
 	</div>

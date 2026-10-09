@@ -1,11 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import {
-		IconDatabaseImport,
-		IconDatabaseExport,
-		IconDownload,
-		IconSend
-	} from '@tabler/icons-svelte';
+	import { IconDatabaseImport, IconDatabaseExport, IconDownload } from '@tabler/icons-svelte';
 	import TableFilter, { type CheckItem } from '$lib/components/core/primitives/TableFilter.svelte';
 	import TableToolbar from '$lib/components/core/primitives/TableToolbar.svelte';
 	import Select from '$lib/components/core/primitives/Select.svelte';
@@ -18,8 +13,6 @@
 	import { formatFecha, parseFecha } from '$lib/components/ui/views/vouchers/voucherContext';
 	import { voucherClient, type Voucher } from '$lib/services/vouchers/clientVoucher';
 	import { invoke } from '@tauri-apps/api/core';
-	import { get } from 'svelte/store';
-	import { tenantStore } from '$lib/stores/tenant';
 	import { save } from '@tauri-apps/plugin-dialog';
 	import { writeFile } from '@tauri-apps/plugin-fs';
 
@@ -31,10 +24,7 @@
 		{ id: 'fecha_de_emision', key: 'fecha_de_emision', label: 'Fecha Emisión', checked: true },
 		{ id: 'numero_comprobante', key: 'numero_comprobante', label: 'Comprobante', checked: true },
 		{ id: 'cliente', key: 'cliente', label: 'Cliente', checked: true },
-		{ id: 'estado_validez', key: 'estado_validez', label: 'Estado', checked: true },
-		{ id: 'estado_sunat', key: 'estado_sunat', label: 'Enviado a SUNAT', checked: true },
-		{ id: 'codigo_cdr', key: 'codigo_cdr', label: 'Código CDR', checked: true },
-		{ id: 'descripcion_cdr', key: 'descripcion_cdr', label: 'Respuesta CDR', checked: true }
+		{ id: 'codigo_cdr', key: 'codigo_cdr', label: 'Código CDR', checked: true }
 	]);
 
 	let columnasVisibles = $derived(columnas.filter((c) => c.checked));
@@ -69,9 +59,21 @@
 	let enviosFiltrados = $derived(
 		vouchers.filter((v) => {
 			if (fechaDesde) {
-				const desde = parseFecha(fechaDesde);
-				const emision = parseFecha(v.fecha_de_emision);
-				if (desde && emision && emision < desde) return false;
+				// Convertir "DD/MM/YYYY" a "YYYY-MM-DD"
+				const parts = fechaDesde.split('/');
+				if (parts.length === 3) {
+					const desdeStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
+					// Extraer "YYYY-MM-DD" de la fecha de emisión del comprobante (suele venir como ISO o DD/MM/YYYY)
+					let emisionStr = '';
+					if (v.fecha_de_emision.includes('/')) {
+						const ep = v.fecha_de_emision.slice(0, 10).split('/');
+						emisionStr = `${ep[2]}-${ep[1]}-${ep[0]}`;
+					} else {
+						emisionStr = v.fecha_de_emision.slice(0, 10);
+					}
+
+					if (emisionStr < desdeStr) return false;
+				}
 			}
 
 			if (!searchTerm.trim()) return true;
@@ -97,44 +99,6 @@
 		const savedPath = await exportData(enviosFiltrados, columnasVisibles, 'envios_sunat', format);
 		if (savedPath) {
 			taxoLog.info(`Exportado exitosamente en: ${savedPath}`, 'sunat');
-		}
-	}
-
-	let isEmitting = $state<number | null>(null);
-
-	async function handleEmitir(doc: Voucher) {
-		if (doc.estado_sunat !== 0) {
-			taxoLog.warn('Este comprobante ya fue emitido a SUNAT.', 'sunat');
-			return;
-		}
-
-		const tenant = get(tenantStore).tenant;
-		if (!tenant || !tenant.usuario_sol || !tenant.clave_sol || !tenant.ruc) {
-			taxoLog.error('Faltan configurar las credenciales SOL de la empresa.', 'sunat');
-			return;
-		}
-
-		isEmitting = doc.id;
-		taxoLog.info(`Enviando ${doc.numero_comprobante} a SUNAT...`, 'sunat');
-
-		try {
-			const res = await invoke('enviar_a_sunat', {
-				payload: {
-					ruc: tenant.ruc,
-					usuario_sol: tenant.usuario_sol,
-					clave_sol: tenant.clave_sol,
-					client_id: (tenant as any).sunat_client_id || '25f61db1-0854-4efb-bc54-c1f10cf8db17',
-					client_secret: (tenant as any).sunat_client_secret || 'rvSu0MjYw+hB+vxONyA7jA==',
-					ambiente: 'beta',
-					voucher_id: doc.id
-				}
-			});
-			taxoLog.info(`Comprobante aceptado por SUNAT. CDR: ${(res as any).descripcion}`, 'sunat');
-			vouchers = await voucherClient.getVouchers();
-		} catch (e) {
-			taxoLog.error(`Error de SUNAT: ${e}`, 'sunat');
-		} finally {
-			isEmitting = null;
 		}
 	}
 
@@ -165,9 +129,6 @@
 			const s = String(val);
 			return /^\d{2}\/\d{2}\/\d{4}/.test(s) ? s.slice(0, 10) : formatFecha(s);
 		}
-		if (key === 'estado_sunat') {
-			return Number(val) === 0 ? 'Pendiente' : 'Enviado';
-		}
 		if (key === 'codigo_cdr') {
 			const code = String(val);
 			if (code === '0') return 'Aceptado';
@@ -175,17 +136,6 @@
 			return '-';
 		}
 		return String(val);
-	}
-
-	function estadoClass(estado: string): string {
-		switch (estado) {
-			case 'aceptado':
-				return 'text-emerald-400';
-			case 'rechazado':
-				return 'text-red-400';
-			default:
-				return 'text-amber-400';
-		}
 	}
 
 	function cdrClass(codigo: string | null): string {
@@ -272,10 +222,6 @@
 					Descargar
 				{/snippet}
 				{@render headCell({ children: headDownload })}
-				{#snippet headActions()}
-					Acciones
-				{/snippet}
-				{@render headCell({ children: headActions })}
 			</tr>
 		{/snippet}
 
@@ -286,7 +232,7 @@
 						Cargando documentos SUNAT...
 					{/snippet}
 					{@render cell({
-						colspan: columnasVisibles.length + 3,
+						colspan: columnasVisibles.length + 2,
 						class: 'py-8 text-neutral-500',
 						children: loadingState
 					})}
@@ -297,7 +243,7 @@
 						No hay documentos enviados a SUNAT.
 					{/snippet}
 					{@render cell({
-						colspan: columnasVisibles.length + 3,
+						colspan: columnasVisibles.length + 2,
 						class: 'py-8 text-neutral-500',
 						children: emptyState
 					})}
@@ -311,13 +257,7 @@
 						{@render cell({ class: 'px-3 py-2 text-neutral-500', children: cellIndex })}
 						{#each columnasVisibles as col (col.id)}
 							{#snippet cellVal()}
-								{#if col.key === 'estado_validez'}
-									<span class={estadoClass(doc.estado_validez)}>
-										{doc.estado_validez.charAt(0).toUpperCase() + doc.estado_validez.slice(1)}
-									</span>
-								{:else}
-									{formatCellValue(doc, col.key)}
-								{/if}
+								{formatCellValue(doc, col.key)}
 							{/snippet}
 							{@render cell({ children: cellVal })}
 						{/each}
@@ -343,29 +283,6 @@
 							</div>
 						{/snippet}
 						{@render cell({ children: cellDownload })}
-						{#snippet cellActions()}
-							<div class="flex items-center justify-center gap-2">
-								{#if doc.estado_sunat === 0}
-									<button
-										class="flex cursor-pointer items-center gap-1 rounded-sm border border-emerald-500/40 px-2 py-0.5 text-emerald-400 transition-colors hover:bg-emerald-500/10 disabled:opacity-50"
-										onclick={() => handleEmitir(doc)}
-										title="Emitir a SUNAT"
-										disabled={isEmitting === doc.id}
-									>
-										{#if isEmitting === doc.id}
-											<span
-												class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent"
-											></span>
-											Enviando...
-										{:else}
-											<IconSend size={14} />
-											Emitir
-										{/if}
-									</button>
-								{/if}
-							</div>
-						{/snippet}
-						{@render cell({ children: cellActions })}
 					{/snippet}
 					{@render row({ children: rowData })}
 				{/each}

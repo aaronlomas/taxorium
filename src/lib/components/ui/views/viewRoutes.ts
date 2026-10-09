@@ -6,7 +6,8 @@ import ReportsView from './reports/ReportControls.svelte';
 import CustomersView from './customers/CustomerControls.svelte';
 // SUB OPCIONES EN VENTAS
 import PanelSalesView from './sales/panel/SalesView.svelte';
-import ComprobantesSalesView from './sales/vouchers/VoucherList.svelte';
+import BoletaVentaView from './sales/vouchers/BoletaVentaView.svelte';
+import FacturaView from './sales/vouchers/FacturaView.svelte';
 import SalesSummaryView from './sales/summary/SalesSummary.svelte';
 
 // CONFIGURACIÓN
@@ -34,11 +35,12 @@ export const viewRoutes: Record<string, Component<any>> = {
 	Reportes: ReportsView,
 	Clientes: CustomersView,
 	// Sub Opciones de Registros/ventas/
-	'Lista de Comprobantes': ComprobantesSalesView,
+	'Boleta de Venta': BoletaVentaView,
+	Factura: FacturaView,
 	'Envíos SUNAT': SalesSummaryView,
 
 	//SECCIÓN DE OPERACIONES
-	'Panel de Ventas': PanelSalesView,
+	Ventas: PanelSalesView,
 
 	//CONFIGURACIÓN
 	Configuración: SettingsView,

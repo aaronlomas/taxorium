@@ -4,11 +4,14 @@
 	import Button from '$lib/components/core/primitives/Button.svelte';
 	import Select from '$lib/components/core/primitives/Select.svelte';
 	import Number from '$lib/components/core/primitives/Number.svelte';
-	import { productsStore } from '$lib/stores/products';
+	import ProductModal from '$lib/components/ui/views/products/ProductModal.svelte';
+	import { productsStore, editingProduct } from '$lib/stores/products';
 	import { salesStore } from '$lib/stores/sales';
 	import { catalogoStore, afectacionesVentaOptions } from '$lib/stores/catalogos';
 
 	let { isOpen = $bindable(false), onClose }: { isOpen: boolean; onClose: () => void } = $props();
+
+	let isProductModalOpen = $state(false);
 
 	let productoSeleccionado = $state<string | number>('');
 	let cantidad = $state(1);
@@ -79,23 +82,26 @@
 		cantidad = 1;
 		precioUnitario = '0';
 	}
+
+	function handleNuevoProducto() {
+		$editingProduct = null;
+		isProductModalOpen = true;
+	}
 </script>
 
 <Modal bind:isOpen {onClose} title="Registrar">
-	<div class="grid h-full w-full grid-cols-2 gap-4 p-2">
+	<div class="grid h-full w-2xl grid-cols-[1fr_140px] gap-4 p-2">
 		<!-- Contenido -->
-		<div>
+		<div class="flex items-end gap-x-2">
 			<Select
 				label="Producto/Servicio"
 				options={productosOptions}
 				bind:value={productoSeleccionado}
 			/>
+			<Button variant="outline" size="md" onclick={handleNuevoProducto}>Nuevo</Button>
 		</div>
 		<div>
 			<Number label="Cantidad" bind:value={cantidad} />
-		</div>
-		<div>
-			<Number label="Precio Unitario" bind:value={precioUnitario} />
 		</div>
 		<div>
 			<Select
@@ -104,11 +110,16 @@
 				bind:value={afectacionIgv}
 			/>
 		</div>
+		<div>
+			<Number label="Precio Unitario" bind:value={precioUnitario} />
+		</div>
 	</div>
 
 	<!-- Footer -->
 	<div class="col-span-2 flex items-center justify-end gap-3 border-t border-neutral-800 p-2">
 		<Button type="button" variant="outline" onclick={onClose}>Cerrar</Button>
-		<Button type="button" variant="primary" onclick={handleSave}>Guardar</Button>
+		<Button type="button" variant="primary" onclick={handleSave}>Aceptar</Button>
 	</div>
 </Modal>
+
+<ProductModal bind:isOpen={isProductModalOpen} onClose={() => (isProductModalOpen = false)} />

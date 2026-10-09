@@ -29,6 +29,9 @@
 		key: keyof Voucher;
 	}
 
+	let { tipoComprobante = 'todos' }: { tipoComprobante?: 'todos' | 'boleta' | 'factura' } =
+		$props();
+
 	let columnas = $state<ColumnConfig[]>([
 		{ id: 'fecha_de_emision', key: 'fecha_de_emision', label: 'Fecha de Emisión', checked: true },
 		{ id: 'cliente', key: 'cliente', label: 'Cliente', checked: true },
@@ -68,6 +71,12 @@
 
 	let vouchersFiltrados = $derived(
 		vouchers.filter((v) => {
+			if (tipoComprobante !== 'todos') {
+				const esFactura = v.numero_comprobante?.toUpperCase().startsWith('F') ?? false;
+				if (tipoComprobante === 'factura' && !esFactura) return false;
+				if (tipoComprobante === 'boleta' && esFactura) return false;
+			}
+
 			if (!searchTerm.trim()) return true;
 			const term = searchTerm.toLowerCase();
 
@@ -350,7 +359,11 @@
 			{:else if vouchersFiltrados.length === 0}
 				<tr>
 					{#snippet emptyState()}
-						No hay comprobantes registrados.
+						No hay {tipoComprobante === 'boleta'
+							? 'boletas de venta'
+							: tipoComprobante === 'factura'
+								? 'facturas'
+								: 'comprobantes'} registrados.
 					{/snippet}
 					{@render cell({
 						colspan: columnasVisibles.length + 2,

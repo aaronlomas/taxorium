@@ -13,6 +13,7 @@
 		/**Show and hide icon (Required in 'double' and 'triple') */
 		action?: Snippet;
 		containerClass?: string;
+		disabled?: boolean;
 	}
 
 	let {
@@ -23,6 +24,7 @@
 		icon,
 		action,
 		required = false,
+		disabled = false,
 		class: className = '',
 		containerClass = '',
 		id = crypto.randomUUID(),
@@ -50,6 +52,7 @@
       grid w-full items-center rounded-sm border border-neutral-800 bg-neutral-900 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500
       {variants[variant]}
       {error ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500' : ''} 
+      {disabled ? 'cursor-not-allowed opacity-50' : ''}
       {className}
     "
 	>
@@ -66,7 +69,10 @@
 			{id}
 			bind:value
 			{required}
-			class="border-none bg-transparent px-2 text-sm text-neutral-200 outline-none focus:ring-0"
+			{disabled}
+			class="border-none bg-transparent px-2 text-sm text-neutral-200 outline-none focus:ring-0 {disabled
+				? 'cursor-not-allowed'
+				: ''}"
 			{...rest}
 		/>
 

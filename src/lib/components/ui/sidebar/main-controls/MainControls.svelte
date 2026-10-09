@@ -1,24 +1,34 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
 	import {
 		IconBook2,
-		IconCalculator,
 		IconUserCircle,
 		IconSettings,
 		IconLogin,
 		IconUserPlus,
 		IconLogout,
 		IconUserSquare,
-		IconDeviceDesktopPin
+		IconDeviceDesktopPin,
+		IconAdjustments
 	} from '@tabler/icons-svelte';
 	import { isAuthenticated, isLoading, auth } from '$lib/stores/auth';
+	import { sellerAuth } from '$lib/stores/sellerAuth';
 	import { currentTenant, tenantLoading } from '$lib/stores/tenant';
 	import Modal from '$lib/components/core/primitives/Modal.svelte';
+	import Dropdown from '$lib/components/core/primitives/dropdown/Dropdown.svelte';
+	import DropdownItem from '$lib/components/core/primitives/dropdown/DropdownItem.svelte';
+	import DropdownDivider from '$lib/components/core/primitives/dropdown/DropdownDivider.svelte';
 	import PanelLogin from '$lib/components/ui/setups/PanelLogin.svelte';
+	import type { ElementoNavegacion } from '../navegation';
 
-	let { seccionActiva }: { seccionActiva: 'operaciones' | 'registros' | null } = $props();
-
-	const dispatch = createEventDispatcher();
+	let {
+		seccionActiva,
+		onCambiarSeccion,
+		onSeleccionarOpcion
+	}: {
+		seccionActiva: 'registros' | null;
+		onCambiarSeccion?: (seccion: 'registros') => void;
+		onSeleccionarOpcion?: (opcion: ElementoNavegacion) => void;
+	} = $props();
 
 	// Estado de configuración de la cuenta
 	let authPendiente = $derived(!$isAuthenticated && !$isLoading);
@@ -29,42 +39,32 @@
 	let modalLoginOpen = $state(false);
 	let modalRegisterOpen = $state(false);
 
-	// Hover dropdown
-	let cuentaHovered = $state(false);
-	let dropdownHovered = $state(false);
-	let dropdownVisible = $derived(cuentaHovered || dropdownHovered);
-
-	function cambiarSeccion(seccion: 'operaciones' | 'registros') {
-		dispatch('cambiarSeccion', seccion);
+	function cambiarSeccion(seccion: 'registros') {
+		onCambiarSeccion?.(seccion);
 	}
 
 	function abrirLogin() {
-		dropdownHovered = false;
-		cuentaHovered = false;
 		modalLoginOpen = true;
 	}
 
 	function abrirRegistro() {
-		dropdownHovered = false;
-		cuentaHovered = false;
 		modalRegisterOpen = true;
 	}
+
 	function abrirMiCuenta() {
-		dropdownHovered = false;
-		cuentaHovered = false;
-		dispatch('seleccionarOpcion', { nombre: 'Mi Cuenta', icono: IconUserCircle });
+		onSeleccionarOpcion?.({ nombre: 'Mi Cuenta', icono: IconUserCircle });
 	}
 
 	function abrirPuntosVenta() {
-		dropdownHovered = false;
-		cuentaHovered = false;
-		dispatch('seleccionarOpcion', { nombre: 'Mis Puntos de Venta', icono: IconDeviceDesktopPin });
+		onSeleccionarOpcion?.({ nombre: 'Mis Puntos de Venta', icono: IconDeviceDesktopPin });
 	}
 
 	async function cerrarSesion() {
-		dropdownHovered = false;
-		cuentaHovered = false;
-		await auth.signOut();
+		if ($sellerAuth) {
+			sellerAuth.logout();
+		} else {
+			await auth.signOut();
+		}
 	}
 
 	// Auto-apertura única al montar si falta autenticar.
@@ -89,25 +89,6 @@
 >
 	<!-- TRABAJO -->
 	<div class="grid justify-center">
-		<!-- SECCIÓN DE OPERACIONES -->
-		<button
-			type="button"
-			disabled={cuentaPendiente}
-			class="flex cursor-pointer justify-center p-2 text-neutral-400 transition-colors {cuentaPendiente
-				? 'cursor-not-allowed opacity-30'
-				: 'hover:text-white'} {seccionActiva === 'operaciones'
-				? 'border-l-2 border-l-blue-500 bg-blue-500/15'
-				: ''}"
-			title={cuentaPendiente ? 'Completa tu configuración primero' : 'Venta Rápida'}
-			aria-label="Toggle Panel Vender"
-			onclick={() => cambiarSeccion('operaciones')}
-		>
-			<IconCalculator
-				size={28}
-				class="pointer-events-none {seccionActiva === 'operaciones' ? 'text-white' : ''}"
-			/>
-		</button>
-
 		<!-- SECCIÓN DE REGISTROS GENERALES -->
 		<button
 			type="button"
@@ -130,104 +111,88 @@
 
 	<!-- ACCESO Y CONFIGURACIONES -->
 	<div class="relative grid justify-center">
-		<!-- CUENTA DE USUARIO con hover-dropdown -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="relative"
-			onmouseenter={() => (cuentaHovered = true)}
-			onmouseleave={() => (cuentaHovered = false)}
+		<!-- CUENTA DE USUARIO con dropdown -->
+		<Dropdown
+			id="mc-btn-cuenta"
+			side="right"
+			align="end"
+			title={$isAuthenticated ? 'Mi cuenta' : 'Cuenta'}
+			aria-label="Panel de cuenta"
+			class="flex cursor-pointer justify-center p-2 text-neutral-400 transition-colors hover:text-white"
 		>
-			<button
-				id="mc-btn-cuenta"
-				type="button"
-				class="flex cursor-pointer justify-center p-2 text-neutral-400 transition-colors hover:text-white"
-				title={$isAuthenticated ? 'Mi cuenta' : 'Cuenta'}
-				aria-label="Panel de cuenta"
-				onclick={() => (cuentaHovered = true)}
-			>
+			{#snippet trigger()}
 				<IconUserCircle size={28} class="pointer-events-none" />
 				<!-- Indicador de pendiente -->
 				{#if cuentaPendiente}
 					<span class="pending-dot" aria-hidden="true"></span>
 				{/if}
-			</button>
+			{/snippet}
 
-			<!-- Dropdown de opciones -->
-			{#if dropdownVisible}
-				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div
-					class="account-dropdown absolute bottom-0 left-full z-20 items-center gap-x-2 border border-neutral-900 bg-neutral-900 text-sm"
-					onmouseenter={() => (dropdownHovered = true)}
-					onmouseleave={() => (dropdownHovered = false)}
-				>
-					{#if $isAuthenticated}
-						<!-- Usuario autenticado: cuenta y cerrar sesión -->
-						<button
-							type="button"
-							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-neutral-800"
-							onclick={abrirMiCuenta}
-						>
+			{#snippet menu()}
+				{#if $isAuthenticated || $sellerAuth}
+					<!-- Usuario autenticado: cuenta y cerrar sesión -->
+					{#if !$sellerAuth}
+						<DropdownItem onclick={abrirMiCuenta}>
 							<IconUserCircle size={15} stroke={1.5} />
 							Mi Cuenta
-						</button>
-						<button
-							type="button"
-							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-neutral-800"
-							onclick={abrirPuntosVenta}
-						>
+						</DropdownItem>
+						<DropdownItem onclick={abrirPuntosVenta}>
 							<IconDeviceDesktopPin size={15} stroke={1.5} />
 							Mis Puntos de Venta
-						</button>
-						<button
-							type="button"
-							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-red-700"
-							onclick={cerrarSesion}
-						>
-							<IconLogout size={15} stroke={1.5} />
-							Cerrar Sesión
-						</button>
-					{:else}
-						<!-- No autenticado: iniciar sesión o crear cuenta -->
-
-						<button
-							type="button"
-							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-neutral-800"
-							onclick={abrirLogin}
-						>
-							<IconLogin size={15} stroke={1.5} />
-							Iniciar Sesión
-						</button>
-						<div class="dropdown-divider"></div>
-						<button
-							type="button"
-							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-neutral-800"
-							onclick={abrirRegistro}
-						>
-							<IconUserPlus size={15} stroke={1.5} />
-							Crear Cuenta
-						</button>
-
-						<button
-							type="button"
-							class="flex w-full items-center gap-x-2 p-2 whitespace-nowrap hover:bg-neutral-800"
-							onclick={abrirMiCuenta}
-						>
-							<IconUserSquare size={15} stroke={1.5} />
-							Mi Cuenta
-						</button>
+						</DropdownItem>
 					{/if}
-				</div>
-			{/if}
-		</div>
+					<DropdownItem variant="danger" onclick={cerrarSesion}>
+						<IconLogout size={15} stroke={1.5} />
+						Cerrar Sesión
+					</DropdownItem>
+				{:else}
+					<!-- No autenticado: iniciar sesión o crear cuenta -->
+					<DropdownItem onclick={abrirLogin}>
+						<IconLogin size={15} stroke={1.5} />
+						Iniciar Sesión
+					</DropdownItem>
+					<DropdownDivider />
+					<DropdownItem onclick={abrirRegistro}>
+						<IconUserPlus size={15} stroke={1.5} />
+						Crear Cuenta
+					</DropdownItem>
+					<DropdownItem onclick={abrirMiCuenta}>
+						<IconUserSquare size={15} stroke={1.5} />
+						Mi Cuenta
+					</DropdownItem>
+				{/if}
+			{/snippet}
+		</Dropdown>
 
-		<button
-			type="button"
-			class="flex w-full cursor-pointer items-center gap-2 p-2 text-sm text-neutral-400 transition-colors hover:text-white"
-			onclick={() =>
-				dispatch('seleccionarOpcion', { nombre: 'Configuración', icono: IconSettings })}
-		>
-			<IconSettings size={28} />
-		</button>
+		{#if !$sellerAuth}
+			<Dropdown
+				side="right"
+				align="end"
+				title="Configuraciones"
+				aria-label="Panel de configuraciones"
+				class="flex w-full cursor-pointer items-center gap-2 p-2 text-sm text-neutral-400 transition-colors hover:text-white"
+			>
+				{#snippet trigger()}
+					<IconSettings size={28} />
+				{/snippet}
+
+				{#snippet menu()}
+					<DropdownItem
+						onclick={() => onSeleccionarOpcion?.({ nombre: 'Configuración', icono: IconSettings })}
+					>
+						<IconSettings size={15} stroke={1.5} />
+						Configuración
+					</DropdownItem>
+					<DropdownItem
+						onclick={() =>
+							onSeleccionarOpcion?.({ nombre: 'Preferencias', icono: IconAdjustments })}
+					>
+						<IconAdjustments size={15} stroke={1.5} />
+						Preferencias
+					</DropdownItem>
+				{/snippet}
+			</Dropdown>
+		{/if}
 	</div>
 </div>
 
@@ -272,23 +237,6 @@
 		50% {
 			opacity: 0.6;
 			transform: scale(0.85);
-		}
-	}
-
-	/* Dropdown */
-	.account-dropdown {
-		box-shadow: 0 0 10px #00000052;
-		animation: dropdown-in 0.12s cubic-bezier(0.16, 1, 0.3, 1);
-	}
-
-	@keyframes dropdown-in {
-		from {
-			opacity: 0;
-			transform: translateX(-4px) scale(0.97);
-		}
-		to {
-			opacity: 1;
-			transform: translateX(0) scale(1);
 		}
 	}
 </style>

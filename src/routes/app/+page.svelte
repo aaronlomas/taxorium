@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Sidebar from '$lib/components/ui/sidebar/Sidebar.svelte';
+	import type { ElementoNavegacion } from '$lib/components/ui/sidebar/navegation';
 	import TabBar from '$lib/components/ui/tab-bar/TabBar.svelte';
 	import Tab from '$lib/components/ui/tab-bar/tab/Tab.svelte';
 	import { resolveView } from '$lib/components/ui/views/viewRoutes';
@@ -38,8 +39,7 @@
 		}
 	}
 
-	function manejarSeleccionSidebar(event: CustomEvent<any>) {
-		const elemento = event.detail;
+	function manejarSeleccionSidebar(elemento: ElementoNavegacion) {
 		const existe = pestanas.find((p) => p.id === elemento.nombre);
 
 		if (existe) {
@@ -76,7 +76,7 @@
 	<div
 		class="grid h-full w-full grid-cols-[auto_1fr] grid-rows-[1fr_24px] overflow-hidden bg-neutral-950 font-sans text-neutral-300"
 	>
-		<Sidebar on:seleccionarOpcion={manejarSeleccionSidebar} />
+		<Sidebar onSeleccionarOpcion={manejarSeleccionSidebar} />
 
 		<div class="flex min-h-0 min-w-0 flex-col bg-neutral-950">
 			<TabBar>

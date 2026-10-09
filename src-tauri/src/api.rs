@@ -81,10 +81,11 @@ pub fn build_router(app: AppHandle) -> Router {
         .layer(cors)
 }
 
+pub const API_PORT: u16 = 3000;
+
 pub fn spawn_server(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
-        let port = 3000;
-        let addr = format!("0.0.0.0:{}", port);
+        let addr = format!("0.0.0.0:{}", API_PORT);
         match tokio::net::TcpListener::bind(&addr).await {
             Ok(listener) => {
                 let msg = format!("Servidor local iniciado en {}", addr);

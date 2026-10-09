@@ -1,23 +1,23 @@
 <script lang="ts">
-	import { onDestroy, createEventDispatcher } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import { isAuthenticated } from '$lib/stores/auth';
 	import MainControls from './main-controls/MainControls.svelte';
 	import OptionRecords from './options/OptionRecords.svelte';
-	import OptionSales from './options/OptionSales.svelte';
+	import type { ElementoNavegacion } from './navegation';
 
-	type Seccion = 'operaciones' | 'registros';
+	type Seccion = 'registros';
 
 	// Configuración centralizada de paneles
 	const PANELS = {
-		operaciones: OptionSales,
 		registros: OptionRecords
 	};
 
-	const dispatch = createEventDispatcher();
+	let { onSeleccionarOpcion }: { onSeleccionarOpcion?: (opcion: ElementoNavegacion) => void } =
+		$props();
 
 	let anchoBarraLateral = $state(240);
 	let estaRedimensionando = $state(false);
-	let seccionActiva: Seccion | null = $state($isAuthenticated ? 'operaciones' : null);
+	let seccionActiva: Seccion | null = $state($isAuthenticated ? 'registros' : null);
 
 	function cambiarSeccion(seccion: Seccion) {
 		seccionActiva = seccionActiva === seccion ? null : seccion;
@@ -29,10 +29,6 @@
 			seccionActiva = null;
 		}
 	});
-
-	function handleSeleccionarOpcion(e: CustomEvent) {
-		dispatch('seleccionarOpcion', e.detail);
-	}
 
 	function redimensionar(e: MouseEvent) {
 		if (!estaRedimensionando) return;
@@ -82,16 +78,12 @@
 	style={seccionActiva ? `width: ${anchoBarraLateral}px;` : 'width: max-content;'}
 >
 	<!-- BARRA DE ACCIONES IZQUIERDA (FIJA) -->
-	<MainControls
-		{seccionActiva}
-		on:cambiarSeccion={(e) => cambiarSeccion(e.detail)}
-		on:seleccionarOpcion={handleSeleccionarOpcion}
-	/>
+	<MainControls {seccionActiva} onCambiarSeccion={cambiarSeccion} {onSeleccionarOpcion} />
 
 	<!-- PANEL DESPLEGABLE DINÁMICO -->
 	{#if seccionActiva}
 		{@const Panel = PANELS[seccionActiva]}
-		<Panel on:seleccionarOpcion={handleSeleccionarOpcion} />
+		<Panel {onSeleccionarOpcion} />
 	{/if}
 
 	{#if seccionActiva}
