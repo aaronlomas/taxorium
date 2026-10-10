@@ -10,8 +10,8 @@
 	import { icbperStore } from '$lib/features/settings';
 	import { configStore } from '$lib/integrations/tauri/nodeConfig';
 	import { taxoLog } from '$lib/features/taxoLog';
-	import TitleBar from '$lib/components/ui/TitleBar.svelte';
-	import ResizeBorder from '$lib/components/ui/ResizeBorder.svelte';
+	import TitleBar from '$lib/components/ui/app-shell/TitleBar.svelte';
+	import ResizeBorder from '$lib/components/ui/app-shell/ResizeBorder.svelte';
 
 	let { children } = $props();
 

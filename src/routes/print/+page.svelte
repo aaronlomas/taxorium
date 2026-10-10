@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import InvoiceTemplate from '$lib/components/ui/print/InvoiceTemplate.svelte';
-	import type { PrintableInvoiceData } from '$lib/components/ui/print/invoiceTypes';
-	import type { PrintWindowPayload } from '$lib/components/ui/views/vouchers/pdfGenerator';
+	import InvoiceTemplate from '$lib/components/ui/features/print/InvoiceTemplate.svelte';
+	import type { PrintableInvoiceData } from '$lib/components/ui/features/print/invoiceTypes';
+	import type { PrintWindowPayload } from '$lib/components/ui/features/sales/vouchers/pdfGenerator';
 	import { voucherClient } from '$lib/features/vouchers';
 	import { readFile } from '@tauri-apps/plugin-fs';
 	import { emit } from '@tauri-apps/api/event';

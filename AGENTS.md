@@ -18,3 +18,7 @@ If you see or generate any legacy Svelte syntax, stop immediately, delete it, an
 ### sql:
 
 - Modify `01_esquema_inicial.sql` directly; no additional SQL files are allowed.
+
+### package manager
+
+- use only pnpm

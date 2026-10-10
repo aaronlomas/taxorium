@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createTypewriterLog } from './utilities/typewriter.ts';
-	import Modal from '$lib/components/core/primitives/Modal.svelte';
+	import Modal from '$lib/components/core/primitives/feedback/Modal.svelte';
 	import { IconWindowMaximize } from '@tabler/icons-svelte';
 	import { taxoLog, type LogEntry } from '$lib/features/taxoLog';
 

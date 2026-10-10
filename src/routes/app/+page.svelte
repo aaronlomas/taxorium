@@ -1,14 +1,14 @@
 <script lang="ts">
-	import Sidebar from '$lib/components/ui/sidebar/Sidebar.svelte';
-	import type { ElementoNavegacion } from '$lib/components/ui/sidebar/navegation';
-	import TabBar from '$lib/components/ui/tab-bar/TabBar.svelte';
-	import Tab from '$lib/components/ui/tab-bar/tab/Tab.svelte';
-	import { resolveView } from '$lib/components/ui/views/viewRoutes';
+	import Sidebar from '$lib/components/ui/navigation/sidebar/Sidebar.svelte';
+	import type { ElementoNavegacion } from '$lib/components/ui/navigation/sidebar/navigation';
+	import TabBar from '$lib/components/ui/navigation/tab-bar/TabBar.svelte';
+	import Tab from '$lib/components/ui/navigation/tab-bar/tab/Tab.svelte';
+	import { resolveView } from '$lib/components/ui/navigation/viewRoutes';
 	import { auth, currentUser } from '$lib/features/auth';
 	import { tenantStore, currentTenant } from '$lib/features/tenant';
 	import { sellerAuth } from '$lib/features/sellerAuth';
 	import { configStore } from '$lib/integrations/tauri/nodeConfig';
-	import PosLogin from '$lib/components/ui/setups/PosLogin.svelte';
+	import PosLogin from '$lib/components/ui/features/auth/setups/PosLogin.svelte';
 	import Log from '$lib/components/log/TaxoLog.svelte';
 
 	$effect(() => {
@@ -86,8 +86,8 @@
 						icon={pestana.icono}
 						iconColor={pestana.colorIcono}
 						active={pestana.activo}
-						on:click={() => seleccionarPestana(pestana.id)}
-						on:close={() => cerrarPestana(pestana.id)}
+						onClick={() => seleccionarPestana(pestana.id)}
+						onClose={() => cerrarPestana(pestana.id)}
 					/>
 				{/each}
 			</TabBar>
