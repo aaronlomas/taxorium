@@ -29,3 +29,9 @@ vite.config.ts.timestamp-*
 
 # Cargo local
 /.cargo
+
+# Supabase CLI temp
+supabase/.temp/
+
+# Credenciales locales (certificados de firma)
+*.p12
