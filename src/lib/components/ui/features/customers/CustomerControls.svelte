@@ -2,7 +2,9 @@
 	import { IconDatabaseImport, IconDatabaseExport, IconPlus } from '@tabler/icons-svelte';
 	//PRIMITIVAS
 	import TableToolbar from '$lib/components/core/primitives/data/TableToolbar.svelte';
-	import TableFilter, { type CheckItem } from '$lib/components/core/primitives/data/TableFilter.svelte';
+	import TableFilter, {
+		type CheckItem
+	} from '$lib/components/core/primitives/data/TableFilter.svelte';
 	import Search from '$lib/components/core/primitives/data/Search.svelte';
 	import Select from '$lib/components/core/primitives/forms/Select.svelte';
 	import Hint from '$lib/components/core/primitives/data/Hint.svelte';

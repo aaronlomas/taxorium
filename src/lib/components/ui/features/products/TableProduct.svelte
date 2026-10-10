@@ -7,7 +7,9 @@
 		IconTrash,
 		IconEdit
 	} from '@tabler/icons-svelte';
-	import TableFilter, { type CheckItem } from '$lib/components/core/primitives/data/TableFilter.svelte';
+	import TableFilter, {
+		type CheckItem
+	} from '$lib/components/core/primitives/data/TableFilter.svelte';
 	import TableToolbar from '$lib/components/core/primitives/data/TableToolbar.svelte';
 	import Search from '$lib/components/core/primitives/data/Search.svelte';
 	import Select from '$lib/components/core/primitives/forms/Select.svelte';
