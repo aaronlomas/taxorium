@@ -15,10 +15,10 @@
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/Table.svelte';
 
 	import ProductModal from './ProductModal.svelte';
-	import { productsStore, editingProduct } from '$lib/stores/products';
-	import { productClient, type Product } from '$lib/services/products/clientProducts';
-	import { taxoLog } from '$lib/stores/taxoLog';
-	import { catalogoStore, getUnitDisplay } from '$lib/stores/catalogos';
+	import { productsStore, editingProduct } from '$lib/features/products';
+	import { productClient, type Product } from '$lib/features/products';
+	import { taxoLog } from '$lib/features/taxoLog';
+	import { catalogoStore, getUnitDisplay } from '$lib/features/catalogos';
 	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
 
 	interface ColumnConfig extends CheckItem {

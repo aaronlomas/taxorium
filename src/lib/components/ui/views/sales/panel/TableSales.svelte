@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/Table.svelte';
-	import { salesStore } from '$lib/stores/sales';
-	import { getUnitDisplay } from '$lib/stores/catalogos';
+	import { salesStore } from '$lib/features/sales';
+	import { getUnitDisplay } from '$lib/features/catalogos';
 
 	const CURRENCY_SYMBOL: Record<string, string> = {
 		PEN: 'S/.',

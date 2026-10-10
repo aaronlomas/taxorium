@@ -1,6 +1,6 @@
 // $lib/utils/typewriter.ts
 import { writable, type Readable } from 'svelte/store';
-import { taxoLog, type LogEntry } from '$lib/stores/taxoLog';
+import { taxoLog, type LogEntry } from '$lib/features/taxoLog';
 
 export interface AnimatedLog {
 	entry: LogEntry | null;

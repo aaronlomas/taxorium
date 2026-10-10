@@ -13,9 +13,9 @@
 		monedasOptions,
 		tiposPagoOptions,
 		tiposComprobanteOptions
-	} from '$lib/stores/catalogos';
-	import { customersStore } from '$lib/stores/customers';
-	import type { Customer } from '$lib/services/customers/clientCustomer';
+	} from '$lib/features/catalogos';
+	import { customersStore } from '$lib/features/customers';
+	import type { Customer } from '$lib/features/customers';
 	import CustomersModal from '$lib/components/ui/views/customers/CustomersModal.svelte';
 	import { voucherConfigStore } from '$lib/components/ui/views/vouchers/voucherContext';
 

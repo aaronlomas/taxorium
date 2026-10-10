@@ -101,7 +101,17 @@
                 </cac:TaxScheme>
             </cac:TaxCategory>
         </cac:TaxSubtotal>
-        {% endfor %}
+        {% endfor %}{% if subtotal_icbper %}
+        <cac:TaxSubtotal>
+            <cbc:TaxAmount currencyID="{{ moneda }}">{{ subtotal_icbper }}</cbc:TaxAmount>
+            <cac:TaxCategory>
+                <cac:TaxScheme>
+                    <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">7152</cbc:ID>
+                    <cbc:Name>ICBPER</cbc:Name>
+                    <cbc:TaxTypeCode>OTH</cbc:TaxTypeCode>
+                </cac:TaxScheme>
+            </cac:TaxCategory>
+        </cac:TaxSubtotal>{% endif %}
     </cac:TaxTotal>
     
     <cac:LegalMonetaryTotal>
@@ -122,7 +132,7 @@
             </cac:AlternativeConditionPrice>
         </cac:PricingReference>
         <cac:TaxTotal>
-            <cbc:TaxAmount currencyID="{{ moneda }}">{{ item.igv }}</cbc:TaxAmount>
+            <cbc:TaxAmount currencyID="{{ moneda }}">{{ item.impuesto_total }}</cbc:TaxAmount>
             <cac:TaxSubtotal>
                 <cbc:TaxableAmount currencyID="{{ moneda }}">{{ item.subtotal }}</cbc:TaxableAmount>
                 <cbc:TaxAmount currencyID="{{ moneda }}">{{ item.igv }}</cbc:TaxAmount>
@@ -136,7 +146,19 @@
                         <cbc:TaxTypeCode>{{ item.tipo_impuesto }}</cbc:TaxTypeCode>
                     </cac:TaxScheme>
                 </cac:TaxCategory>
-            </cac:TaxSubtotal>
+            </cac:TaxSubtotal>{% if item.tiene_icbper %}
+            <cac:TaxSubtotal>
+                <cbc:BaseUnitMeasure unitCode="{{ item.unidad }}">{{ item.bolsas }}</cbc:BaseUnitMeasure>
+                <cbc:TaxAmount currencyID="{{ moneda }}">{{ item.icbper }}</cbc:TaxAmount>
+                <cac:TaxCategory>
+                    <cbc:PerUnitAmount currencyID="{{ moneda }}">{{ item.tasa_icbper }}</cbc:PerUnitAmount>
+                    <cac:TaxScheme>
+                        <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">7152</cbc:ID>
+                        <cbc:Name>ICBPER</cbc:Name>
+                        <cbc:TaxTypeCode>OTH</cbc:TaxTypeCode>
+                    </cac:TaxScheme>
+                </cac:TaxCategory>
+            </cac:TaxSubtotal>{% endif %}
         </cac:TaxTotal>
         <cac:Item>
             <cbc:Description><![CDATA[{{ item.descripcion }}]]></cbc:Description>

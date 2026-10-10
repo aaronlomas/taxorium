@@ -20,7 +20,7 @@ import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import type { VoucherData } from './voucherGenerator';
 import type { PaperFormat, PdfTemplateConfig } from './pdfTemplateConfig';
 import type { PrintableInvoiceData } from '../../print/invoiceTypes';
-import type { CreateVoucherPayload } from '$lib/services/vouchers/clientVoucher';
+import type { CreateVoucherPayload } from '$lib/features/vouchers';
 
 // ─── Tipos exportados que consume +page.svelte ───────────────────────────────
 

@@ -17,10 +17,10 @@
 	//SERVICIOS
 	import { invoke } from '@tauri-apps/api/core';
 	import { get } from 'svelte/store';
-	import { tenantStore } from '$lib/stores/tenant';
+	import { tenantStore } from '$lib/features/tenant';
 	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
-	import { taxoLog } from '$lib/stores/taxoLog';
-	import { voucherClient, type Voucher } from '$lib/services/vouchers/clientVoucher';
+	import { taxoLog } from '$lib/features/taxoLog';
+	import { voucherClient, type Voucher } from '$lib/features/vouchers';
 	import { formatFecha } from '$lib/components/ui/views/vouchers/voucherContext';
 	import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 	import type { PrintableInvoiceData } from '$lib/components/ui/print/invoiceTypes';

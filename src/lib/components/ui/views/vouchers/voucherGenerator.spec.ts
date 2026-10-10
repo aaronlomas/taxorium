@@ -40,6 +40,7 @@ function sampleItems() {
 			subtotal: 100,
 			total: 100,
 			afectacion: '10',
+			tieneIcbper: false,
 			moneda: 'PEN'
 		},
 		{
@@ -52,9 +53,26 @@ function sampleItems() {
 			subtotal: 18,
 			total: 18,
 			afectacion: '20',
+			tieneIcbper: false,
 			moneda: 'PEN'
 		}
 	];
+}
+
+function itemBolsa(cantidad: number) {
+	return {
+		id: 99,
+		productoId: '99',
+		descripcion: 'Bolsa plástica',
+		unidad: 'NIU',
+		cantidad,
+		precioUnitario: 0.2,
+		subtotal: cantidad * 0.2,
+		total: cantidad * 0.2,
+		afectacion: '20',
+		tieneIcbper: true,
+		moneda: 'PEN'
+	};
 }
 
 describe('voucherGenerator', () => {
@@ -73,6 +91,13 @@ describe('voucherGenerator', () => {
 		expect(pdf).toBeInstanceOf(Uint8Array);
 		const head = new TextDecoder().decode(pdf.slice(0, 8));
 		expect(head).toBe('%PDF-1.4');
+	});
+
+	it('el ICBPER se suma aparte con la tarifa configurada', () => {
+		const data = buildVoucherData(sampleConfig(), null, [itemBolsa(3)], null, undefined, 0.5);
+		// 3 bolsas x S/0.20 = S/0.60 de producto + 3 x S/0.50 de ICBPER.
+		expect(data.icbper).toBe(1.5);
+		expect(data.total).toBe(2.1);
 	});
 
 	it('genera XML UBL 2.1 bien formado', () => {

@@ -4,10 +4,10 @@
 	import TabBar from '$lib/components/ui/tab-bar/TabBar.svelte';
 	import Tab from '$lib/components/ui/tab-bar/tab/Tab.svelte';
 	import { resolveView } from '$lib/components/ui/views/viewRoutes';
-	import { auth, currentUser } from '$lib/stores/auth';
-	import { tenantStore, currentTenant } from '$lib/stores/tenant';
-	import { sellerAuth } from '$lib/stores/sellerAuth';
-	import { configStore } from '$lib/stores/config';
+	import { auth, currentUser } from '$lib/features/auth';
+	import { tenantStore, currentTenant } from '$lib/features/tenant';
+	import { sellerAuth } from '$lib/features/sellerAuth';
+	import { configStore } from '$lib/integrations/tauri/nodeConfig';
 	import PosLogin from '$lib/components/ui/setups/PosLogin.svelte';
 	import Log from '$lib/components/log/TaxoLog.svelte';
 

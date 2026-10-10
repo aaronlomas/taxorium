@@ -2,8 +2,8 @@
 	import { onMount } from 'svelte';
 	import { IconEye, IconEyeOff, IconTrash, IconEdit, IconSearch } from '@tabler/icons-svelte';
 	import Option from '$lib/components/core/primitives/Select.svelte';
-	import { sellersStore, editingSeller, sellerPasswordCache } from '$lib/stores/sellers';
-	import { sellerClient, type Seller } from '$lib/services/sellers/clientSellers';
+	import { sellersStore, editingSeller, sellerPasswordCache } from '$lib/features/sellers';
+	import { sellerClient, type Seller } from '$lib/features/sellers';
 
 	const MODULOS = [
 		{ value: 'sales', label: 'Módulo de Ventas' },

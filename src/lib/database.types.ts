@@ -13,15 +13,16 @@ export interface TenantRow {
 	distrito: string | null;
 	telefono: string | null;
 	email: string | null;
-	usuario_sol: string | null;
-	clave_sol: string | null;
-	certificado_path: string | null;
-	/** Contraseña del certificado .p12. Solo texto plano en dev; cifrar en prod. */
-	clave_cert: string | null;
+	correlativo_boleta: number;
+	correlativo_factura: number;
 	configurado: boolean;
 	activo: boolean;
 	created_at: string;
 	updated_at: string;
+	usuario_sol: string | null;
+	clave_sol: string | null;
+	certificado_path: string | null;
+	clave_cert: string | null;
 }
 
 export interface LicenseRow {
@@ -39,59 +40,13 @@ export interface LicenseRow {
 	created_at: string;
 }
 
-export interface InvoiceRow {
+export interface LicenseLeaseRow {
 	id: string;
-	tenant_id: string;
-	tipo_comprobante: '01' | '03';
-	serie: string;
-	correlativo: number;
-	numero_completo: string;
-	tipo_doc_cliente: string | null;
-	num_doc_cliente: string | null;
-	nombre_cliente: string;
-	direccion_cliente: string | null;
-	subtotal: number;
-	igv: number;
-	total: number;
-	moneda: string;
-	items: Json;
-	estado: 'BORRADOR' | 'ENVIANDO' | 'ACEPTADO' | 'RECHAZADO' | 'ANULADO';
-	codigo_sunat: string | null;
-	mensaje_sunat: string | null;
-	xml_content: string | null;
-	cdr_content: string | null;
-	pdf_url: string | null;
-	fecha_emision: string;
-	hora_emision: string;
-	device_id: string | null;
-	created_at: string;
-	updated_at: string;
-}
-
-export interface CustomerRow {
-	id: string;
-	tenant_id: string;
-	tipo_doc: string;
-	num_doc: string;
-	nombre: string;
-	direccion: string | null;
-	email: string | null;
-	telefono: string | null;
-	activo: boolean;
-	created_at: string;
-}
-
-export interface ProductRow {
-	id: string;
-	tenant_id: string;
-	codigo: string | null;
-	nombre: string;
-	descripcion: string | null;
-	unidad: string;
-	precio: number;
-	afecto_igv: boolean;
-	activo: boolean;
-	created_at: string;
+	license_id: string;
+	device_id: string;
+	issued_at: string;
+	expires_at: string;
+	revocado: boolean;
 }
 
 export interface Database {
@@ -109,30 +64,16 @@ export interface Database {
 				Update: Partial<LicenseRow>;
 				Relationships: [];
 			};
-			invoices: {
-				Row: InvoiceRow;
-				Insert: Partial<InvoiceRow>;
-				Update: Partial<InvoiceRow>;
-				Relationships: [];
-			};
-			customers: {
-				Row: CustomerRow;
-				Insert: Partial<CustomerRow>;
-				Update: Partial<CustomerRow>;
-				Relationships: [];
-			};
-			products: {
-				Row: ProductRow;
-				Insert: Partial<ProductRow>;
-				Update: Partial<ProductRow>;
+			license_leases: {
+				Row: LicenseLeaseRow;
+				Insert: Partial<LicenseLeaseRow>;
+				Update: Partial<LicenseLeaseRow>;
 				Relationships: [];
 			};
 		};
-		Functions: {
-			get_next_correlativo: {
-				Args: { p_tenant_id: string; p_tipo: string };
-				Returns: number;
-			};
-		};
+		Views: Record<string, never>;
+		Functions: Record<string, never>;
+		Enums: Record<string, never>;
+		CompositeTypes: Record<string, never>;
 	};
 }

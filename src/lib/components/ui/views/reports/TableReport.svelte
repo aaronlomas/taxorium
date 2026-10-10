@@ -7,7 +7,7 @@
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/Table.svelte';
 
 	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
-	import { taxoLog } from '$lib/stores/taxoLog';
+	import { taxoLog } from '$lib/features/taxoLog';
 
 	interface Reporte {
 		id: number;

@@ -4,11 +4,12 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { auth } from '$lib/stores/auth';
-	import { tenantStore } from '$lib/stores/tenant';
-	import { licenseStore } from '$lib/stores/license';
-	import { configStore } from '$lib/stores/config';
-	import { taxoLog } from '$lib/stores/taxoLog';
+	import { auth } from '$lib/features/auth';
+	import { tenantStore } from '$lib/features/tenant';
+	import { licenseStore } from '$lib/features/license';
+	import { icbperStore } from '$lib/features/settings';
+	import { configStore } from '$lib/integrations/tauri/nodeConfig';
+	import { taxoLog } from '$lib/features/taxoLog';
 	import TitleBar from '$lib/components/ui/TitleBar.svelte';
 	import ResizeBorder from '$lib/components/ui/ResizeBorder.svelte';
 
@@ -27,6 +28,8 @@
 		taxoLog.initListener();
 		// Inicializar configuración del nodo (Servidor/Cliente)
 		await configStore.init();
+		// Tarifa ICBPER configurable (Ajustes), usada en el cálculo de ventas
+		await icbperStore.load();
 
 		let unsub = configStore.subscribe((config) => {
 			if (config.role === null && $page.url.pathname !== '/setup-node') {

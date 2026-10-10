@@ -3,9 +3,9 @@
 	import Button from '$lib/components/core/primitives/Button.svelte';
 	import Option from '$lib/components/core/primitives/Select.svelte';
 	import { IconLock, IconUser, IconEyeOff, IconEye } from '@tabler/icons-svelte';
-	import { sellerClient, type CreateSellerPayload } from '$lib/services/sellers/clientSellers';
-	import { sellersStore, editingSeller, sellerPasswordCache } from '$lib/stores/sellers';
-	import { taxoLog } from '$lib/stores/taxoLog';
+	import { sellerClient, type CreateSellerPayload } from '$lib/features/sellers';
+	import { sellersStore, editingSeller, sellerPasswordCache } from '$lib/features/sellers';
+	import { taxoLog } from '$lib/features/taxoLog';
 
 	const MODULOS = [
 		{ value: 'sales', label: 'Módulo de Ventas' },

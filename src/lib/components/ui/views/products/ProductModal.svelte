@@ -5,8 +5,8 @@
 	import Button from '$lib/components/core/primitives/Button.svelte';
 	import Input from '$lib/components/core/primitives/Input.svelte';
 
-	import { productClient, type CreateProductPayload } from '$lib/services/products/clientProducts';
-	import { productsStore, editingProduct } from '$lib/stores/products';
+	import { productClient, type CreateProductPayload } from '$lib/features/products';
+	import { productsStore, editingProduct } from '$lib/features/products';
 	import {
 		catalogoStore,
 		monedasOptions,
@@ -14,8 +14,8 @@
 		sedesOptions,
 		afectacionesVentaOptions,
 		afectacionesCompraOptions
-	} from '$lib/stores/catalogos';
-	import { taxoLog } from '$lib/stores/taxoLog';
+	} from '$lib/features/catalogos';
+	import { taxoLog } from '$lib/features/taxoLog';
 	import { onMount } from 'svelte';
 
 	let { isOpen = $bindable(false), onClose }: { isOpen: boolean; onClose: () => void } = $props();
@@ -32,6 +32,9 @@
 	let stockMinimo = $state(1);
 	let afectacionVenta = $state('20');
 	let afectacionCompra = $state('NO_GRAVADO');
+	// El ICBPER es un impuesto fijo por bolsa (S/ 0.50) que se cobra ADEMÁS del
+	// producto; no reemplaza su afectación. El check solo marca el producto como
+	// bolsa plástica sujeta al impuesto.
 	let hasIcbper = $state(false);
 	let marca = $state('');
 	let categoria = $state('');
@@ -239,7 +242,7 @@
 					bind:checked={hasIcbper}
 					class="h-4 w-4 rounded border-neutral-700 bg-neutral-900 text-blue-600 focus:ring-blue-500 focus:ring-offset-neutral-950"
 				/>
-				ICBPER (Impuesto a la bolsa)
+				ICBPER (bolsa plástica: impuesto fijo por unidad)
 			</label>
 		</div>
 

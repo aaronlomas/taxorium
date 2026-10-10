@@ -7,7 +7,7 @@
 		navegacionRegistros,
 		type ElementoNavegacion
 	} from '../navegation';
-	import { sellerAuth } from '$lib/stores/sellerAuth';
+	import { sellerAuth } from '$lib/features/sellerAuth';
 
 	let { onSeleccionarOpcion }: { onSeleccionarOpcion?: (opcion: ElementoNavegacion) => void } =
 		$props();

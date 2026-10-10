@@ -13,9 +13,9 @@
 	import CustomersModal from './CustomersModal.svelte';
 
 	//STORES
-	import { customersStore, editingCustomer } from '$lib/stores/customers';
+	import { customersStore, editingCustomer } from '$lib/features/customers';
 	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
-	import type { Customer } from '$lib/services/customers/clientCustomer';
+	import type { Customer } from '$lib/features/customers';
 
 	let isModalOpen = $state(false);
 

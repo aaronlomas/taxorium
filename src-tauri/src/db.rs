@@ -169,49 +169,38 @@ fn seed_sedes(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
 }
 
 fn seed_afectaciones(conn: &mut Connection, app: &AppHandle) -> Result<(), String> {
-    // 1. Sembrar Afectaciones de Venta
-    let count_v: i64 = conn
-        .query_row("SELECT COUNT(*) FROM afectaciones_venta", [], |row| {
-            row.get(0)
-        })
-        .unwrap_or(0);
+    // Se siembra con `INSERT OR IGNORE` y sin guarda de "tabla vacía" para que los
+    // códigos añadidos después lleguen también a las bases de datos ya creadas, sin
+    // duplicar los existentes.
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+    {
+        // 1. Sembrar Afectaciones de Venta
+        let mut stmt_v = tx
+            .prepare(
+                "INSERT OR IGNORE INTO afectaciones_venta (codigo, descripcion) VALUES (?1, ?2)",
+            )
+            .map_err(|e| e.to_string())?;
 
-    if count_v == 0 {
-        let tx = conn.transaction().map_err(|e| e.to_string())?;
-        {
-            let mut stmt = tx
-                .prepare("INSERT INTO afectaciones_venta (codigo, descripcion) VALUES (?1, ?2)")
+        for item in TIPOS_AFECTACION_VENTAS {
+            stmt_v
+                .execute(params![item.codigo, item.descripcion])
                 .map_err(|e| e.to_string())?;
-
-            for item in TIPOS_AFECTACION_VENTAS {
-                stmt.execute(params![item.codigo, item.descripcion])
-                    .map_err(|e| e.to_string())?;
-            }
         }
-        tx.commit().map_err(|e| e.to_string())?;
-    }
 
-    // 2. Sembrar Afectaciones de Compra
-    let count_c: i64 = conn
-        .query_row("SELECT COUNT(*) FROM afectaciones_compra", [], |row| {
-            row.get(0)
-        })
-        .unwrap_or(0);
+        // 2. Sembrar Afectaciones de Compra
+        let mut stmt_c = tx
+            .prepare(
+                "INSERT OR IGNORE INTO afectaciones_compra (codigo, descripcion) VALUES (?1, ?2)",
+            )
+            .map_err(|e| e.to_string())?;
 
-    if count_c == 0 {
-        let tx = conn.transaction().map_err(|e| e.to_string())?;
-        {
-            let mut stmt = tx
-                .prepare("INSERT INTO afectaciones_compra (codigo, descripcion) VALUES (?1, ?2)")
+        for item in DESTINO_AFECTACION_COMPRAS {
+            stmt_c
+                .execute(params![item.codigo, item.descripcion])
                 .map_err(|e| e.to_string())?;
-
-            for item in DESTINO_AFECTACION_COMPRAS {
-                stmt.execute(params![item.codigo, item.descripcion])
-                    .map_err(|e| e.to_string())?;
-            }
         }
-        tx.commit().map_err(|e| e.to_string())?;
     }
+    tx.commit().map_err(|e| e.to_string())?;
 
     emit::info(
         app,

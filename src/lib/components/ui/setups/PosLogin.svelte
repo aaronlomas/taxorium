@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { IconLock, IconArrowLeft } from '@tabler/icons-svelte';
-	import { sellerClient, type Seller } from '$lib/services/sellers/clientSellers';
-	import { sellerAuth } from '$lib/stores/sellerAuth';
-	import { configStore } from '$lib/stores/config';
+	import { sellerClient, type Seller } from '$lib/features/sellers';
+	import { sellerAuth } from '$lib/features/sellerAuth';
+	import { configStore } from '$lib/integrations/tauri/nodeConfig';
 	import Input from '$lib/components/core/primitives/Input.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
 	import Modal from '$lib/components/core/primitives/Modal.svelte';

@@ -4,12 +4,9 @@
 	import Select from '$lib/components/core/primitives/Select.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
 
-	import {
-		customerClient,
-		type CreateCustomerPayload
-	} from '$lib/services/customers/clientCustomer';
-	import { customersStore, editingCustomer } from '$lib/stores/customers';
-	import { taxoLog } from '$lib/stores/taxoLog';
+	import { customerClient, type CreateCustomerPayload } from '$lib/features/customers';
+	import { customersStore, editingCustomer } from '$lib/features/customers';
+	import { taxoLog } from '$lib/features/taxoLog';
 	import { IconSearch } from '@tabler/icons-svelte';
 
 	let { isOpen = $bindable(false), onClose }: { isOpen: boolean; onClose: () => void } = $props();

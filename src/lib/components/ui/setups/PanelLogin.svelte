@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { auth } from '$lib/stores/auth';
+	import { auth } from '$lib/features/auth';
 	import Input from '$lib/components/core/primitives/Input.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
 	import FormCompany from '$lib/components/ui/views/account/company/FormCompany.svelte';
@@ -28,7 +28,10 @@
 		$props();
 
 	// ─── Estado ────────────────────────────────────────────────────────────────
-	let mode = $state<Mode>(initialMode);
+	let mode = $state<Mode>('login');
+	$effect(() => {
+		mode = initialMode;
+	});
 
 	// Paso 1: datos del usuario
 	let email = $state('');

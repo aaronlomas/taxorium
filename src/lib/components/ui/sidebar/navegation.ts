@@ -1,8 +1,8 @@
 import type { ComponentType } from 'svelte';
 import {
 	IconLayoutDashboard,
-  IconReportMoney,
-  IconShoppingBag,
+	IconReportMoney,
+	IconShoppingBag,
 	IconPackage,
 	IconReport,
 	IconUsers,

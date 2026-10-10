@@ -12,17 +12,18 @@
 		IconFile,
 		IconEye
 	} from '@tabler/icons-svelte';
-	import { salesStore } from '$lib/stores/sales';
-	import { customersStore } from '$lib/stores/customers';
-	import { tenantStore } from '$lib/stores/tenant';
+	import { salesStore } from '$lib/features/sales';
+	import { icbperStore } from '$lib/features/settings';
+	import { customersStore } from '$lib/features/customers';
+	import { tenantStore } from '$lib/features/tenant';
 	import { voucherConfigStore } from './voucherContext';
 	import { buildVoucherData, type VoucherData, type VoucherFormat } from './voucherGenerator';
 	import { openVoucherPreview } from './pdfGenerator';
 	import type { PaperFormat } from './pdfTemplateConfig';
-	import { voucherClient } from '$lib/services/vouchers/clientVoucher';
+	import { voucherClient } from '$lib/features/vouchers';
 	import { readFile } from '@tauri-apps/plugin-fs';
 	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-	import { configLocalClient } from '$lib/services/configLocal/clientConfigLocal';
+	import { configLocalClient } from '$lib/integrations/tauri/deviceConfig';
 
 	let { isOpen = $bindable(false), onClose }: { isOpen: boolean; onClose: () => void } = $props();
 
@@ -77,16 +78,17 @@
 			const items = get(salesStore);
 			const serie = config.serie || (config.tipoComprobante === '03' ? 'B001' : 'F001');
 
+			const tasaIcbper = get(icbperStore);
 			let activo = true;
 			voucherClient
 				.getNextCorrelativo(serie)
 				.then((n) => {
 					if (!activo) return;
-					voucherData = buildVoucherData(config, tenant, items, cliente, n);
+					voucherData = buildVoucherData(config, tenant, items, cliente, n, tasaIcbper);
 				})
 				.catch(() => {
 					if (!activo) return;
-					voucherData = buildVoucherData(config, tenant, items, cliente);
+					voucherData = buildVoucherData(config, tenant, items, cliente, undefined, tasaIcbper);
 				});
 
 			return () => {
@@ -157,6 +159,7 @@
 				tipo_operacion: config.tipoOperacion || '0101',
 				certificado_path: certPath,
 				p12_password,
+				tasa_icbper: get(icbperStore),
 				// El precio ya incluye IGV; el backend desglosa base + IGV por afectación.
 				items: voucherData.items.map((item) => ({
 					unidad: item.unidad,
@@ -164,6 +167,7 @@
 					precio_unitario: item.precioUnitario,
 					total: item.total,
 					afectacion: item.afectacion,
+					tiene_icbper: item.tieneIcbper,
 					descripcion: item.descripcion
 				}))
 			};

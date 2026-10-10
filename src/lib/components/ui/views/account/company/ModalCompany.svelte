@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { auth } from '$lib/stores/auth';
-	import { currentTenant, tenantStore } from '$lib/stores/tenant';
+	import { auth } from '$lib/features/auth';
+	import { currentTenant, tenantStore } from '$lib/features/tenant';
 	import FormCompany from '$lib/components/ui/views/account/company/FormCompany.svelte';
 	import Modal from '$lib/components/core/primitives/Modal.svelte';
 	import { open } from '@tauri-apps/plugin-dialog';
-	import { configLocalClient } from '$lib/services/configLocal/clientConfigLocal';
+	import { configLocalClient } from '$lib/integrations/tauri/deviceConfig';
 
 	let { isOpen = $bindable(), onClose }: { isOpen: boolean; onClose: () => void } = $props();
 

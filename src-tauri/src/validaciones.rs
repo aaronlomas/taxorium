@@ -22,6 +22,9 @@ pub struct DatosValidacion<'a> {
     pub total_pagar: f64,
     /// Monto de operaciones exoneradas
     pub op_exoneradas: f64,
+    /// ICBPER total del documento (impuesto a las bolsas plásticas). No forma parte de
+    /// ninguna base, pero suma al total a pagar.
+    pub op_icbper: f64,
     /// Fecha de emisión en formato "YYYY-MM-DD"
     pub fecha_emision: &'a str,
     /// Tipo de operación (ej: "0101" = Venta interna)
@@ -45,6 +48,7 @@ pub fn validar_comprobante(datos: &DatosValidacion) -> Result<(), String> {
         datos.total_gravado,
         datos.total_igv,
         datos.op_exoneradas,
+        datos.op_icbper,
         datos.total_pagar,
     )?;
     validar_fecha_emision(datos.fecha_emision)?;
@@ -204,21 +208,24 @@ pub fn validar_igv_con_tolerancia(
 // REGLA 4: Total = Gravado + IGV (coherencia interna)
 // =============================================================================
 
-/// Valida que el total a pagar sea la suma de base_gravada + exoneradas + IGV con tolerancia ±0.05.
+/// Valida que el total a pagar sea la suma de base_gravada + exoneradas + IGV +
+/// ICBPER con tolerancia ±0.05.
 pub fn validar_total(
     base_gravada: f64,
     total_igv: f64,
     op_exoneradas: f64,
+    op_icbper: f64,
     total_pagar: f64,
 ) -> Result<(), String> {
-    let total_esperado = ((base_gravada + op_exoneradas + total_igv) * 100.0).round() / 100.0;
+    let total_esperado =
+        ((base_gravada + op_exoneradas + total_igv + op_icbper) * 100.0).round() / 100.0;
     let diferencia = (total_pagar - total_esperado).abs();
 
     if diferencia > 0.05 {
         return Err(format!(
             "El total a pagar (S/.{:.2}) no coincide con la suma esperada \
-             (gravado S/.{:.2} + exonerado S/.{:.2} + IGV S/.{:.2} = S/.{:.2}).",
-            total_pagar, base_gravada, op_exoneradas, total_igv, total_esperado
+             (gravado S/.{:.2} + exonerado S/.{:.2} + IGV S/.{:.2} + ICBPER S/.{:.2} = S/.{:.2}).",
+            total_pagar, base_gravada, op_exoneradas, total_igv, op_icbper, total_esperado
         ));
     }
 
@@ -391,6 +398,7 @@ mod tests {
             total_igv: 18.0,
             total_pagar: 118.0,
             op_exoneradas: 0.0,
+            op_icbper: 0.0,
             fecha_emision: "2026-09-27",
             tipo_operacion: "0101",
             lineas_gravadas: 1,
@@ -409,6 +417,7 @@ mod tests {
             total_igv: 106.78,
             total_pagar: 700.0,
             op_exoneradas: 0.0,
+            op_icbper: 0.0,
             fecha_emision: "2026-09-27",
             tipo_operacion: "0101",
             lineas_gravadas: 1,
@@ -427,6 +436,7 @@ mod tests {
             total_igv: 106.78,
             total_pagar: 700.01,
             op_exoneradas: 0.0,
+            op_icbper: 0.0,
             fecha_emision: "2026-09-27",
             tipo_operacion: "0101",
             lineas_gravadas: 1,
@@ -475,6 +485,7 @@ mod tests {
                 total_igv,
                 total_pagar: redondear(total_gravado + total_igv),
                 op_exoneradas: 0.0,
+                op_icbper: 0.0,
                 fecha_emision: &Local::now().format("%Y-%m-%d").to_string(),
                 tipo_operacion: "0101",
                 lineas_gravadas: lineas,
@@ -488,18 +499,25 @@ mod tests {
 
     #[test]
     fn test_total_correcto() {
-        assert!(validar_total(100.0, 18.0, 0.0, 118.0).is_ok());
+        assert!(validar_total(100.0, 18.0, 0.0, 0.0, 118.0).is_ok());
     }
 
     #[test]
     fn test_total_correcto_con_exonerados() {
         // 50 gravado + 9 IGV + 50 exonerado = 109
-        assert!(validar_total(50.0, 9.0, 50.0, 109.0).is_ok());
+        assert!(validar_total(50.0, 9.0, 50.0, 0.0, 109.0).is_ok());
+    }
+
+    /// El ICBPER suma al total sin formar parte de ninguna base imponible.
+    #[test]
+    fn test_total_correcto_con_icbper() {
+        // 50 gravado + 9 IGV + 5 exonerado + 1.50 ICBPER = 65.50
+        assert!(validar_total(50.0, 9.0, 5.0, 1.5, 65.5).is_ok());
     }
 
     #[test]
     fn test_total_incorrecto() {
-        assert!(validar_total(100.0, 18.0, 0.0, 120.0).is_err());
+        assert!(validar_total(100.0, 18.0, 0.0, 0.0, 120.0).is_err());
     }
 
     // ---------- Fecha ----------

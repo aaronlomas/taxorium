@@ -142,7 +142,8 @@ pub fn load_device_config(app: &AppHandle) -> HashMap<String, String> {
         Ok(contents) => match serde_json::from_str(&contents) {
             Ok(config) => config,
             Err(e) => {
-                let msg = format!("device_config.json tiene formato inválido y no se pudo leer: {e}");
+                let msg =
+                    format!("device_config.json tiene formato inválido y no se pudo leer: {e}");
                 emit::error(app, "config", &msg);
                 log::error!("{}", msg);
                 HashMap::new()
@@ -179,11 +180,7 @@ pub fn get_device_config(app: AppHandle) -> HashMap<String, String> {
 
 /// Guarda o actualiza un valor de la configuración local del dispositivo.
 #[tauri::command]
-pub fn set_device_config(
-    app: AppHandle,
-    clave: String,
-    valor: String,
-) -> Result<(), String> {
+pub fn set_device_config(app: AppHandle, clave: String, valor: String) -> Result<(), String> {
     let mut config = load_device_config(&app);
     config.insert(clave, valor);
     save_device_config(&app, &config)

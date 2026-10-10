@@ -1,8 +1,8 @@
-import type { SaleItem } from '$lib/stores/sales';
+import type { SaleItem } from '$lib/features/sales';
 import type { VoucherConfig } from './voucherContext';
 import { formatFecha, nextCorrelativo, parseFecha } from './voucherContext';
 import type { TenantRow } from '$lib/database.types';
-import type { Customer } from '$lib/services/customers/clientCustomer';
+import type { Customer } from '$lib/features/customers';
 
 /** Formatos que SUNAT consume: PDF para entregar al cliente y XML (UBL 2.1) para el envío electrónico. */
 export type VoucherFormat = 'pdf' | 'xml' | 'ambos';
@@ -96,24 +96,28 @@ export function buildVoucherData(
 	tenant: TenantRow | null,
 	items: SaleItem[],
 	cliente: Customer | null,
-	correlativo?: number
+	correlativo?: number,
+	tasaIcbper = 0.5
 ): VoucherData {
 	const serie = config.serie || (config.tipoComprobante === '03' ? 'B001' : 'F001');
 	const correlativoUsado = correlativo ?? nextCorrelativo(serie);
 
 	const exoneradoCodigos = ['20', '21', '30'];
-	const icbperCodigos = ['71', '72'];
 
-	const total = items.reduce((sum, i) => sum + i.total, 0);
+	// Importe de los productos (con IGV incluido). El ICBPER es un impuesto fijo por
+	// bolsa que se suma APARTE, no reemplaza el importe de la línea.
+	const baseProductos = items.reduce((sum, i) => sum + i.total, 0);
 	const opExoneradas = items
 		.filter((i) => exoneradoCodigos.includes(i.afectacion))
 		.reduce((sum, i) => sum + i.total, 0);
-	const icbper = items
-		.filter((i) => icbperCodigos.includes(i.afectacion))
-		.reduce((sum, i) => sum + i.total, 0);
+	const icbper =
+		Math.round(
+			items.reduce((sum, i) => sum + (i.tieneIcbper ? tasaIcbper * i.cantidad : 0), 0) * 100
+		) / 100;
 
-	const opGravadas = Math.max(0, total - opExoneradas - icbper);
-	const igv = total > 0 ? Math.round(opGravadas * (0.18 / 1.18) * 100) / 100 : 0;
+	const opGravadas = Math.max(0, baseProductos - opExoneradas);
+	const igv = baseProductos > 0 ? Math.round(opGravadas * (0.18 / 1.18) * 100) / 100 : 0;
+	const total = Math.round((baseProductos + icbper) * 100) / 100;
 
 	const moneda = config.moneda || 'PEN';
 	const montoPagado = Math.max(0, Number(config.montoRecibido) || 0);
@@ -476,7 +480,21 @@ export function generateVoucherXml(data: VoucherData): string {
 						<cbc:Name>IGV</cbc:Name>
 						<cbc:TaxTypeCode>VAT</cbc:TaxTypeCode>
 					</cac:TaxScheme>
-				</cac:TaxSubtotal>
+				</cac:TaxSubtotal>${
+					data.icbper > 0
+						? `
+				<cac:TaxSubtotal>
+					<cbc:TaxAmount currencyID="${currencyId}">${mono(data.icbper)}</cbc:TaxAmount>
+					<cac:TaxCategory>
+						<cac:TaxScheme>
+							<cbc:ID>7152</cbc:ID>
+							<cbc:Name>ICBPER</cbc:Name>
+							<cbc:TaxTypeCode>OTH</cbc:TaxTypeCode>
+						</cac:TaxScheme>
+					</cac:TaxCategory>
+				</cac:TaxSubtotal>`
+						: ''
+				}
 			</cac:TaxTotal>`;
 
 	const supplier = data.empresa;

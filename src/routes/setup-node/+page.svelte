@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { configStore } from '$lib/stores/config';
+	import { configStore } from '$lib/integrations/tauri/nodeConfig';
 	import { IconServer, IconDeviceDesktop } from '@tabler/icons-svelte';
 
 	let step = $state(1);

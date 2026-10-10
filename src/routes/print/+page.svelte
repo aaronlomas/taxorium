@@ -3,7 +3,7 @@
 	import InvoiceTemplate from '$lib/components/ui/print/InvoiceTemplate.svelte';
 	import type { PrintableInvoiceData } from '$lib/components/ui/print/invoiceTypes';
 	import type { PrintWindowPayload } from '$lib/components/ui/views/vouchers/pdfGenerator';
-	import { voucherClient } from '$lib/services/vouchers/clientVoucher';
+	import { voucherClient } from '$lib/features/vouchers';
 	import { readFile } from '@tauri-apps/plugin-fs';
 	import { emit } from '@tauri-apps/api/event';
 	import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -81,6 +81,7 @@
 				tipo_operacion: registration.tipo_operacion,
 				p12_bytes,
 				p12_password: registration.p12_password,
+				tasa_icbper: registration.tasa_icbper,
 				items: registration.items
 			});
 

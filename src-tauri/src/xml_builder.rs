@@ -33,6 +33,12 @@ impl From<f64> for Monto {
     }
 }
 
+impl Default for Monto {
+    fn default() -> Self {
+        Monto(0.0)
+    }
+}
+
 impl fmt::Display for Monto {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:.2}", self.0)
@@ -108,6 +114,10 @@ pub struct FacturaItem {
     pub precio_unitario: Monto,
     pub subtotal: Monto,
     pub igv: Monto,
+    /// ICBPER de la línea: impuesto fijo por bolsa plástica, se suma al IGV para
+    /// formar el `cbc:TaxAmount` del `cac:TaxTotal` de la línea.
+    #[serde(default)]
+    pub icbper: Monto,
     pub afectacion: String,
     pub descripcion: String,
 }
@@ -222,6 +232,10 @@ pub struct ItemVenta {
     pub total: Monto,
     pub afectacion: String,
     pub descripcion: String,
+    /// Si la línea es una bolsa plástica sujeta al ICBPER. El impuesto lo calcula
+    /// el backend con la tasa vigente (no viaja como importe desde el frontend).
+    #[serde(default)]
+    pub tiene_icbper: bool,
 }
 
 impl ItemVenta {
@@ -234,7 +248,7 @@ impl ItemVenta {
     /// que una línea con afectación `11` (o con la afectación vacía, que el
     /// frontend convertía en `10` al enviar) quedaba con Tributo 1000 y
     /// `cbc:TaxAmount` en 0.00.
-    pub fn into_item(self) -> Result<FacturaItem, String> {
+    pub fn into_item(self, tasa_icbper: f64) -> Result<FacturaItem, String> {
         let ItemVenta {
             unidad,
             cantidad,
@@ -242,6 +256,7 @@ impl ItemVenta {
             total,
             afectacion,
             descripcion,
+            tiene_icbper,
         } = self;
 
         let afectacion = afectacion.trim().to_string();
@@ -274,6 +289,15 @@ impl ItemVenta {
             base
         };
 
+        // El ICBPER es un impuesto fijo por unidad (bolsa), no un porcentaje: se
+        // calcula sobre la cantidad y se suma aparte del IGV. Una tasa negativa se
+        // ignora para no restar del total.
+        let icbper = if tiene_icbper {
+            redondear(tasa_icbper.max(0.0) * cantidad.0)
+        } else {
+            0.0
+        };
+
         Ok(FacturaItem {
             unidad,
             cantidad,
@@ -281,6 +305,7 @@ impl ItemVenta {
             precio_unitario,
             subtotal: base.into(),
             igv: igv.into(),
+            icbper: icbper.into(),
             afectacion,
             descripcion,
         })
@@ -288,8 +313,14 @@ impl ItemVenta {
 }
 
 /// Normaliza todos los ítems del frontend, en el mismo orden en que llegaron.
-pub fn items_de_venta(items: Vec<ItemVenta>) -> Result<Vec<FacturaItem>, String> {
-    items.into_iter().map(ItemVenta::into_item).collect()
+///
+/// `tasa_icbper` es el impuesto fijo por bolsa vigente (S/ 0.50 por defecto) y se
+/// aplica a las líneas marcadas con `tiene_icbper`.
+pub fn items_de_venta(items: Vec<ItemVenta>, tasa_icbper: f64) -> Result<Vec<FacturaItem>, String> {
+    items
+        .into_iter()
+        .map(|item| item.into_item(tasa_icbper))
+        .collect()
 }
 
 /// Totales del documento deducidos de las líneas ya normalizadas.
@@ -301,9 +332,12 @@ pub struct TotalesDocumento {
     pub base_total: f64,
     /// Base imponible de las líneas con IGV, la única contra la que se valida el IGV.
     pub base_gravada: f64,
-    /// Bases exoneradas, inafectas y de ICBPer: no generan IGV pero sí suman al total.
+    /// Bases exoneradas e inafectas: no generan IGV pero sí suman al total.
     pub base_no_gravada: f64,
     pub igv: f64,
+    /// Impuesto a las bolsas plásticas (ICBPER) del documento. No forma parte de
+    /// ninguna base: se suma al total por separado.
+    pub icbper: f64,
     pub total_pagar: f64,
     /// Cuántas de esas líneas pagan IGV, para dimensionar la tolerancia con la que
     /// se valida que el IGV total sea el 18% de la base.
@@ -321,6 +355,7 @@ pub fn totales_de(items: &[FacturaItem]) -> TotalesDocumento {
         base_gravada: 0.0,
         base_no_gravada: 0.0,
         igv: 0.0,
+        icbper: 0.0,
         total_pagar: 0.0,
         lineas_gravadas: 0,
     };
@@ -334,13 +369,15 @@ pub fn totales_de(items: &[FacturaItem]) -> TotalesDocumento {
         }
         totales.base_total += base;
         totales.igv += item.igv.0;
-        totales.total_pagar += base + item.igv.0;
+        totales.icbper += item.icbper.0;
+        totales.total_pagar += base + item.igv.0 + item.icbper.0;
     }
     TotalesDocumento {
         base_total: redondear(totales.base_total),
         base_gravada: redondear(totales.base_gravada),
         base_no_gravada: redondear(totales.base_no_gravada),
         igv: redondear(totales.igv),
+        icbper: redondear(totales.icbper),
         total_pagar: redondear(totales.total_pagar),
         lineas_gravadas: totales.lineas_gravadas,
     }
@@ -397,6 +434,27 @@ struct ItemConTributo {
     esquema_nombre: String,
     tipo_impuesto: String,
     categoria_id: String,
+    /// Si la línea lleva ICBPER, para que la plantilla emita el `cac:TaxSubtotal`
+    /// adicional con el esquema 7152.
+    tiene_icbper: bool,
+    /// Cantidad de bolsas como entero (el `cbc:BaseUnitMeasure` del ICBPER es
+    /// `xs:decimal` de tipo entero; SUNAT rechaza valores con decimales).
+    bolsas: String,
+    /// Tarifa por unidad del ICBPER (`cbc:PerUnitAmount`).
+    tasa_icbper: Monto,
+    /// Suma de todos los tributos de la línea (IGV + ICBPER) para el
+    /// `cbc:TaxAmount` del `cac:TaxTotal` de la línea.
+    impuesto_total: Monto,
+}
+
+/// Convierte una cantidad en el entero de bolsas que espera SUNAT, conservando
+/// decimales solo si la cantidad no es entera.
+fn formato_bolsas(cantidad: f64) -> String {
+    if (cantidad.fract()).abs() < 1e-9 {
+        format!("{}", cantidad.round() as i64)
+    } else {
+        format!("{cantidad:.2}")
+    }
 }
 
 /// Payload con los tributos derivados de cada ítem y los subtotales del documento
@@ -408,6 +466,9 @@ struct PayloadParaRender<'a> {
     payload: &'a FacturaPayload,
     items: Vec<ItemConTributo>,
     subtotales_impuestos: Vec<SubtotalImpuesto>,
+    /// ICBPER total del documento; `None` cuando no hay bolsas, para omitir el
+    /// `cac:TaxSubtotal` de ICBPER en la cabecera.
+    subtotal_icbper: Option<Monto>,
     total_impuestos: Monto,
 }
 
@@ -461,6 +522,14 @@ fn payload_para_render(payload: &FacturaPayload) -> Result<PayloadParaRender<'_>
                 esquema_nombre: tributo.esquema_nombre.to_string(),
                 tipo_impuesto: tributo.tipo_impuesto.to_string(),
                 categoria_id: tributo.categoria_id.to_string(),
+                tiene_icbper: item.icbper.0 > 0.0,
+                bolsas: formato_bolsas(item.cantidad.0),
+                tasa_icbper: Monto(if item.cantidad.0 > 0.0 {
+                    redondear(item.icbper.0 / item.cantidad.0)
+                } else {
+                    0.0
+                }),
+                impuesto_total: Monto(redondear(item.igv.0 + item.icbper.0)),
             }
         })
         .collect();
@@ -508,12 +577,23 @@ fn payload_para_render(payload: &FacturaPayload) -> Result<PayloadParaRender<'_>
         }
     }
 
-    let total_impuestos = Monto(redondear(subtotales.iter().map(|s| s.impuesto.0).sum()));
+    // El ICBPER no se agrupa por afectación: es un tributo propio del documento.
+    let total_icbper = redondear(payload.items.iter().map(|i| i.icbper.0).sum());
+    let subtotal_icbper = if total_icbper > 0.0 {
+        Some(Monto(total_icbper))
+    } else {
+        None
+    };
+
+    let total_impuestos = Monto(redondear(
+        subtotales.iter().map(|s| s.impuesto.0).sum::<f64>() + total_icbper,
+    ));
 
     Ok(PayloadParaRender {
         payload,
         items,
         subtotales_impuestos: subtotales,
+        subtotal_icbper,
         total_impuestos,
     })
 }
@@ -591,6 +671,7 @@ mod tests {
                 precio_unitario: 118.0.into(),
                 subtotal: 100.0.into(),
                 igv: 18.0.into(),
+                icbper: 0.0.into(),
                 afectacion: "10".to_string(),
                 descripcion: "PRODUCTO X".to_string(),
             }],
@@ -773,14 +854,24 @@ mod tests {
             total: (cantidad * unitario).into(),
             afectacion: afectacion.to_string(),
             descripcion: format!("ITEM {afectacion}"),
+            tiene_icbper: false,
         }
     }
 
     /// Ítem ya normalizado por el backend, como llega a la plantilla.
     fn item(afectacion: &str, cantidad: f64, unitario: f64) -> FacturaItem {
         item_venta(afectacion, cantidad, unitario)
-            .into_item()
+            .into_item(0.5)
             .unwrap()
+    }
+
+    /// Ítem de bolsa plástica sujeto al ICBPER. Se usa una afectación exonerada
+    /// para que el ICBPER quede claramente separado del IGV y de la base.
+    fn item_bolsa(cantidad: f64, unitario: f64) -> ItemVenta {
+        ItemVenta {
+            tiene_icbper: true,
+            ..item_venta("20", cantidad, unitario)
+        }
     }
 
     fn payload_con_items(items: Vec<FacturaItem>) -> FacturaPayload {
@@ -794,8 +885,10 @@ mod tests {
     }
 
     fn payload_con_items_venta(items: Vec<ItemVenta>) -> FacturaPayload {
-        let normalizados: Vec<FacturaItem> =
-            items.into_iter().map(|i| i.into_item().unwrap()).collect();
+        let normalizados: Vec<FacturaItem> = items
+            .into_iter()
+            .map(|i| i.into_item(0.5).unwrap())
+            .collect();
         payload_con_items(normalizados)
     }
 
@@ -942,7 +1035,7 @@ mod tests {
         for (cantidad, unitario) in [(1.0, 10.30), (3.0, 10.30), (7.0, 0.85), (2.0, 33.33)] {
             let venta = item_venta("10", cantidad, unitario);
             let total = venta.total.0;
-            let item = venta.into_item().unwrap();
+            let item = venta.into_item(0.5).unwrap();
             assert_eq!(
                 redondear(item.subtotal.0 + item.igv.0),
                 redondear(total),
@@ -957,7 +1050,7 @@ mod tests {
     fn una_afectacion_vacia_o_invalida_se_rechaza() {
         for afectacion in ["", "  ", "1", "ABC", "100"] {
             let error = item_venta(afectacion, 1.0, 118.0)
-                .into_item()
+                .into_item(0.5)
                 .expect_err("debería rechazar la afectación");
             assert!(
                 error.contains("ITEM") && error.contains("afectación del IGV válida"),
@@ -973,7 +1066,7 @@ mod tests {
     #[test]
     fn una_linea_en_cero_se_rechaza() {
         let error = item_venta("10", 0.0, 0.0)
-            .into_item()
+            .into_item(0.5)
             .expect_err("debería rechazar el importe en cero");
         assert!(error.contains("0.00"), "{error}");
     }
@@ -1060,6 +1153,56 @@ mod tests {
             cabecera_tax.starts_with("<cbc:TaxAmount currencyID=\"PEN\">45.00</cbc:TaxAmount>"),
             "{cabecera_tax}"
         );
+    }
+
+    /// ICBPER: impuesto fijo por bolsa (S/ 0.50), aparte del IGV y de la base.
+    #[test]
+    fn el_icbper_se_suma_como_impuesto_fijo_por_bolsa() {
+        let bolsa = item_bolsa(3.0, 1.0).into_item(0.5).unwrap();
+        assert_eq!(bolsa.subtotal.0, 3.0);
+        assert_eq!(bolsa.igv.0, 0.0);
+        assert_eq!(bolsa.icbper.0, 1.5);
+
+        let payload = payload_con_items_venta(vec![item_bolsa(3.0, 1.0)]);
+        let totales = totales_de(&payload.items);
+        assert_eq!(totales.icbper, 1.5);
+        assert_eq!(totales.total_pagar, 4.5);
+
+        let xml = generate_xml(&payload).unwrap();
+
+        // El total de impuestos incluye el ICBPER de la bolsa.
+        assert!(xml.contains("<cbc:TaxAmount currencyID=\"PEN\">1.50</cbc:TaxAmount>"));
+
+        // Cabecera + línea declaran el tributo con el esquema 7152 (ICBPER / OTH).
+        let con_icbper: Vec<_> = subtotales_de(&xml)
+            .into_iter()
+            .filter(|b| b.contains(">7152</cbc:ID>"))
+            .collect();
+        assert_eq!(con_icbper.len(), 2, "{xml}");
+        for bloque in &con_icbper {
+            assert!(bloque.contains("<cbc:Name>ICBPER</cbc:Name>"), "{bloque}");
+            assert!(
+                bloque.contains("<cbc:TaxTypeCode>OTH</cbc:TaxTypeCode>"),
+                "{bloque}"
+            );
+        }
+
+        // El subtotal de la línea declara las bolsas y la tarifa unitaria.
+        let linea = con_icbper
+            .iter()
+            .find(|b| b.contains("BaseUnitMeasure"))
+            .expect("la línea debe declarar BaseUnitMeasure");
+        assert!(
+            linea.contains("<cbc:BaseUnitMeasure unitCode=\"NIU\">3</cbc:BaseUnitMeasure>"),
+            "{linea}"
+        );
+        assert!(
+            linea.contains("<cbc:PerUnitAmount currencyID=\"PEN\">0.50</cbc:PerUnitAmount>"),
+            "{linea}"
+        );
+
+        // El total a pagar incluye la bolsa y su impuesto.
+        assert!(xml.contains("<cbc:PayableAmount currencyID=\"PEN\">4.50</cbc:PayableAmount>"));
     }
 
     /// El total del documento debe ser la suma de las líneas, sin residuo de coma

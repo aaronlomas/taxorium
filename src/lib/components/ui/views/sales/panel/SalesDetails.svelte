@@ -2,7 +2,8 @@
 	import Select from '$lib/components/core/primitives/Select.svelte';
 	import Number from '$lib/components/core/primitives/Number.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
-	import { salesStore } from '$lib/stores/sales';
+	import { salesStore } from '$lib/features/sales';
+	import { icbperStore } from '$lib/features/settings';
 	import VoucherModal from '$lib/components/ui/views/vouchers/VoucherModal.svelte';
 	import { voucherConfigStore } from '$lib/components/ui/views/vouchers/voucherContext';
 
@@ -33,19 +34,18 @@
 	const symbol = $derived(CURRENCY_SYMBOL[moneda] ?? 'S/.');
 
 	const exoneradoCodigos = ['20', '21', '30'];
-	const icbperCodigos = ['71', '72'];
 
-	const totalPagable = $derived($salesStore.reduce((sum, i) => sum + i.total, 0));
+	const subtotalProductos = $derived($salesStore.reduce((sum, i) => sum + i.total, 0));
 	const opExoneradas = $derived(
 		$salesStore
 			.filter((i) => exoneradoCodigos.includes(i.afectacion))
 			.reduce((sum, i) => sum + i.total, 0)
 	);
+	// ICBPER = tarifa fija por bolsa plástica, independiente del precio del producto.
 	const icbper = $derived(
-		$salesStore
-			.filter((i) => icbperCodigos.includes(i.afectacion))
-			.reduce((sum, i) => sum + i.total, 0)
+		$salesStore.reduce((sum, i) => sum + (i.tieneIcbper ? $icbperStore * i.cantidad : 0), 0)
 	);
+	const totalPagable = $derived(subtotalProductos + icbper);
 	const vuelto = $derived(+montoRecibido - totalPagable);
 </script>
 

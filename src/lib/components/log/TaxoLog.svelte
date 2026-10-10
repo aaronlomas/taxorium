@@ -2,7 +2,7 @@
 	import { createTypewriterLog } from './utilities/typewriter.ts';
 	import Modal from '$lib/components/core/primitives/Modal.svelte';
 	import { IconWindowMaximize } from '@tabler/icons-svelte';
-	import { taxoLog, type LogEntry } from '$lib/stores/taxoLog';
+	import { taxoLog, type LogEntry } from '$lib/features/taxoLog';
 
 	// Instanciamos el log animado con velocidad opcional (por defecto 25ms por carácter)
 	const animatedLog = createTypewriterLog(20);

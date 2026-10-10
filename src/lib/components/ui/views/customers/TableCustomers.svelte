@@ -1,10 +1,10 @@
 <script lang="ts">
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/Table.svelte';
 	import { IconTrash, IconEdit } from '@tabler/icons-svelte';
-	import type { Customer } from '$lib/services/customers/clientCustomer';
-	import { customerClient } from '$lib/services/customers/clientCustomer';
-	import { customersStore } from '$lib/stores/customers';
-	import { taxoLog } from '$lib/stores/taxoLog';
+	import type { Customer } from '$lib/features/customers';
+	import { customerClient } from '$lib/features/customers';
+	import { customersStore } from '$lib/features/customers';
+	import { taxoLog } from '$lib/features/taxoLog';
 	import type { CheckItem } from '$lib/components/core/primitives/TableFilter.svelte';
 
 	interface ColumnConfig extends CheckItem {

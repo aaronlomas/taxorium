@@ -10,9 +10,9 @@
 		IconDeviceDesktopPin,
 		IconAdjustments
 	} from '@tabler/icons-svelte';
-	import { isAuthenticated, isLoading, auth } from '$lib/stores/auth';
-	import { sellerAuth } from '$lib/stores/sellerAuth';
-	import { currentTenant, tenantLoading } from '$lib/stores/tenant';
+	import { isAuthenticated, isLoading, auth } from '$lib/features/auth';
+	import { sellerAuth } from '$lib/features/sellerAuth';
+	import { currentTenant, tenantLoading } from '$lib/features/tenant';
 	import Modal from '$lib/components/core/primitives/Modal.svelte';
 	import Dropdown from '$lib/components/core/primitives/dropdown/Dropdown.svelte';
 	import DropdownItem from '$lib/components/core/primitives/dropdown/DropdownItem.svelte';

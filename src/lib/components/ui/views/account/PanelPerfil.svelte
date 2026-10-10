@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { invoke } from '@tauri-apps/api/core';
-	import { currentUser } from '$lib/stores/auth';
-	import { currentTenant } from '$lib/stores/tenant';
-	import { configStore } from '$lib/stores/config';
-	import { licenseExpiry } from '$lib/stores/license';
+	import { currentUser } from '$lib/features/auth';
+	import { currentTenant } from '$lib/features/tenant';
+	import { configStore } from '$lib/integrations/tauri/nodeConfig';
+	import { licenseExpiry } from '$lib/features/license';
 	import { IconKey, IconMail, IconBuilding, IconEdit } from '@tabler/icons-svelte';
 	import ModalCompany from '$lib/components/ui/views/account/company/ModalCompany.svelte';
 

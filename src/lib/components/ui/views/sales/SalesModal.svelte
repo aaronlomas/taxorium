@@ -5,9 +5,9 @@
 	import Select from '$lib/components/core/primitives/Select.svelte';
 	import Number from '$lib/components/core/primitives/Number.svelte';
 	import ProductModal from '$lib/components/ui/views/products/ProductModal.svelte';
-	import { productsStore, editingProduct } from '$lib/stores/products';
-	import { salesStore } from '$lib/stores/sales';
-	import { catalogoStore, afectacionesVentaOptions } from '$lib/stores/catalogos';
+	import { productsStore, editingProduct } from '$lib/features/products';
+	import { salesStore } from '$lib/features/sales';
+	import { catalogoStore, afectacionesVentaOptions } from '$lib/features/catalogos';
 
 	let { isOpen = $bindable(false), onClose }: { isOpen: boolean; onClose: () => void } = $props();
 
@@ -75,6 +75,7 @@
 			subtotal,
 			total: subtotal,
 			afectacion: afectacionIgv || producto.afectacion_venta || '20',
+			tieneIcbper: producto.tiene_icbper ?? false,
 			moneda: producto.moneda
 		});
 

@@ -51,11 +51,21 @@ pub struct CreateVoucherPayload {
     pub tipo_operacion: String,
     pub p12_bytes: Vec<u8>,
     pub p12_password: String,
+    /// Tarifa vigente del ICBPER por bolsa. La envía el frontend desde Ajustes para
+    /// que el importe que vio el usuario sea el mismo que se declara ante SUNAT; si
+    /// no viene (payloads antiguos) se usa S/ 0.50.
+    #[serde(default = "tasa_icbper_default")]
+    pub tasa_icbper: f64,
     /// Las líneas tal como las capturó el usuario: precios con IGV incluido y la
     /// afectación de cada ítem. Los totales del comprobante no se reciben, se derivan
     /// de aquí para que el frontend no pueda declarar una base que no cuadre con sus
     /// propias líneas.
     pub items: Vec<ItemVenta>,
+}
+
+/// Tarifa por defecto del ICBPER (S/ 0.50 por bolsa), usada si el payload no la trae.
+fn tasa_icbper_default() -> f64 {
+    0.5
 }
 
 // --- CORE LOGIC ---
@@ -123,7 +133,7 @@ pub fn core_create_voucher(
     // --- Validaciones de Reglas de Negocio SUNAT ---
     // Las líneas se normalizan primero: de ahí salen la base imponible, el IGV de
     // cada ítem y los totales, todos con el mismo criterio (`tributo_de`).
-    let items = items_de_venta(payload.items)?;
+    let items = items_de_venta(payload.items, payload.tasa_icbper)?;
     if items.is_empty() {
         return Err("Un comprobante no puede emitirse sin ítems.".into());
     }
@@ -138,6 +148,7 @@ pub fn core_create_voucher(
         total_igv: totales.igv,
         total_pagar: totales.total_pagar,
         op_exoneradas: totales.base_no_gravada,
+        op_icbper: totales.icbper,
         fecha_emision: &payload.fecha_de_emision,
         tipo_operacion: &payload.tipo_operacion,
         lineas_gravadas: totales.lineas_gravadas,
@@ -320,7 +331,11 @@ pub async fn create_voucher(
     .map_err(|e| format!("La tarea de registro no se pudo ejecutar: {e}"))?;
 
     match &resultado {
-        Ok(v) => log::info!("vouchers: {} registrado con id {}", v.numero_comprobante, v.id),
+        Ok(v) => log::info!(
+            "vouchers: {} registrado con id {}",
+            v.numero_comprobante,
+            v.id
+        ),
         Err(e) => log::error!("vouchers: create_voucher fallo para {numero}: {e}"),
     }
 
@@ -373,7 +388,7 @@ mod tests {
 
         // 75.52 con IGV incluido son 64.00 de base y 11.52 de IGV: el reparto lo hace
         // el backend a partir de la afectación, no el frontend.
-        let items = items_de_venta(payload.items).unwrap();
+        let items = items_de_venta(payload.items, 0.5).unwrap();
         assert_eq!(items[0].subtotal.to_string(), "64.00");
         assert_eq!(items[0].igv.to_string(), "11.52");
         assert_eq!(items[0].valor_unitario.to_string(), "8.00");

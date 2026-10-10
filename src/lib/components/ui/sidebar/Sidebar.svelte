@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { isAuthenticated } from '$lib/stores/auth';
+	import { isAuthenticated } from '$lib/features/auth';
 	import MainControls from './main-controls/MainControls.svelte';
 	import OptionRecords from './options/OptionRecords.svelte';
 	import type { ElementoNavegacion } from './navegation';

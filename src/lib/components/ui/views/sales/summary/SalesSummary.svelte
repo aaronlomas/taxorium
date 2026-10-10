@@ -9,9 +9,9 @@
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/Table.svelte';
 
 	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
-	import { taxoLog } from '$lib/stores/taxoLog';
+	import { taxoLog } from '$lib/features/taxoLog';
 	import { formatFecha, parseFecha } from '$lib/components/ui/views/vouchers/voucherContext';
-	import { voucherClient, type Voucher } from '$lib/services/vouchers/clientVoucher';
+	import { voucherClient, type Voucher } from '$lib/features/vouchers';
 	import { invoke } from '@tauri-apps/api/core';
 	import { save } from '@tauri-apps/plugin-dialog';
 	import { writeFile } from '@tauri-apps/plugin-fs';

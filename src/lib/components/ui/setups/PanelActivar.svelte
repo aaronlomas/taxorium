@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { IconKey } from '@tabler/icons-svelte';
-	import { licenseStore } from '$lib/stores/license';
+	import { licenseStore } from '$lib/features/license';
 	import Input from '$lib/components/core/primitives/Input.svelte';
 	import Button from '$lib/components/core/primitives/Button.svelte';
 
