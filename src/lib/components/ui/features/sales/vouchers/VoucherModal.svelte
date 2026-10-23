@@ -47,11 +47,12 @@
 	let mensaje = $state('');
 	let voucherData = $state<VoucherData | null>(null);
 	const sinItems = $derived($salesStore.length === 0);
+	const sinTipoCambio = $derived(
+		$voucherConfigStore.moneda !== 'PEN' && !(Number($voucherConfigStore.tipoCambio) > 0)
+	);
 	const sinRucEnFactura = $derived(
 		voucherData?.tipoComprobante === '01' &&
-			(!voucherData.cliente ||
-				(voucherData.cliente.tipoDocumento !== '6' &&
-					voucherData.cliente.tipoDocumento.toUpperCase() !== 'RUC'))
+			(!voucherData.cliente || voucherData.cliente.tipoDocumento !== '6')
 	);
 
 	// Escuchar el evento que emite la ventana de preview cuando el usuario confirma.
@@ -147,9 +148,13 @@
 				numero_comprobante: voucherData.numeroCompleto,
 				serie: voucherData.serie,
 				correlativo: voucherData.correlativo,
+				establecimiento: voucherData.establecimiento,
 				tipo_comprobante: voucherData.tipoComprobante,
 				moneda: voucherData.moneda,
+				tipo_cambio: voucherData.tipoCambio,
 				estado_pago: voucherData.estadoPago,
+				forma_pago: voucherData.condicionPago || 'Contado',
+				fecha_vencimiento: voucherData.fechaVencimiento || voucherData.fechaEmision,
 				emisor_ruc: tenant!.ruc,
 				emisor_razon_social: tenant!.razon_social,
 				emisor_ubigeo: tenant!.ubigeo || '',
@@ -265,6 +270,13 @@
 			</div>
 		{/if}
 
+		{#if sinTipoCambio}
+			<div class="flex items-center gap-2 text-sm text-red-400">
+				<IconAlertTriangle size={16} class="shrink-0" />
+				<span>Para comprobantes en moneda extranjera debes indicar el tipo de cambio.</span>
+			</div>
+		{/if}
+
 		{#if estado === 'error'}
 			<div class="flex items-center gap-2 text-sm text-red-400">
 				<IconAlertTriangle size={16} />
@@ -282,7 +294,7 @@
 			<Button
 				variant="primary"
 				onclick={abrirPreview}
-				disabled={estado === 'preparando' || sinItems || sinRucEnFactura}
+				disabled={estado === 'preparando' || sinItems || sinRucEnFactura || sinTipoCambio}
 			>
 				{#snippet children()}
 					<IconEye size={16} />

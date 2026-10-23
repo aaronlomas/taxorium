@@ -9,6 +9,7 @@ import PanelSalesView from '../features/sales/panel/SalesView.svelte';
 import SalesReceiptView from '../features/sales/vouchers/SalesReceiptView.svelte';
 import InvoiceView from '../features/sales/vouchers/InvoiceView.svelte';
 import SalesSummaryView from '../features/sales/summary/SalesSummary.svelte';
+import PanelPurchaseView from '../features/purchase/panel/PurchaseView.svelte';
 
 import SettingsView from '../features/settings/SettingsView.svelte';
 import DesignerPreviewView from '../features/print/DesignerPreviewView.svelte';
@@ -25,6 +26,7 @@ export const viewRoutes: Record<string, Component<any>> = {
 	Factura: InvoiceView,
 	'Envíos SUNAT': SalesSummaryView,
 	Ventas: PanelSalesView,
+	Compras: PanelPurchaseView,
 	Configuración: SettingsView,
 	'Diseñador de PDF': DesignerPreviewView,
 	'Mi Cuenta': ProfileView,

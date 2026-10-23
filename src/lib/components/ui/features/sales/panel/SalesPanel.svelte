@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Select from '$lib/components/core/primitives/forms/Select.svelte';
 	import Input from '$lib/components/core/primitives/forms/Input.svelte';
+	import Number from '$lib/components/core/primitives/forms/Number.svelte';
 	import Fecha from '$lib/components/core/primitives/forms/InputDate.svelte';
 	import Button from '$lib/components/core/primitives/actions/Button.svelte';
 	import SalesModal from '$lib/components/ui/features/sales/SalesModal.svelte';
@@ -49,6 +50,9 @@
 	let isModalOpen = $state(false);
 	let isCustomersModalOpen = $state(false);
 
+	/** El tipo de cambio solo aplica cuando la moneda es dólares. */
+	const esDolar = $derived($voucherConfigStore.moneda === 'USD');
+
 	const seriesDisponibles = $derived($seriesOptionsPorTipo($voucherConfigStore.tipoComprobante));
 
 	$effect(() => {
@@ -90,7 +94,7 @@
 				/>
 				<Select
 					id="tipoPago"
-					label="Tipo de Pago"
+					label="Forma de Pago"
 					options={$tiposPagoOptions}
 					bind:value={$voucherConfigStore.tipoPago}
 				/>
@@ -100,6 +104,7 @@
 					id="seleccionarCliente"
 					label="Seleccionar Cliente"
 					placeholder="Seleccionar cliente..."
+					required
 					options={clientesOptions}
 					bind:value={$voucherConfigStore.clienteId}
 				/>
@@ -142,11 +147,14 @@
 				options={$monedasOptions}
 				bind:value={$voucherConfigStore.moneda}
 			/>
-
-			<Input
-				id="OrdenDeCompra"
-				label="Orden de Compra"
-				bind:value={$voucherConfigStore.ordenCompra}
+			<Number
+				id="tipoCambio"
+				label="Tipo de Cambio"
+				step={0.01}
+				decimals={2}
+				min={0}
+				disabled={!esDolar}
+				bind:value={$voucherConfigStore.tipoCambio}
 			/>
 		</div>
 
@@ -169,12 +177,10 @@
 				options={$sedesOptions}
 				bind:value={$voucherConfigStore.establecimiento}
 			/>
-
 			<Input
-				id="tipoCambio"
-				label="Tipo de Cambio"
-				disabled={true}
-				bind:value={$voucherConfigStore.tipoCambio}
+				id="OrdenDeCompra"
+				label="Orden de Compra"
+				bind:value={$voucherConfigStore.ordenCompra}
 			/>
 		</div>
 	</div>

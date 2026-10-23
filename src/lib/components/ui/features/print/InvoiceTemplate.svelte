@@ -60,6 +60,10 @@
 		<section class="grid grid-cols-2 py-2 text-[11px]">
 			<p>Fecha de Emisión:</p>
 			{data.fecha_emision}
+			{#if data.tipo_cambio}
+				<p>Tipo de Cambio:</p>
+				{data.tipo_cambio.toFixed(2)}
+			{/if}
 			<p>Cliente:</p>
 			{data.cliente.nombre_o_razon_social}
 			<p>{data.cliente.tipo_doc}:</p>
@@ -205,6 +209,9 @@
 				</h2>
 				<p><span class="font-semibold">Fecha de Emisión:</span> {data.fecha_emision}</p>
 				<p><span class="font-semibold">Moneda:</span> {data.totales.moneda}</p>
+				{#if data.tipo_cambio}
+					<p><span class="font-semibold">Tipo de Cambio:</span> {data.tipo_cambio.toFixed(2)}</p>
+				{/if}
 				{#if data.forma_pago}
 					<p><span class="font-semibold">Forma de Pago:</span> {data.forma_pago}</p>
 				{/if}

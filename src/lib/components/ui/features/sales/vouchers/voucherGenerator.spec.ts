@@ -3,7 +3,8 @@ import {
 	buildVoucherData,
 	generateVoucherPdf,
 	generateVoucherXml,
-	estadoPagoDesdeTipoPago
+	estadoPagoDesdeTipoPago,
+	tipoDocumentoSunat
 } from './voucherGenerator';
 import type { VoucherConfig } from './voucherContext';
 
@@ -100,6 +101,60 @@ describe('voucherGenerator', () => {
 		expect(data.total).toBe(2.1);
 	});
 
+	it('mapea las etiquetas de documento a códigos SUNAT', () => {
+		expect(tipoDocumentoSunat('RUC')).toBe('6');
+		expect(tipoDocumentoSunat('DNI')).toBe('1');
+		expect(tipoDocumentoSunat('CE')).toBe('4');
+		expect(tipoDocumentoSunat('Carné de extranjería')).toBe('4');
+		expect(tipoDocumentoSunat('PASAPORTE')).toBe('7');
+		expect(tipoDocumentoSunat('6')).toBe('6');
+	});
+
+	it('normaliza el tipo de documento del cliente al catálogo 06 de SUNAT', () => {
+		const cliente = {
+			id: 1,
+			tipo_documento: 'RUC',
+			numero_documento: '20123456789',
+			nombre: 'CLIENTE DE PRUEBA SRL',
+			activo: true
+		};
+
+		const data = buildVoucherData(
+			sampleConfig({ tipoComprobante: '01', serie: 'F001' }),
+			null,
+			sampleItems(),
+			cliente
+		);
+
+		expect(data.cliente?.tipoDocumento).toBe('6');
+		expect(generateVoucherXml(data)).toContain('schemeID="6"');
+	});
+
+	it('incluye el código de establecimiento en el XML', () => {
+		const data = buildVoucherData(
+			sampleConfig({ establecimiento: '0001' }),
+			null,
+			sampleItems(),
+			null
+		);
+
+		expect(data.establecimiento).toBe('0001');
+
+		const xml = generateVoucherXml(data);
+		const supplier = xml
+			.split('<cac:AccountingSupplierParty>')[1]
+			.split('</cac:AccountingSupplierParty>')[0];
+		const legalEntity = supplier
+			.split('<cac:PartyLegalEntity>')[1]
+			.split('</cac:PartyLegalEntity>')[0];
+		const partyTaxScheme = supplier
+			.split('<cac:PartyTaxScheme>')[1]
+			.split('</cac:PartyTaxScheme>')[0];
+
+		expect(legalEntity).toContain('<cbc:AddressTypeCode>0001</cbc:AddressTypeCode>');
+		expect(partyTaxScheme).not.toContain('AddressTypeCode');
+	});
+
 	it('genera XML UBL 2.1 bien formado', () => {
 		const data = buildVoucherData(sampleConfig(), null, sampleItems(), null);
 		const xml = generateVoucherXml(data);
@@ -107,6 +162,56 @@ describe('voucherGenerator', () => {
 		expect(xml).toContain('urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
 		expect(xml).toContain(data.numeroCompleto);
 		expect(xml).toContain('<cbc:IssueDate>2026-09-04</cbc:IssueDate>');
+	});
+
+	it('incluye el tipo de cambio en el XML cuando la moneda es USD', () => {
+		const data = buildVoucherData(
+			sampleConfig({ moneda: 'USD', tipoCambio: '3.44' }),
+			null,
+			sampleItems(),
+			null
+		);
+		expect(data.tipoCambio).toBe(3.44);
+
+		const xml = generateVoucherXml(data);
+		expect(xml).toContain('<cac:PricingExchangeRate>');
+		expect(xml).toContain('<cbc:SourceCurrencyCode>USD</cbc:SourceCurrencyCode>');
+		expect(xml).toContain('<cbc:TargetCurrencyCode>PEN</cbc:TargetCurrencyCode>');
+		expect(xml).toContain('<cbc:CalculationRate>3.44</cbc:CalculationRate>');
+	});
+
+	it('omite el tipo de cambio cuando la moneda es PEN', () => {
+		const data = buildVoucherData(
+			sampleConfig({ moneda: 'PEN', tipoCambio: '3.44' }),
+			null,
+			sampleItems(),
+			null
+		);
+		expect(data.tipoCambio).toBe(0);
+		expect(generateVoucherXml(data)).not.toContain('<cac:PricingExchangeRate>');
+	});
+
+	it('incluye cac:PaymentTerms al contado por defecto', () => {
+		const data = buildVoucherData(sampleConfig({ tipoPago: 'Contado' }), null, sampleItems(), null);
+		const xml = generateVoucherXml(data);
+		expect(xml).toContain('<cac:PaymentTerms>');
+		expect(xml).toContain('<cbc:ID>FormaPago</cbc:ID>');
+		expect(xml).toContain('<cbc:PaymentMeansID>Contado</cbc:PaymentMeansID>');
+	});
+
+	it('incluye cac:PaymentTerms al crédito con monto pendiente y cuota', () => {
+		const data = buildVoucherData(
+			sampleConfig({ tipoPago: 'Credito', fechaVencimiento: '15/10/2026' }),
+			null,
+			sampleItems(),
+			null
+		);
+		const xml = generateVoucherXml(data);
+		expect(xml).toContain('<cac:PaymentTerms>');
+		expect(xml).toContain('<cbc:PaymentMeansID>Credito</cbc:PaymentMeansID>');
+		expect(xml).toContain('<cbc:PaymentMeansID>Cuota001</cbc:PaymentMeansID>');
+		expect(xml).toContain('<cbc:PaymentDueDate>2026-10-15</cbc:PaymentDueDate>');
+		expect(xml).toContain(`<cbc:Amount currencyID="PEN">${data.total.toFixed(2)}</cbc:Amount>`);
 	});
 });
 

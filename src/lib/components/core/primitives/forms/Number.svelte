@@ -9,6 +9,9 @@
 		step?: number;
 		min?: number;
 		max?: number;
+		/** Cantidad fija de decimales con la que se muestra y redondea el valor. */
+		decimals?: number;
+		disabled?: boolean;
 	}
 
 	let {
@@ -20,25 +23,41 @@
 		id = crypto.randomUUID(),
 		step = 1,
 		min,
-		max
+		max,
+		decimals,
+		disabled = false
 	}: Props = $props();
 
 	function increment() {
+		if (disabled) return;
 		let current = Number(value) || 0;
 		if (max !== undefined && current >= max) return;
-		value = current + step;
+		value = redondear(current + step);
 	}
 
 	function decrement() {
+		if (disabled) return;
 		let current = Number(value) || 0;
 		if (min !== undefined && current <= min) return;
-		value = current - step;
+		value = redondear(current - step);
+	}
+
+	/** Redondea según los decimales configurados (o los del step) para evitar artefactos de coma flotante. */
+	function redondear(n: number): number {
+		const decimales = decimals ?? (String(step).split('.')[1] ?? '').length;
+		return decimales > 0 ? Number(n.toFixed(decimales)) : n;
 	}
 
 	// Filtra la entrada del teclado en tiempo real
 	function handleInput(e: Event) {
+		if (disabled) return;
 		const target = e.target as HTMLInputElement;
 		let rawValue = target.value;
+
+		// Acepta la coma como separador decimal (teclados con locale es-ES).
+		if (rawValue.includes(',') && !rawValue.includes('.')) {
+			rawValue = rawValue.replace(',', '.');
+		}
 
 		// Permite números, un solo punto decimal y un solo signo menos al inicio
 		rawValue = rawValue
@@ -61,12 +80,12 @@
 
 	// Convierte a número válido al perder el foco (ej: si quedó un "-" solo o vacío)
 	function handleBlur() {
+		if (disabled) return;
 		let current = Number(value);
 		if (isNaN(current) || value === '') {
-			value = min !== undefined ? min : 0;
-		} else {
-			value = current;
+			current = min !== undefined ? min : 0;
 		}
+		value = decimals !== undefined ? current.toFixed(decimals) : current;
 	}
 </script>
 
@@ -80,7 +99,7 @@
 	<div
 		class="flex w-full overflow-hidden rounded-sm border border-neutral-800 bg-neutral-900 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 {error
 			? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500'
-			: ''}"
+			: ''} {disabled ? 'cursor-not-allowed opacity-50' : ''}"
 	>
 		<!-- Usamos type="text" con inputmode="decimal" para teclados móviles -->
 		<input
@@ -88,9 +107,12 @@
 			type="text"
 			inputmode="decimal"
 			{value}
+			{disabled}
 			oninput={handleInput}
 			onblur={handleBlur}
-			class="h-full w-full border-none bg-transparent px-3 text-sm text-neutral-200 outline-none focus:ring-0 focus:outline-none {className}"
+			class="h-full w-full border-none bg-transparent px-3 text-sm text-neutral-200 outline-none focus:ring-0 focus:outline-none {disabled
+				? 'cursor-not-allowed'
+				: ''} {className}"
 		/>
 
 		<div class="flex flex-col border-l border-neutral-700">
@@ -99,8 +121,9 @@
 				title="Incrementar"
 				type="button"
 				tabindex="-1"
+				{disabled}
 				onclick={increment}
-				class="flex flex-1 items-center justify-center bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white"
+				class="flex flex-1 items-center justify-center bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white disabled:cursor-not-allowed disabled:hover:bg-neutral-800 disabled:hover:text-neutral-400"
 			>
 				<svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
@@ -111,8 +134,9 @@
 				title="Decrementar"
 				type="button"
 				tabindex="-1"
+				{disabled}
 				onclick={decrement}
-				class="flex flex-1 items-center justify-center border-t border-neutral-700 bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white"
+				class="flex flex-1 items-center justify-center border-t border-neutral-700 bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white disabled:cursor-not-allowed disabled:hover:bg-neutral-800 disabled:hover:text-neutral-400"
 			>
 				<svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path

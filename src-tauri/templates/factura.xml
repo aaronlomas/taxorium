@@ -34,11 +34,28 @@
     </ext:UBLExtensions>
     <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
     <cbc:CustomizationID>2.0</cbc:CustomizationID>
+    <cbc:ProfileID schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo51" schemeName="Tipo de Operación">{{ tipo_operacion }}</cbc:ProfileID>
     <cbc:ID>{{ serie }}-{{ correlativo }}</cbc:ID>
     <cbc:IssueDate>{{ fecha_emision }}</cbc:IssueDate>
     <cbc:IssueTime>{{ hora_emision }}</cbc:IssueTime>
     <cbc:InvoiceTypeCode listID="0101" listAgencyName="PE:SUNAT" listName="Tipo de Documento" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo01">{{ tipo_comprobante }}</cbc:InvoiceTypeCode>
     <cbc:DocumentCurrencyCode listID="ISO 4217 Alpha" listName="Currency" listAgencyName="United Nations Economic Commission for Europe">{{ moneda }}</cbc:DocumentCurrencyCode>
+    <cac:Signature>
+        <cbc:ID>{{ emisor_ruc }}</cbc:ID>
+        <cac:SignatoryParty>
+            <cac:PartyIdentification>
+                <cbc:ID>{{ emisor_ruc }}</cbc:ID>
+            </cac:PartyIdentification>
+            <cac:PartyName>
+                <cbc:Name><![CDATA[{{ emisor_razon_social }}]]></cbc:Name>
+            </cac:PartyName>
+        </cac:SignatoryParty>
+        <cac:DigitalSignatureAttachment>
+            <cac:ExternalReference>
+                <cbc:URI>#SignTaxorium</cbc:URI>
+            </cac:ExternalReference>
+        </cac:DigitalSignatureAttachment>
+    </cac:Signature>
     
     <cac:AccountingSupplierParty>
         <cac:Party>
@@ -48,10 +65,18 @@
             <cac:PartyName>
                 <cbc:Name><![CDATA[{{ emisor_razon_social }}]]></cbc:Name>
             </cac:PartyName>
+            <cac:PartyTaxScheme>
+                <cbc:RegistrationName><![CDATA[{{ emisor_razon_social }}]]></cbc:RegistrationName>
+                <cbc:CompanyID schemeID="6" schemeName="Documento de Identidad" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">{{ emisor_ruc }}</cbc:CompanyID>
+                <cac:TaxScheme>
+                    <cbc:ID>-</cbc:ID>
+                </cac:TaxScheme>
+            </cac:PartyTaxScheme>
             <cac:PartyLegalEntity>
                 <cbc:RegistrationName><![CDATA[{{ emisor_razon_social }}]]></cbc:RegistrationName>
                 <cac:RegistrationAddress>
                     <cbc:ID schemeName="Ubigeos" schemeAgencyName="PE:INEI">{{ emisor_ubigeo }}</cbc:ID>
+                    <cbc:AddressTypeCode>{{ establecimiento }}</cbc:AddressTypeCode>
                     <cac:AddressLine>
                         <cbc:Line><![CDATA[{{ emisor_direccion }}]]></cbc:Line>
                     </cac:AddressLine>
@@ -70,7 +95,32 @@
             </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingCustomerParty>
-    
+    {% if forma_pago == "Credito" %}
+    <cac:PaymentTerms>
+        <cbc:ID>FormaPago</cbc:ID>
+        <cbc:PaymentMeansID>Credito</cbc:PaymentMeansID>
+        <cbc:Amount currencyID="{{ moneda }}">{% if monto_neto_pendiente %}{{ monto_neto_pendiente }}{% else %}{{ total_pagar }}{% endif %}</cbc:Amount>
+    </cac:PaymentTerms>
+    <cac:PaymentTerms>
+        <cbc:ID>FormaPago</cbc:ID>
+        <cbc:PaymentMeansID>Cuota001</cbc:PaymentMeansID>
+        <cbc:Amount currencyID="{{ moneda }}">{% if monto_neto_pendiente %}{{ monto_neto_pendiente }}{% else %}{{ total_pagar }}{% endif %}</cbc:Amount>
+        <cbc:PaymentDueDate>{% if fecha_vencimiento %}{{ fecha_vencimiento }}{% else %}{{ fecha_emision }}{% endif %}</cbc:PaymentDueDate>
+    </cac:PaymentTerms>
+    {% else %}
+    <cac:PaymentTerms>
+        <cbc:ID>FormaPago</cbc:ID>
+        <cbc:PaymentMeansID>Contado</cbc:PaymentMeansID>
+    </cac:PaymentTerms>
+    {% endif %}
+    {% if tipo_cambio %}
+    <cac:PricingExchangeRate>
+        <cbc:SourceCurrencyCode>{{ moneda }}</cbc:SourceCurrencyCode>
+        <cbc:TargetCurrencyCode>PEN</cbc:TargetCurrencyCode>
+        <cbc:CalculationRate>{{ tipo_cambio }}</cbc:CalculationRate>
+        <cbc:Date>{{ fecha_emision }}</cbc:Date>
+    </cac:PricingExchangeRate>
+    {% endif %}
     <cac:TaxTotal>
         <cbc:TaxAmount currencyID="{{ moneda }}">{{ total_impuestos }}</cbc:TaxAmount>
         {% for grupo in subtotales_impuestos %}

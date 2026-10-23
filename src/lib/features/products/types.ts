@@ -2,6 +2,8 @@ export interface Product {
 	id: number;
 	codigo_interno?: string;
 	codigo_unidad: string;
+	codigo_unidad_compra: string;
+	factor_a_unidad_base: number;
 	nombre: string;
 	codigo_sunat?: string;
 	codigo_gsl?: string;
@@ -21,6 +23,8 @@ export interface Product {
 export interface CreateProductPayload {
 	codigo_interno?: string;
 	codigo_unidad: string;
+	codigo_unidad_compra?: string;
+	factor_a_unidad_base?: number;
 	nombre: string;
 	codigo_sunat?: string;
 	codigo_gsl?: string;

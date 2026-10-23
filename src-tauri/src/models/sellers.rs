@@ -2,7 +2,7 @@ use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 use tauri::State;
 
-use boveda_core::crypto::{decrypt_with_password, encrypt_with_password, verify_with_password};
+use criptor::crypto::{decrypt_with_password, encrypt_with_password, verify_with_password};
 
 use crate::AppState;
 

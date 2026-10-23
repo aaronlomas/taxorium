@@ -3,9 +3,11 @@ export interface Voucher {
 	fecha_de_emision: string;
 	cliente: string;
 	numero_comprobante: string;
-	estado_validez: 'registrado' | 'rechazado' | 'aceptado';
+	estado_validez: 'registrado' | 'rechazado' | 'aceptado' | 'anulado';
 	estado_pago: 'pendiente' | 'pagado';
 	moneda: string;
+	/** Tipo de cambio a soles; `null` para comprobantes emitidos en soles. */
+	tipo_cambio: number | null;
 	gravado: number;
 	igv: number;
 	total: number;
@@ -14,6 +16,8 @@ export interface Voucher {
 	estado_sunat: number;
 	codigo_cdr: string | null;
 	descripcion_cdr: string | null;
+	forma_pago?: string;
+	fecha_vencimiento?: string | null;
 }
 
 export interface VoucherItem {
@@ -36,9 +40,17 @@ export interface CreateVoucherPayload {
 	numero_comprobante: string;
 	serie: string;
 	correlativo: number;
+	/** Código de local anexo del emisor (catálogo 22 de SUNAT, ej. "0000"). */
+	establecimiento?: string;
 	tipo_comprobante: string;
 	moneda: string;
+	/** Tipo de cambio a soles (obligatorio cuando la moneda no es PEN). */
+	tipo_cambio?: number;
 	estado_pago?: 'pendiente' | 'pagado';
+	/** Forma de pago SUNAT: 'Contado' o 'Credito'. */
+	forma_pago?: string;
+	/** Fecha de vencimiento si la venta es al crédito. */
+	fecha_vencimiento?: string;
 	emisor_ruc: string;
 	emisor_razon_social: string;
 	emisor_ubigeo: string;

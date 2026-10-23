@@ -65,6 +65,7 @@ function mapToPrintableData(data: VoucherData, format: PaperFormat): PrintableIn
 		tipo_comprobante: data.tipoComprobanteLabel,
 		serie_correlativo: data.numeroCompleto,
 		fecha_emision: `${data.fechaEmision} ${data.horaEmision}`,
+		tipo_cambio: data.tipoCambio > 0 ? data.tipoCambio : undefined,
 		empresa: {
 			ruc: data.empresa.ruc,
 			razon_social: data.empresa.razonSocial,

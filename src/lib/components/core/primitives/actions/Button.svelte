@@ -37,7 +37,7 @@
 		secondary: 'text-gray-900 bg-gray-100 hover:bg-gray-200 whitespace-nowrap',
 		danger: 'text-white bg-red-600 hover:bg-red-700 whitespace-nowrap',
 		outline:
-			'border border-neutral-700 bg-neutral-900 text-neutral-300 hover:bg-neutral-800 transition-colors whitespace-nowrap'
+			'border border-neutral-800 bg-neutral-900 text-neutral-300 hover:bg-neutral-800 transition-colors whitespace-nowrap'
 	};
 
 	const sizes = {

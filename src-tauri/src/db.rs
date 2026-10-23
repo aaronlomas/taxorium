@@ -11,9 +11,66 @@ use std::fs;
 use tauri::{AppHandle, Manager};
 
 fn obtener_migraciones() -> Migrations<'static> {
-    Migrations::new(vec![M::up(include_str!(
-        "../migrations/01_esquema_inicial.sql"
-    ))])
+    Migrations::new(vec![
+        M::up(include_str!("../migrations/01_esquema_inicial.sql")),
+        // Migración 2: Amplía el CHECK constraint de estado_validez para incluir
+        // 'anulado'. SQLite no permite ALTER COLUMN, por lo que se usa el patrón
+        // estándar: renombrar → recrear → copiar → eliminar temporal.
+        M::up(
+            "PRAGMA foreign_keys = OFF;
+             ALTER TABLE comprobantes RENAME TO _comprobantes_old;
+             CREATE TABLE comprobantes (
+                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                 fecha_de_emision TEXT NOT NULL,
+                 cliente TEXT NOT NULL,
+                 numero_comprobante TEXT NOT NULL UNIQUE,
+                 estado_validez TEXT NOT NULL DEFAULT 'registrado'
+                     CHECK (estado_validez IN ('registrado', 'rechazado', 'aceptado', 'anulado')),
+                 estado_pago TEXT NOT NULL DEFAULT 'pendiente'
+                     CHECK (estado_pago IN ('pendiente', 'pagado')),
+                 xml_firmado TEXT,
+                 moneda TEXT NOT NULL DEFAULT 'PEN',
+                 tipo_cambio REAL,
+                 gravado REAL NOT NULL DEFAULT 0,
+                 igv REAL NOT NULL DEFAULT 0,
+                 total REAL NOT NULL DEFAULT 0,
+                 forma_pago TEXT NOT NULL DEFAULT 'Contado' REFERENCES tipos_pago(codigo),
+                 monto_neto_pendiente REAL,
+                 fecha_vencimiento TEXT,
+                 estado BOOLEAN NOT NULL DEFAULT 1,
+                 hash_cpe TEXT,
+                 estado_sunat INTEGER NOT NULL DEFAULT 0,
+                 codigo_cdr TEXT,
+                 descripcion_cdr TEXT,
+                 xml_cdr TEXT
+             );
+             INSERT INTO comprobantes SELECT * FROM _comprobantes_old;
+             DROP TABLE _comprobantes_old;
+             CREATE INDEX IF NOT EXISTS idx_comprobantes_numero ON comprobantes(numero_comprobante);
+             CREATE INDEX IF NOT EXISTS idx_comprobantes_estado_validez ON comprobantes(estado_validez);
+             PRAGMA foreign_keys = ON;",
+        ),
+        // Migración 3: Tabla anulaciones para almacenar historial, tickets y
+        // CDRs devueltos por SUNAT al procesar una Comunicación de Baja o anulación.
+        M::up(
+            "DROP TABLE IF EXISTS anulaciones;
+             CREATE TABLE anulaciones (
+                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                 comprobante_id INTEGER NOT NULL REFERENCES comprobantes(id),
+                 tipo TEXT NOT NULL CHECK (tipo IN ('baja', 'nota_credito', 'local')),
+                 motivo TEXT NOT NULL,
+                 id_baja TEXT,
+                 ticket TEXT,
+                 codigo_cdr TEXT,
+                 descripcion_cdr TEXT,
+                 xml_cdr TEXT,
+                 xml_baja_firmado TEXT,
+                 fecha_anulacion TEXT NOT NULL DEFAULT (datetime('now'))
+             );
+             CREATE INDEX IF NOT EXISTS idx_anulaciones_comprobante ON anulaciones(comprobante_id);
+             CREATE INDEX IF NOT EXISTS idx_anulaciones_ticket ON anulaciones(ticket);",
+        ),
+    ])
 }
 
 #[cfg(test)]
@@ -31,6 +88,53 @@ mod tests {
         let migraciones = obtener_migraciones();
         let mut conn = rusqlite::Connection::open_in_memory().unwrap();
         migraciones.to_latest(&mut conn).unwrap();
+    }
+
+    #[test]
+    fn tabla_anulaciones_funciona() {
+        let migraciones = obtener_migraciones();
+        let mut conn = rusqlite::Connection::open_in_memory().unwrap();
+        migraciones.to_latest(&mut conn).unwrap();
+
+        // Poblar catálogo requerido por FK de comprobantes
+        conn.execute(
+            "INSERT INTO tipos_pago (codigo, descripcion) VALUES ('Contado', 'Pago al contado')",
+            [],
+        )
+        .unwrap();
+
+        // Insertar comprobante de prueba
+        conn.execute(
+            "INSERT INTO comprobantes (fecha_de_emision, cliente, numero_comprobante, gravado, igv, total)
+             VALUES ('2026-10-22', 'CLIENTE DE PRUEBA', 'F001-00000001', 100.0, 18.0, 118.0)",
+            [],
+        )
+        .unwrap();
+        let voucher_id = conn.last_insert_rowid();
+
+        // Insertar anulación con CDR
+        conn.execute(
+            "INSERT INTO anulaciones (
+                comprobante_id, tipo, motivo, id_baja, ticket,
+                codigo_cdr, descripcion_cdr, xml_cdr, xml_baja_firmado
+            ) VALUES (?1, 'baja', 'Error en el RUC', 'RA-20261022-1', '1234567890', '0', 'La baja ha sido aceptada', '<xml_cdr/>', '<xml_baja/>')",
+            rusqlite::params![voucher_id],
+        )
+        .unwrap();
+
+        // Verificar consulta
+        let (tipo, motivo, ticket, codigo_cdr): (String, String, Option<String>, Option<String>) = conn
+            .query_row(
+                "SELECT tipo, motivo, ticket, codigo_cdr FROM anulaciones WHERE comprobante_id = ?1",
+                rusqlite::params![voucher_id],
+                |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
+            )
+            .unwrap();
+
+        assert_eq!(tipo, "baja");
+        assert_eq!(motivo, "Error en el RUC");
+        assert_eq!(ticket.as_deref(), Some("1234567890"));
+        assert_eq!(codigo_cdr.as_deref(), Some("0"));
     }
 }
 
@@ -83,6 +187,69 @@ fn run_migrations(conn: &mut Connection, app: &AppHandle) -> Result<(), String> 
         emit::error(app, "db", &msg);
         msg
     })?;
+
+    // Bases creadas con la primera versión del esquema no tienen esta columna.
+    // `rusqlite_migration` ya marcó la migración inicial como aplicada, así que se
+    // agrega de forma idempotente para no obligar a recrear la base.
+    let ya_existe: bool = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('comprobantes') WHERE name = 'tipo_cambio'",
+            [],
+            |row| row.get::<_, i64>(0),
+        )
+        .map(|n| n > 0)
+        .map_err(|e| e.to_string())?;
+
+    if !ya_existe {
+        conn.execute("ALTER TABLE comprobantes ADD COLUMN tipo_cambio REAL", [])
+            .map_err(|e| e.to_string())?;
+    }
+
+    let tiene_forma_pago: bool = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('comprobantes') WHERE name = 'forma_pago'",
+            [],
+            |row| row.get::<_, i64>(0),
+        )
+        .map(|n| n > 0)
+        .map_err(|e| e.to_string())?;
+
+    if !tiene_forma_pago {
+        conn.execute(
+            "ALTER TABLE comprobantes ADD COLUMN forma_pago TEXT NOT NULL DEFAULT 'Contado'",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    let tiene_monto_pendiente: bool = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('comprobantes') WHERE name = 'monto_neto_pendiente'",
+            [],
+            |row| row.get::<_, i64>(0),
+        )
+        .map(|n| n > 0)
+        .map_err(|e| e.to_string())?;
+
+    if !tiene_monto_pendiente {
+        conn.execute("ALTER TABLE comprobantes ADD COLUMN monto_neto_pendiente REAL", [])
+            .map_err(|e| e.to_string())?;
+    }
+
+    let tiene_fecha_venc: bool = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('comprobantes') WHERE name = 'fecha_vencimiento'",
+            [],
+            |row| row.get::<_, i64>(0),
+        )
+        .map(|n| n > 0)
+        .map_err(|e| e.to_string())?;
+
+    if !tiene_fecha_venc {
+        conn.execute("ALTER TABLE comprobantes ADD COLUMN fecha_vencimiento TEXT", [])
+            .map_err(|e| e.to_string())?;
+    }
+
     Ok(())
 }
 

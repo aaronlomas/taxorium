@@ -8,10 +8,13 @@
 <script lang="ts">
 	let {
 		head,
-		body
+		body,
+		sm = false
 	}: {
 		head?: Snippet;
 		body?: Snippet;
+		/** Aplica un alto fijo de 380px con scroll al contenedor de la tabla. */
+		sm?: boolean;
 	} = $props();
 </script>
 
@@ -43,7 +46,7 @@
 {/snippet}
 
 <!-- Estructura HTML contenedora -->
-<div class="overflow-auto rounded-md border border-neutral-800">
+<div class="overflow-auto rounded-md border border-neutral-800 {sm ? 'max-h-65' : ''}">
 	<table class="w-full bg-neutral-900 text-center">
 		<thead class="border-b border-neutral-800 text-neutral-400">
 			{@render head?.()}

@@ -41,6 +41,8 @@ export interface PrintableInvoiceData {
 	tipo_comprobante: string; // 'Factura Electrónica' o 'Boleta de Venta Electrónica'
 	serie_correlativo: string; // Ej: 'F001-00000123'
 	fecha_emision: string; // Ej: '2023-10-25 14:30:00'
+	/** Tipo de cambio a soles, solo para comprobantes en moneda extranjera. */
+	tipo_cambio?: number;
 
 	// Entidades
 	empresa: PrintCompanyData;

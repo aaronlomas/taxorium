@@ -6,4 +6,5 @@ export * from './print';
 export * from './products';
 export * from './reports';
 export * from './sales';
+export * from './purchase';
 export * from './settings';

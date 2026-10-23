@@ -4,6 +4,7 @@ export * from './sellers';
 export * from './catalogos';
 export * from './vouchers';
 export * from './sales';
+export * from './purchase';
 export * from './settings';
 export * from './auth';
 export * from './sellerAuth';

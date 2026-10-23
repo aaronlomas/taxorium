@@ -129,14 +129,7 @@
 			title="Abrir calendario"
 			class="absolute top-0 right-0 bottom-0 flex h-full items-center border-l border-neutral-700 bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white"
 		>
-			<svg fill="none" stroke="currentColor" class="size-4" viewBox="0 0 24 24"
-				><path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2"
-				/></svg
-			>
+			<svg fill="none" stroke="currentColor" class="size-4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2"/></svg>
 		</button>
 	</div>
 

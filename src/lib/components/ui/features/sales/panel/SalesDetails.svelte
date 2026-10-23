@@ -54,7 +54,7 @@
 		<div class="w-56">
 			<Select
 				id="medioDePago"
-				label="Forma de Pago"
+				label="Medio de Pago"
 				options={medioDePagoContado}
 				bind:value={medioSeleccionado}
 			/>

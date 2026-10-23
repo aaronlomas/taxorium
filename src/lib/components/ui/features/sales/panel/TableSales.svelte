@@ -2,11 +2,11 @@
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/data/Table.svelte';
 	import { salesStore } from '$lib/features/sales';
 	import { getUnitDisplay } from '$lib/features/catalogos';
+	import { IconTrash } from '@tabler/icons-svelte';
 
 	const CURRENCY_SYMBOL: Record<string, string> = {
 		PEN: 'S/.',
-		USD: '$',
-		EUR: '€'
+		USD: '$'
 	};
 
 	function formatMoney(item: { moneda: string }, value: number): string {
@@ -19,7 +19,7 @@
 	}
 </script>
 
-<Table>
+<Table sm={true}>
 	{#snippet head()}
 		<tr class="text-sm text-blue-400">
 			{#snippet headIndex()}
@@ -85,10 +85,9 @@
 					{#snippet cellAccion()}
 						<button
 							class="cursor-pointer text-red-500 transition-colors hover:text-red-400"
-							title="Eliminar"
 							onclick={() => handleDelete(item.id)}
 						>
-							Eliminar
+							<IconTrash size={16} />
 						</button>
 					{/snippet}
 					{@render cell({ children: cellAccion })}

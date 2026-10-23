@@ -89,7 +89,10 @@ pub fn run() {
             models::vouchers::get_next_correlativo,
             sunat::enviar_a_sunat,
             sunat::firmar_factura_sunat,
-            sunat::descargar_documento_sunat
+            sunat::descargar_documento_sunat,
+            sunat::anular_voucher,
+            sunat::enviar_baja_sunat,
+            sunat::obtener_anulacion_voucher
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {

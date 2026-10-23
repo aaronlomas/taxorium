@@ -6,9 +6,11 @@
 		IconDatabaseExport,
 		IconEye,
 		IconSend,
-		IconDownload
+		IconDownload,
+		IconBan
 	} from '@tabler/icons-svelte';
 	//PRIMITIVAS
+	import Hint from '$lib/components/core/primitives/data/Hint.svelte';
 	import TableFilter, {
 		type CheckItem
 	} from '$lib/components/core/primitives/data/TableFilter.svelte';
@@ -16,6 +18,8 @@
 	import Select from '$lib/components/core/primitives/forms/Select.svelte';
 	import Search from '$lib/components/core/primitives/data/Search.svelte';
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/data/Table.svelte';
+	import Modal from '$lib/components/core/primitives/feedback/Modal.svelte';
+	import InputTextarea from '$lib/components/core/primitives/forms/InputTextarea.svelte';
 	//SERVICIOS
 	import { invoke } from '@tauri-apps/api/core';
 	import { get } from 'svelte/store';
@@ -26,6 +30,8 @@
 	import { formatFecha } from '$lib/components/ui/features/sales/vouchers/voucherContext';
 	import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 	import type { PrintableInvoiceData } from '$lib/components/ui/features/print/invoiceTypes';
+	import { readFile } from '@tauri-apps/plugin-fs';
+	import { configLocalClient } from '$lib/integrations/tauri/deviceConfig';
 
 	interface ColumnConfig extends CheckItem {
 		key: keyof Voucher;
@@ -131,6 +137,7 @@
 				: 'BOLETA DE VENTA ELECTRÓNICA',
 			serie_correlativo: voucher.numero_comprobante,
 			fecha_emision: voucher.fecha_de_emision,
+			tipo_cambio: voucher.tipo_cambio ?? undefined,
 			empresa: {
 				ruc: tenant.ruc,
 				razon_social: tenant.razon_social,
@@ -228,6 +235,108 @@
 		}
 	}
 
+	let isAnulando = $state<number | null>(null);
+
+	// ── Modal de Anulación ─────────────────────────────────────────
+	type AnulacionStep = 'motivo' | 'resultado';
+
+	let anulacionModal = $state<{
+		open: boolean;
+		voucher: Voucher | null;
+		step: AnulacionStep;
+		motivo: string;
+		motivoError: string;
+		resultado: { ok: boolean; mensaje: string } | null;
+		cargando: boolean;
+	}>({ open: false, voucher: null, step: 'motivo', motivo: '', motivoError: '', resultado: null, cargando: false });
+
+	function handleAnular(voucher: Voucher) {
+		anulacionModal = {
+			open: true,
+			voucher,
+			step: 'motivo',
+			motivo: '',
+			motivoError: '',
+			resultado: null,
+			cargando: false
+		};
+	}
+
+	function cerrarAnulacionModal() {
+		anulacionModal.open = false;
+	}
+
+	async function confirmarAnulacion() {
+		if (!anulacionModal.voucher) return;
+		if (!anulacionModal.motivo.trim()) {
+			anulacionModal.motivoError = 'El motivo es obligatorio.';
+			return;
+		}
+		anulacionModal.motivoError = '';
+		anulacionModal.cargando = true;
+		isAnulando = anulacionModal.voucher.id;
+
+		try {
+			const tenant = get(tenantStore).tenant;
+			if (!tenant || !tenant.ruc || !tenant.usuario_sol || !tenant.clave_sol) {
+				throw new Error('Faltan las credenciales SOL de la empresa.');
+			}
+
+			// Leer certificado desde config local
+			let certPath: string;
+			let p12Password: string;
+			try {
+				const cfg = await configLocalClient.getAll();
+				certPath = cfg.certificado_path ?? tenant?.certificado_path ?? '';
+				p12Password = cfg.clave_cert ?? localStorage.getItem('taxorium_cert_pwd') ?? '';
+			} catch {
+				certPath = tenant?.certificado_path ?? '';
+				p12Password = localStorage.getItem('taxorium_cert_pwd') ?? '';
+			}
+			if (!certPath) throw new Error('La empresa no tiene un certificado configurado.');
+
+			const p12Bytes = await readFile(certPath);
+
+			// Enviar Comunicación de Baja (VoidedDocuments) ante SUNAT
+			const correlativoBaja = Math.floor(Date.now() / 1000) % 99999;
+			const res = await invoke<{ ticket: string; codigo: string; descripcion: string }>(
+				'enviar_baja_sunat',
+				{
+					payload: {
+						ruc: tenant.ruc,
+						usuario_sol: tenant.usuario_sol,
+						clave_sol: tenant.clave_sol,
+						client_id: (tenant as any).sunat_client_id || '',
+						client_secret: (tenant as any).sunat_client_secret || '',
+						ambiente: 'beta',
+						p12_bytes: Array.from(p12Bytes),
+						p12_password: p12Password,
+						voucher_id: anulacionModal.voucher.id,
+						motivo: anulacionModal.motivo.trim(),
+						emisor_razon_social: tenant.razon_social,
+						correlativo_baja: correlativoBaja
+					}
+				}
+			);
+			const aceptado = res.codigo === '0';
+			anulacionModal.resultado = {
+				ok: aceptado,
+				mensaje: aceptado
+					? `✓ SUNAT aceptó la Comunicación de Baja. Ticket: ${res.ticket}. ${res.descripcion}`
+					: `✕ SUNAT procesó la baja (código ${res.codigo}): ${res.descripcion}`
+			};
+
+			vouchers = await voucherClient.getVouchers();
+		} catch (e) {
+			const msg = e instanceof Error ? e.message : typeof e === 'string' ? e : JSON.stringify(e);
+			anulacionModal.resultado = { ok: false, mensaje: `Error al anular ante SUNAT: ${msg}` };
+		} finally {
+			anulacionModal.cargando = false;
+			anulacionModal.step = 'resultado';
+			isAnulando = null;
+		}
+	}
+
 	const CURRENCY_SYMBOL: Record<string, string> = {
 		PEN: 'S/.',
 		USD: '$',
@@ -263,6 +372,8 @@
 				return 'text-emerald-400';
 			case 'rechazado':
 				return 'text-red-400';
+			case 'anulado':
+				return 'text-rose-400 line-through';
 			default:
 				return 'text-amber-400';
 		}
@@ -397,43 +508,58 @@
 							{@render cell({ children: cellVal })}
 						{/each}
 						{#snippet cellActions()}
-							<div class="flex items-center justify-center gap-2">
+							<div class="flex items-center justify-center gap-1.5">
 								{#if voucher.estado_sunat === 0}
-									<button
-										class="flex cursor-pointer items-center gap-1 rounded-sm border border-emerald-500/40 px-2 py-0.5 text-emerald-400 transition-colors hover:bg-emerald-500/10 disabled:opacity-50"
-										onclick={() => handleEmitir(voucher)}
-										title="Emitir a SUNAT"
-										disabled={isEmitting === voucher.id}
-									>
-										{#if isEmitting === voucher.id}
-											<span
-												class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent"
-											></span>
-											Enviando...
-										{:else}
-											<IconSend size={14} />
-											Emitir
-										{/if}
-									</button>
+									<Hint text="Emitir a SUNAT" side="top">
+										<button
+											class="flex cursor-pointer items-center justify-center rounded-sm border border-emerald-500/40 p-1.5 text-emerald-400 transition-colors hover:bg-emerald-500/10 disabled:opacity-50"
+											onclick={() => handleEmitir(voucher)}
+											disabled={isEmitting === voucher.id || isAnulando === voucher.id}
+										>
+											{#if isEmitting === voucher.id}
+												<span
+													class="inline-block size-3.5 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent"
+												></span>
+											{:else}
+												<IconSend size={15} />
+											{/if}
+										</button>
+									</Hint>
+								{:else if (voucher.estado_sunat === 1 && voucher.estado_validez !== 'anulado') || (voucher.estado_sunat === 3 && voucher.codigo_cdr !== '0')}
+									<Hint text={voucher.estado_sunat === 3 ? 'Declarar baja ante SUNAT' : 'Anular comprobante'} side="top">
+										<button
+											class="flex cursor-pointer items-center justify-center rounded-sm border border-rose-500/40 p-1.5 text-rose-400 transition-colors hover:bg-rose-500/10 disabled:opacity-50"
+											onclick={() => handleAnular(voucher)}
+											disabled={isEmitting === voucher.id || isAnulando === voucher.id}
+										>
+											{#if isAnulando === voucher.id}
+												<span
+													class="inline-block size-3.5 animate-spin rounded-full border-2 border-rose-400 border-t-transparent"
+												></span>
+											{:else}
+												<IconBan size={15} />
+											{/if}
+										</button>
+									</Hint>
 								{/if}
-								<button
-									class="flex cursor-pointer items-center gap-1 rounded-sm border border-blue-500/40 px-2 py-0.5 text-blue-400 transition-colors hover:bg-blue-500/10 disabled:opacity-50"
-									onclick={() => handleConsultar(voucher)}
-									title="Consultar comprobante"
-									disabled={isEmitting === voucher.id}
-								>
-									<IconEye size={14} />
-									Consultar
-								</button>
-								<button
-									class="flex cursor-pointer items-center gap-1 rounded-sm border border-purple-500/40 px-2 py-0.5 text-purple-400 transition-colors hover:bg-purple-500/10 disabled:opacity-50"
-									onclick={() => handleDescargar(voucher)}
-									title="Descargar comprobante"
-									disabled={isEmitting === voucher.id}
-								>
-									<IconDownload size={14} />
-									Descargar
-								</button>
+								<Hint text="Consultar comprobante" side="top">
+									<button
+										class="flex cursor-pointer items-center justify-center rounded-sm border border-blue-500/40 p-1.5 text-blue-400 transition-colors hover:bg-blue-500/10 disabled:opacity-50"
+										onclick={() => handleConsultar(voucher)}
+										disabled={isEmitting === voucher.id || isAnulando === voucher.id}
+									>
+										<IconEye size={15} />
+									</button>
+								</Hint>
+								<Hint text="Descargar comprobante" side="top">
+									<button
+										class="flex cursor-pointer items-center justify-center rounded-sm border border-purple-500/40 p-1.5 text-purple-400 transition-colors hover:bg-purple-500/10 disabled:opacity-50"
+										onclick={() => handleDescargar(voucher)}
+										disabled={isEmitting === voucher.id || isAnulando === voucher.id}
+									>
+										<IconDownload size={15} />
+									</button>
+								</Hint>
 							</div>
 						{/snippet}
 						{@render cell({ children: cellActions })}
@@ -444,3 +570,83 @@
 		{/snippet}
 	</Table>
 </div>
+
+<!-- ── Modal de Anulación ─────────────────────────────────────────────── -->
+<Modal
+	bind:isOpen={anulacionModal.open}
+	onClose={cerrarAnulacionModal}
+	title={anulacionModal.step === 'motivo' ? 'Anular Comprobante' : 'Resultado de Anulación'}
+	closable={!anulacionModal.cargando}
+>
+	<div class="w-120 p-4">
+		{#if anulacionModal.step === 'motivo'}
+			<!-- Paso 1: Ingresar motivo -->
+			<div class="mb-3 rounded-sm border border-rose-500/30 bg-rose-950/30 px-3 py-2 text-xs text-rose-300">
+				<strong>Atención:</strong> La anulación marcará el comprobante como anulado en el sistema.
+				Ante SUNAT deberá gestionar una <strong>Comunicación de Baja</strong> (dentro de los 7 días)
+				o una <strong>Nota de Crédito</strong> según el tipo de comprobante.
+			</div>
+
+			{#if anulacionModal.voucher}
+				<p class="mb-3 text-sm text-neutral-400">
+					Comprobante: <span class="font-semibold text-neutral-200">{anulacionModal.voucher.numero_comprobante}</span>
+				</p>
+			{/if}
+
+			<InputTextarea
+				label="Motivo de anulación"
+				bind:value={anulacionModal.motivo}
+				error={anulacionModal.motivoError}
+				placeholder="Describa el motivo de la anulación..."
+				rows={4}
+				required
+				disabled={anulacionModal.cargando}
+			/>
+
+			<div class="mt-4 flex items-center justify-end gap-2">
+				<button
+					type="button"
+					onclick={cerrarAnulacionModal}
+					disabled={anulacionModal.cargando}
+					class="rounded-sm border border-neutral-700 px-4 py-1.5 text-sm text-neutral-300 transition-colors hover:bg-neutral-800 disabled:opacity-50"
+				>
+					Cancelar
+				</button>
+				<button
+					type="button"
+					onclick={confirmarAnulacion}
+					disabled={anulacionModal.cargando}
+					class="flex items-center gap-2 rounded-sm border border-rose-500/50 bg-rose-950/40 px-4 py-1.5 text-sm text-rose-300 transition-colors hover:bg-rose-900/50 disabled:opacity-50"
+				>
+					{#if anulacionModal.cargando}
+						<span class="inline-block size-3.5 animate-spin rounded-full border-2 border-rose-400 border-t-transparent"></span>
+						Procesando...
+					{:else}
+						Confirmar Anulación
+					{/if}
+				</button>
+			</div>
+
+		{:else if anulacionModal.step === 'resultado' && anulacionModal.resultado}
+			<!-- Paso 2: Mostrar resultado -->
+			<div
+				class="mb-4 rounded-sm border px-3 py-3 text-sm {anulacionModal.resultado.ok
+					? 'border-emerald-500/30 bg-emerald-950/30 text-emerald-300'
+					: 'border-red-500/30 bg-red-950/30 text-red-300'}"
+			>
+				<p class="font-semibold">{anulacionModal.resultado.ok ? '✓ Anulación Registrada' : '✕ Error'}</p>
+				<p class="mt-1 text-xs opacity-90">{anulacionModal.resultado.mensaje}</p>
+			</div>
+
+			<div class="flex justify-end">
+				<button
+					type="button"
+					onclick={cerrarAnulacionModal}
+					class="rounded-sm border border-neutral-700 px-4 py-1.5 text-sm text-neutral-300 transition-colors hover:bg-neutral-800"
+				>
+					Aceptar
+				</button>
+			</div>
+		{/if}
+	</div>
+</Modal>

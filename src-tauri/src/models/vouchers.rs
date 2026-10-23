@@ -1,11 +1,11 @@
 use crate::validaciones::{parse_fecha_emision_iso, validar_comprobante, DatosValidacion};
 use crate::xml_builder::{
     canonicalize_signed_info, canonicalize_xml, generate_xml, hash_xml_sha256, items_de_venta,
-    remove_signature, totales_de, FacturaPayload, ItemVenta,
+    remove_signature, totales_de, FacturaPayload, ItemVenta, Monto,
 };
 use crate::AppState;
 use base64::{engine::general_purpose, Engine as _};
-use boveda_core::{parse_pkcs12, sign_hash_with_key};
+use criptor::{parse_pkcs12, sign_hash_with_key};
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, State};
@@ -21,6 +21,8 @@ pub struct Voucher {
     pub estado_validez: String,
     pub estado_pago: String,
     pub moneda: String,
+    /// Tipo de cambio a soles; `None` para comprobantes emitidos en soles.
+    pub tipo_cambio: Option<f64>,
     pub gravado: f64,
     pub igv: f64,
     pub total: f64,
@@ -29,6 +31,9 @@ pub struct Voucher {
     pub estado_sunat: i64,
     pub codigo_cdr: Option<String>,
     pub descripcion_cdr: Option<String>,
+    #[serde(default = "forma_pago_default")]
+    pub forma_pago: String,
+    pub fecha_vencimiento: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -38,9 +43,22 @@ pub struct CreateVoucherPayload {
     pub numero_comprobante: String,
     pub serie: String,
     pub correlativo: i64,
+    /// Código de local anexo del emisor (catálogo 22 de SUNAT). Si un payload
+    /// antiguo no lo envía, se usa "0000" (oficina principal).
+    #[serde(default = "establecimiento_default")]
+    pub establecimiento: String,
     pub tipo_comprobante: String,
     pub moneda: String,
+    /// Tipo de cambio a soles. Obligatorio cuando `moneda` no es `PEN`.
+    #[serde(default)]
+    pub tipo_cambio: Option<Monto>,
     pub estado_pago: Option<String>,
+    /// Forma de pago SUNAT: "Contado" o "Credito".
+    #[serde(default = "forma_pago_default")]
+    pub forma_pago: String,
+    /// Fecha de vencimiento ("YYYY-MM-DD" o "DD/MM/YYYY") si aplica.
+    #[serde(default)]
+    pub fecha_vencimiento: Option<String>,
     // Campos para validaciones SUNAT
     pub emisor_ruc: String,
     pub emisor_razon_social: String,
@@ -68,6 +86,15 @@ fn tasa_icbper_default() -> f64 {
     0.5
 }
 
+/// Código de local anexo por defecto: oficina principal.
+fn establecimiento_default() -> String {
+    "0000".to_string()
+}
+
+fn forma_pago_default() -> String {
+    "Contado".to_string()
+}
+
 // --- CORE LOGIC ---
 
 /// Devuelve el siguiente correlativo disponible para una serie, tomado de la
@@ -84,7 +111,7 @@ pub fn core_next_correlativo(db: &Connection, serie: &str) -> Result<i64, String
 pub fn core_get_vouchers(db: &Connection) -> Result<Vec<Voucher>, String> {
     let mut stmt = db
         .prepare(
-            "SELECT id, fecha_de_emision, cliente, numero_comprobante, estado_validez, estado_pago, moneda, gravado, igv, total, estado, hash_cpe, estado_sunat, codigo_cdr, descripcion_cdr FROM comprobantes WHERE estado = 1 ORDER BY numero_comprobante DESC",
+            "SELECT id, fecha_de_emision, cliente, numero_comprobante, estado_validez, estado_pago, moneda, tipo_cambio, gravado, igv, total, estado, hash_cpe, estado_sunat, codigo_cdr, descripcion_cdr, forma_pago, fecha_vencimiento FROM comprobantes WHERE estado = 1 ORDER BY numero_comprobante DESC",
         )
         .map_err(|e| e.to_string())?;
 
@@ -98,14 +125,17 @@ pub fn core_get_vouchers(db: &Connection) -> Result<Vec<Voucher>, String> {
                 estado_validez: row.get(4)?,
                 estado_pago: row.get(5)?,
                 moneda: row.get(6)?,
-                gravado: row.get(7)?,
-                igv: row.get(8)?,
-                total: row.get(9)?,
-                estado: row.get(10)?,
-                hash_cpe: row.get(11)?,
-                estado_sunat: row.get(12)?,
-                codigo_cdr: row.get(13)?,
-                descripcion_cdr: row.get(14)?,
+                tipo_cambio: row.get(7)?,
+                gravado: row.get(8)?,
+                igv: row.get(9)?,
+                total: row.get(10)?,
+                estado: row.get(11)?,
+                hash_cpe: row.get(12)?,
+                estado_sunat: row.get(13)?,
+                codigo_cdr: row.get(14)?,
+                descripcion_cdr: row.get(15)?,
+                forma_pago: row.get(16).unwrap_or_else(|_| "Contado".to_string()),
+                fecha_vencimiento: row.get(17).unwrap_or(None),
             })
         })
         .map_err(|e| e.to_string())?;
@@ -160,16 +190,70 @@ pub fn core_create_voucher(
     // `cbc:IssueDate` es de tipo `xs:date`, así que debe ir siempre en `YYYY-MM-DD`.
     // El frontend manda `DD/MM/YYYY HH:MM`; sin normalizar, SUNAT rechaza el XML.
     let fecha_emision = parse_fecha_emision_iso(&payload.fecha_de_emision)?;
+
+    // Un comprobante en moneda extranjera debe declarar el tipo de cambio a soles.
+    // En soles no aplica y se omite del XML.
+    let tipo_cambio = match (payload.moneda.as_str(), payload.tipo_cambio) {
+        ("PEN", _) => None,
+        (_, Some(rate)) if rate.0 > 0.0 => Some(rate),
+        _ => {
+            return Err(format!(
+                "Debe indicar un tipo de cambio mayor a 0 para el comprobante en {}.",
+                payload.moneda
+            ))
+        }
+    };
+
+    // SUNAT exige que el XML declare el código de local anexo del emisor.
+    let establecimiento = payload.establecimiento.trim().to_string();
+    if establecimiento.len() != 4 || !establecimiento.chars().all(|c| c.is_ascii_digit()) {
+        return Err(
+            "El código de establecimiento debe tener 4 dígitos (por ejemplo, 0000).".into(),
+        );
+    }
+
+    // Normalizar forma de pago ("Contado" o "Credito")
+    let forma_pago = if payload.forma_pago.trim().eq_ignore_ascii_case("credito") {
+        "Credito".to_string()
+    } else {
+        "Contado".to_string()
+    };
+
+    let fecha_vencimiento = if forma_pago == "Credito" {
+        let fv = payload
+            .fecha_vencimiento
+            .as_deref()
+            .unwrap_or(&payload.fecha_de_emision);
+        Some(parse_fecha_emision_iso(fv).unwrap_or_else(|_| fecha_emision.clone()))
+    } else {
+        payload
+            .fecha_vencimiento
+            .as_deref()
+            .and_then(|fv| parse_fecha_emision_iso(fv).ok())
+    };
+
+    let monto_neto_pendiente = if forma_pago == "Credito" {
+        Some(totales.total_pagar.into())
+    } else {
+        None
+    };
+
     let mut f_payload = FacturaPayload {
         hash_xml: String::new(),
         firma: String::new(),
         certificado: String::new(),
         serie: payload.serie.clone(),
         correlativo: format!("{:08}", payload.correlativo),
+        establecimiento,
         fecha_emision,
         hora_emision: chrono::Local::now().format("%H:%M:%S").to_string(),
+        forma_pago: forma_pago.clone(),
+        fecha_vencimiento: fecha_vencimiento.clone(),
+        monto_neto_pendiente,
         tipo_comprobante: payload.tipo_comprobante.clone(),
+        tipo_operacion: payload.tipo_operacion.clone(),
         moneda: payload.moneda.clone(),
+        tipo_cambio,
         emisor_ruc: payload.emisor_ruc.clone(),
         emisor_razon_social: payload.emisor_razon_social.clone(),
         emisor_ubigeo: payload.emisor_ubigeo.clone(),
@@ -239,16 +323,20 @@ pub fn core_create_voucher(
     }
 
     tx.execute(
-        "INSERT INTO comprobantes (fecha_de_emision, cliente, numero_comprobante, estado_pago, moneda, gravado, igv, total, hash_cpe, xml_firmado, estado_sunat) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+        "INSERT INTO comprobantes (fecha_de_emision, cliente, numero_comprobante, estado_pago, moneda, tipo_cambio, gravado, igv, total, forma_pago, monto_neto_pendiente, fecha_vencimiento, hash_cpe, xml_firmado, estado_sunat) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
         params![
             payload.fecha_de_emision,
             payload.cliente,
             payload.numero_comprobante,
             estado_pago,
             payload.moneda,
+            tipo_cambio.map(|t| t.0),
             totales.base_gravada,
             totales.igv,
             totales.total_pagar,
+            forma_pago,
+            monto_neto_pendiente.map(|m| m.0),
+            fecha_vencimiento,
             hash_b64,
             xml_firmado,
             0
@@ -275,9 +363,12 @@ pub fn core_create_voucher(
         estado_validez: "registrado".to_string(),
         estado_pago,
         moneda: payload.moneda,
+        tipo_cambio: tipo_cambio.map(|t| t.0),
         gravado: totales.base_gravada,
         igv: totales.igv,
         total: totales.total_pagar,
+        forma_pago,
+        fecha_vencimiento,
         estado: true,
         hash_cpe: Some(hash_b64),
         estado_sunat: 0,

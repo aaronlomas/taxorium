@@ -13,10 +13,15 @@ export interface VoucherData {
 	serie: string;
 	correlativo: number;
 	numeroCompleto: string;
+	/** Código de local anexo del emisor (catálogo 22, ej. "0000"). */
+	establecimiento: string;
 	moneda: string;
 	monedaSimbolo: string;
+	/** Tipo de cambio respecto a soles (solo aplica a comprobantes en moneda extranjera). */
+	tipoCambio: number;
 	fechaEmision: string;
 	horaEmision: string;
+	fechaVencimiento: string;
 	condicionPago: string;
 	metodoPago: string;
 	infoAdicional: string;
@@ -57,6 +62,29 @@ const TIPO_COMPROBANTE_LABELS: Record<string, string> = {
 	'01': 'FACTURA ELECTRÓNICA',
 	'03': 'BOLETA DE VENTA ELECTRÓNICA'
 };
+
+/**
+ * Los clientes guardan el tipo de documento con etiquetas (`RUC`, `DNI`, `CE`,
+ * `PASAPORTE`), pero SUNAT y el backend usan los códigos del catálogo 06.
+ * Esta función evita enviar `"RUC"` como `receptor_tipo_doc`.
+ */
+export function tipoDocumentoSunat(tipo: string): string {
+	const clave = tipo
+		.trim()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toUpperCase();
+
+	const codigos: Record<string, string> = {
+		DNI: '1',
+		CE: '4',
+		'CARNE DE EXTRANJERIA': '4',
+		RUC: '6',
+		PASAPORTE: '7'
+	};
+
+	return codigos[clave] ?? tipo.trim();
+}
 
 export function tipoComprobanteLabel(codigo: string): string {
 	return TIPO_COMPROBANTE_LABELS[codigo] ?? 'COMPROBANTE';
@@ -120,6 +148,8 @@ export function buildVoucherData(
 	const total = Math.round((baseProductos + icbper) * 100) / 100;
 
 	const moneda = config.moneda || 'PEN';
+	const tipoCambio =
+		moneda === 'PEN' ? 0 : Math.round((Number(config.tipoCambio) || 0) * 100) / 100;
 	const montoPagado = Math.max(0, Number(config.montoRecibido) || 0);
 	const vuelto = montoPagado > 0 ? montoPagado - total : 0;
 	const estadoPago = estadoPagoDesdeTipoPago(config.tipoPago);
@@ -129,6 +159,9 @@ export function buildVoucherData(
 		? formatFecha(config.fechaEmision)
 		: formatFecha(fecha.toISOString());
 	const horaEmision = `${String(fecha.getHours()).padStart(2, '0')}:${String(fecha.getMinutes()).padStart(2, '0')}`;
+	const fechaVencimiento = config.fechaVencimiento
+		? formatFecha(config.fechaVencimiento)
+		: fechaEmision;
 
 	return {
 		tipoComprobante: config.tipoComprobante,
@@ -139,10 +172,13 @@ export function buildVoucherData(
 		// número guardado en BD no coincidía con el `cbc:ID` del XML firmado y
 		// SUNAT rechazaba el ZIP con la observación 1036.
 		numeroCompleto: `${serie}-${String(correlativoUsado).padStart(8, '0')}`,
+		establecimiento: config.establecimiento || '0000',
 		moneda,
 		monedaSimbolo: CURRENCY_SYMBOL[moneda] ?? 'S/',
+		tipoCambio,
 		fechaEmision,
 		horaEmision,
+		fechaVencimiento,
 		condicionPago: config.tipoPago,
 		metodoPago: formatoMetodoPago(config.medioPago),
 		infoAdicional: config.infoAdicional,
@@ -156,7 +192,7 @@ export function buildVoucherData(
 		},
 		cliente: cliente
 			? {
-					tipoDocumento: cliente.tipo_documento,
+					tipoDocumento: tipoDocumentoSunat(cliente.tipo_documento),
 					numeroDocumento: cliente.numero_documento,
 					nombre: cliente.nombre,
 					direccion: cliente.direccion ?? ''
@@ -283,6 +319,9 @@ function layoutVoucher(data: VoucherData): LayoutResult {
 	spacer();
 	push(`F. Emisión: ${data.fechaEmision} ${data.horaEmision}`, 8);
 	if (data.condicionPago) push(`Condición de Pago: ${data.condicionPago}`, 8);
+	if (data.moneda !== 'PEN' && data.tipoCambio > 0) {
+		push(`Tipo de Cambio: ${data.tipoCambio.toFixed(2)}`, 8);
+	}
 
 	divider();
 
@@ -451,6 +490,16 @@ export function generateVoucherXml(data: VoucherData): string {
 	const inverseDate = baseDate.split('/').reverse().join('-');
 	const mono = (value: number) => value.toFixed(2);
 	const currencyId = data.moneda;
+	const exchangeRate =
+		data.moneda !== 'PEN' && data.tipoCambio > 0
+			? `
+			<cac:PricingExchangeRate>
+				<cbc:SourceCurrencyCode>${currencyId}</cbc:SourceCurrencyCode>
+				<cbc:TargetCurrencyCode>PEN</cbc:TargetCurrencyCode>
+				<cbc:CalculationRate>${data.tipoCambio.toFixed(2)}</cbc:CalculationRate>
+				<cbc:Date>${inverseDate}</cbc:Date>
+			</cac:PricingExchangeRate>`
+			: '';
 
 	const lines = data.items
 		.map(
@@ -529,12 +578,18 @@ export function generateVoucherXml(data: VoucherData): string {
 			<cac:PartyName>
 				<cbc:Name>${escapeXml(supplier.razonSocial)}</cbc:Name>
 			</cac:PartyName>
-			<cac:PostalAddress>
-				<cbc:AddressTypeCode>0000</cbc:AddressTypeCode>
-				<cbc:Line>${escapeXml(supplier.direccion)}</cbc:Line>
-			</cac:PostalAddress>
+			<cac:PartyTaxScheme>
+				<cbc:RegistrationName>${escapeXml(supplier.razonSocial)}</cbc:RegistrationName>
+				<cbc:CompanyID schemeID="6">${escapeXml(supplier.ruc)}</cbc:CompanyID>
+				<cac:TaxScheme>
+					<cbc:ID>-</cbc:ID>
+				</cac:TaxScheme>
+			</cac:PartyTaxScheme>
 			<cac:PartyLegalEntity>
 				<cbc:RegistrationName>${escapeXml(supplier.razonSocial)}</cbc:RegistrationName>
+				<cac:RegistrationAddress>
+					<cbc:AddressTypeCode>${escapeXml(data.establecimiento)}</cbc:AddressTypeCode>
+				</cac:RegistrationAddress>
 			</cac:PartyLegalEntity>
 		</cac:Party>
 	</cac:AccountingSupplierParty>
@@ -550,6 +605,29 @@ export function generateVoucherXml(data: VoucherData): string {
 			</cac:PartyLegalEntity>
 		</cac:Party>
 	</cac:AccountingCustomerParty>
+	${
+		data.condicionPago === 'Credito'
+			? `
+	<cac:PaymentTerms>
+		<cbc:ID>FormaPago</cbc:ID>
+		<cbc:PaymentMeansID>Credito</cbc:PaymentMeansID>
+		<cbc:Amount currencyID="${currencyId}">${mono(data.total)}</cbc:Amount>
+	</cac:PaymentTerms>
+	<cac:PaymentTerms>
+		<cbc:ID>FormaPago</cbc:ID>
+		<cbc:PaymentMeansID>Cuota001</cbc:PaymentMeansID>
+		<cbc:Amount currencyID="${currencyId}">${mono(data.total)}</cbc:Amount>
+		<cbc:PaymentDueDate>${
+			(data.fechaVencimiento || data.fechaEmision).split(' ')[0].split('/').reverse().join('-')
+		}</cbc:PaymentDueDate>
+	</cac:PaymentTerms>`
+			: `
+	<cac:PaymentTerms>
+		<cbc:ID>FormaPago</cbc:ID>
+		<cbc:PaymentMeansID>Contado</cbc:PaymentMeansID>
+	</cac:PaymentTerms>`
+	}
+	${exchangeRate}
 	${taxes}
 	<cac:LegalMonetaryTotal>
 		<cbc:LineExtensionAmount currencyID="${currencyId}">${mono(data.opGravadas + data.opExoneradas)}</cbc:LineExtensionAmount>
