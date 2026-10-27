@@ -4,7 +4,7 @@
 	import Button from '$lib/components/core/primitives/actions/Button.svelte';
 	import Select from '$lib/components/core/primitives/forms/Select.svelte';
 	import Number from '$lib/components/core/primitives/forms/Number.svelte';
-	import ProductModal from '$lib/components/ui/features/products/ProductModal.svelte';
+	import ProductsModal from '$lib/components/ui/features/products/ProductsModal.svelte';
 	import { productsStore, editingProduct } from '$lib/features/products';
 	import { purchaseStore } from '$lib/features/purchase';
 	import {
@@ -137,7 +137,7 @@
 		/>
 
 		<div
-			class="col-span-2 rounded-sm border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs text-neutral-400"
+			class="col-span-2 rounded-sm border border-brand-border bg-brand-bg-primary px-3 py-2 text-xs text-brand-text-secondary"
 		>
 			Equivalencia:
 			{cantidadCompra}
@@ -152,10 +152,10 @@
 	</div>
 
 	<!-- Footer -->
-	<div class="flex items-center justify-end gap-3 border-t border-neutral-800 p-2">
+	<div class="flex items-center justify-end gap-3 p-2">
 		<Button type="button" variant="outline" onclick={onClose}>Cerrar</Button>
 		<Button type="button" variant="primary" onclick={handleSave}>Aceptar</Button>
 	</div>
 </Modal>
 
-<ProductModal bind:isOpen={isProductModalOpen} onClose={() => (isProductModalOpen = false)} />
+<ProductsModal bind:isOpen={isProductModalOpen} onClose={() => (isProductModalOpen = false)} />

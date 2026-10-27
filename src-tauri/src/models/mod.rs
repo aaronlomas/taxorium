@@ -3,6 +3,7 @@ pub mod branch;
 pub mod catalogos;
 pub mod currency;
 pub mod customers;
+pub mod vendors;
 pub mod products;
 pub mod sellers;
 pub mod series;

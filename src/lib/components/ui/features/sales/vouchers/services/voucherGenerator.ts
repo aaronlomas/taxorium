@@ -1,6 +1,6 @@
 import type { SaleItem } from '$lib/features/sales';
-import type { VoucherConfig } from './voucherContext';
-import { formatFecha, nextCorrelativo, parseFecha } from './voucherContext';
+import type { VoucherConfig } from '../state/voucherContext';
+import { formatFecha, nextCorrelativo, parseFecha } from '../state/voucherContext';
 import type { TenantRow } from '$lib/database.types';
 import type { Customer } from '$lib/features/customers';
 
@@ -143,8 +143,12 @@ export function buildVoucherData(
 			items.reduce((sum, i) => sum + (i.tieneIcbper ? tasaIcbper * i.cantidad : 0), 0) * 100
 		) / 100;
 
-	const opGravadas = Math.max(0, baseProductos - opExoneradas);
-	const igv = baseProductos > 0 ? Math.round(opGravadas * (0.18 / 1.18) * 100) / 100 : 0;
+	// opGravadas (precio con IGV) se extrae de la base total menos exoneradas
+	const opGravadasConIgv = Math.max(0, baseProductos - opExoneradas);
+	// IGV se separa del precio final (precios registrados con IGV incluido)
+	const igv = Math.round(opGravadasConIgv * (0.18 / 1.18) * 100) / 100;
+	// Base imponible = precio sin IGV (lo que SUNAT llama "Op. Gravada")
+	const opGravadas = Math.round((opGravadasConIgv - igv) * 100) / 100;
 	const total = Math.round((baseProductos + icbper) * 100) / 100;
 
 	const moneda = config.moneda || 'PEN';
@@ -617,9 +621,11 @@ export function generateVoucherXml(data: VoucherData): string {
 		<cbc:ID>FormaPago</cbc:ID>
 		<cbc:PaymentMeansID>Cuota001</cbc:PaymentMeansID>
 		<cbc:Amount currencyID="${currencyId}">${mono(data.total)}</cbc:Amount>
-		<cbc:PaymentDueDate>${
-			(data.fechaVencimiento || data.fechaEmision).split(' ')[0].split('/').reverse().join('-')
-		}</cbc:PaymentDueDate>
+		<cbc:PaymentDueDate>${(data.fechaVencimiento || data.fechaEmision)
+			.split(' ')[0]
+			.split('/')
+			.reverse()
+			.join('-')}</cbc:PaymentDueDate>
 	</cac:PaymentTerms>`
 			: `
 	<cac:PaymentTerms>

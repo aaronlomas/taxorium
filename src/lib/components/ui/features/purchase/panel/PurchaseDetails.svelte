@@ -52,47 +52,53 @@
 	}
 </script>
 
-<div class="grid h-full grid-cols-[1fr_auto] border-t border-r border-neutral-800">
-	<div class="grid grid-cols-[auto_1fr] grid-rows-[auto_auto] gap-2">
-		<div class="w-56">
-			<Select
-				id="formaPago"
-				label="Forma de Pago"
-				options={$tiposPagoOptions}
-				bind:value={formaPago}
-			/>
-		</div>
-		<div class="w-56">
-			<Number label="Monto Pagado" bind:value={montoPagado} />
-		</div>
+<div
+	class="grid h-full grid-cols-[290px_1fr] rounded-md border border-t border-brand-border bg-brand-bg-primary p-2"
+>
+	<!-- Controles -->
+	<div class="grid grid-cols-2 grid-rows-[auto_auto] gap-2">
+		<Select
+			id="formaPago"
+			label="Forma de Pago"
+			options={$tiposPagoOptions}
+			bind:value={formaPago}
+		/>
+		<Number label="Monto Pagado" bind:value={montoPagado} />
 		<Button onclick={handleRegistrar}>Registrar Compra</Button>
 	</div>
-	<div class="border-l border-neutral-800 text-sm">
+	<!-- Cálculos -->
+	<div class="flex justify-end text-sm text-brand-text-secondary">
 		<table>
 			<tbody>
-				<tr class="border-b border-neutral-800">
-					<td class="px-2 text-right">OP. GRAVADAS:</td>
-					<td class="pr-2 text-right">{symbol} {opGravadas.toFixed(2)}</td>
-				</tr>
-				<tr class="border-b border-neutral-800">
-					<td class="px-2 text-right">OP. EXONERADAS:</td>
-					<td class="pr-2 text-right">{symbol} {opExoneradas.toFixed(2)}</td>
-				</tr>
-				<tr class="border-b border-neutral-800">
-					<td class="px-2 text-right">I.G.V. (18%):</td>
-					<td class="pr-2 text-right">{symbol} {igv.toFixed(2)}</td>
-				</tr>
-				<tr class="border-b border-neutral-800">
+				{#if opGravadas > 0}
+					<tr class="border-b border-brand-border">
+						<td class="px-2 text-right">OP.GRAVADAS:</td>
+						<td class="pr-2 text-right">{symbol} {opGravadas.toFixed(2)}</td>
+					</tr>
+				{/if}
+				{#if opExoneradas > 0}
+					<tr class="border-b border-brand-border">
+						<td class="px-2 text-right">OP.EXONERADAS:</td>
+						<td class="pr-2 text-right">{symbol} {opExoneradas.toFixed(2)}</td>
+					</tr>
+				{/if}
+				{#if igv > 0}
+					<tr class="border-b border-brand-border">
+						<td class="px-2 text-right">I.G.V. (18%):</td>
+						<td class="pr-2 text-right">{symbol} {igv.toFixed(2)}</td>
+					</tr>
+				{/if}
+				<tr class="border-b border-brand-border">
 					<th class="px-2 text-right">TOTAL A PAGAR:</th>
 					<td class="pr-2 text-right">{symbol} {totalPagable.toFixed(2)}</td>
 				</tr>
-				<tr class="border-b border-neutral-800">
+				<tr class="border-b border-brand-border">
 					<th class="px-2 text-right">TOTAL PAGADO:</th>
 					<td class="pr-2 text-right"
 						>{symbol} {montoPagado && +montoPagado > 0 ? montoPagado : '0.00'}</td
 					>
 				</tr>
-				<tr class="border-b border-neutral-800">
+				<tr class="border-b border-brand-border">
 					<th class="px-2 text-right">SALDO:</th>
 					<td class="pr-2 text-right">{symbol} {saldo.toFixed(2)}</td>
 				</tr>

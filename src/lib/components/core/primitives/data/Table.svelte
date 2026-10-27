@@ -20,7 +20,7 @@
 
 <!-- Definición interna de snippets con estilos garantizados -->
 {#snippet row({ children }: { children: Snippet })}
-	<tr class="hover:bg-neutral-850 transition-colors">
+	<tr class="">
 		{@render children()}
 	</tr>
 {/snippet}
@@ -34,24 +34,24 @@
 	colspan?: number;
 	class?: string;
 })}
-	<td {colspan} class="px-3 py-2 text-sm {className}">
+	<td {colspan} class="px-3 text-sm {className}">
 		{@render children()}
 	</td>
 {/snippet}
 
 {#snippet headCell({ children }: { children: Snippet })}
-	<th class="px-2">
+	<th class="px-2 text-sm text-brand-text-sky">
 		{@render children()}
 	</th>
 {/snippet}
 
-<!-- Estructura HTML contenedora -->
-<div class="overflow-auto rounded-md border border-neutral-800 {sm ? 'max-h-65' : ''}">
-	<table class="w-full bg-neutral-900 text-center">
-		<thead class="border-b border-neutral-800 text-neutral-400">
+<!-- Contenedor -->
+<div class="rounded-md overflow-auto border border-brand-border {sm ? 'max-h-65' : ''}">
+	<table class="w-full bg-brand-bg-primary text-center">
+		<thead class="border-b border-brand-border text-brand-text-secondary">
 			{@render head?.()}
 		</thead>
-		<tbody class="divide-y divide-neutral-800 text-neutral-200">
+		<tbody class="divide-y divide-brand-border text-brand-text-primary">
 			{@render body?.()}
 		</tbody>
 	</table>

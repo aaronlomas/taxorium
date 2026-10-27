@@ -108,7 +108,7 @@
 			await customersStore.load();
 			onClose();
 		} catch (err: any) {
-			const msg = err?.message ?? 'Error al guardar el cliente';
+			const msg = typeof err === 'string' ? err : (err?.message ?? 'Error al guardar el cliente');
 			error = msg;
 			taxoLog.error(msg, 'clientes');
 		} finally {
@@ -126,7 +126,7 @@
 {#snippet sunatButton()}
 	<button
 		type="button"
-		class="flex h-full items-center justify-center gap-1 border-l border-neutral-800 px-3 text-xs font-medium text-neutral-400 transition-colors hover:text-neutral-200"
+		class="flex h-full items-center justify-center gap-1 border-l border-brand-border px-3 text-xs font-medium text-brand-text-secondary hover:text-brand-text-primary"
 	>
 		<IconSearch size={14} /> SUNAT
 	</button>
@@ -198,7 +198,7 @@
 	</div>
 
 	<!-- Footer -->
-	<div class="flex items-center justify-end gap-3 border-t border-neutral-800 p-3">
+	<div class="flex items-center justify-end gap-3 p-3">
 		<Button type="button" variant="outline" onclick={handleCloseModal}>Cancelar</Button>
 		<Button type="button" variant="primary" onclick={handleSubmit} disabled={loading}>
 			{loading ? 'Guardando...' : 'Guardar'}

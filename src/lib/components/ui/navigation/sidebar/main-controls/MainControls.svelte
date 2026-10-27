@@ -19,6 +19,7 @@
 	import DropdownDivider from '$lib/components/core/primitives/navigation/dropdown/DropdownDivider.svelte';
 	import PanelLogin from '$lib/components/ui/features/auth/setups/PanelLogin.svelte';
 	import type { ElementoNavegacion } from '../navigation';
+	import { activeOption } from '$lib/features/navigation';
 
 	let {
 		seccionActiva,
@@ -52,11 +53,15 @@
 	}
 
 	function abrirMiCuenta() {
-		onSeleccionarOpcion?.({ nombre: 'Mi Cuenta', icono: IconUserCircle });
+		const opcion = { nombre: 'Mi Cuenta', icono: IconUserCircle };
+		activeOption.set(opcion);
+		onSeleccionarOpcion?.(opcion);
 	}
 
 	function abrirPuntosVenta() {
-		onSeleccionarOpcion?.({ nombre: 'Mis Puntos de Venta', icono: IconDeviceDesktopPin });
+		const opcion = { nombre: 'Mis Puntos de Venta', icono: IconDeviceDesktopPin };
+		activeOption.set(opcion);
+		onSeleccionarOpcion?.(opcion);
 	}
 
 	async function cerrarSesion() {
@@ -83,7 +88,7 @@
 </script>
 
 <div
-	class="row-span-3 flex flex-col justify-between border-r border-neutral-800 {seccionActiva
+	class="row-span-3 flex flex-col justify-between border-r border-brand-border {seccionActiva
 		? ''
 		: 'border-r-0'}"
 >
@@ -93,18 +98,17 @@
 		<button
 			type="button"
 			disabled={cuentaPendiente}
-			class="flex cursor-pointer justify-center p-2 text-neutral-400 transition-colors {cuentaPendiente
+			class="flex cursor-pointer justify-center p-2 text-brand-text-secondary transition-colors {cuentaPendiente
 				? 'cursor-not-allowed opacity-30'
-				: 'hover:text-white'} {seccionActiva === 'registros'
-				? 'border-l-2 border-l-blue-500 bg-blue-500/15'
+				: 'hover:text-brand-text-hover'} {seccionActiva === 'registros'
+				? 'border-l-2 border-l-blue-500'
 				: ''}"
-			title={cuentaPendiente ? 'Completa tu configuración primero' : 'Registros'}
 			aria-label="Toggle Panel Registros"
 			onclick={() => cambiarSeccion('registros')}
 		>
 			<IconBook2
 				size={28}
-				class="pointer-events-none {seccionActiva === 'registros' ? 'text-white' : ''}"
+				class="pointer-events-none {seccionActiva === 'registros' ? 'text-brand-text-primary' : ''}"
 			/>
 		</button>
 	</div>
@@ -116,15 +120,23 @@
 			id="mc-btn-cuenta"
 			side="right"
 			align="end"
-			title={$isAuthenticated ? 'Mi cuenta' : 'Cuenta'}
 			aria-label="Panel de cuenta"
-			class="flex cursor-pointer justify-center p-2 text-neutral-400 transition-colors hover:text-white"
+			class="group flex w-full cursor-pointer items-center justify-center p-2 text-sm text-brand-text-secondary hover:text-brand-text-primary"
 		>
 			{#snippet trigger()}
-				<IconUserCircle size={28} class="pointer-events-none" />
+				<IconUserCircle
+					size={28}
+					class="pointer-events-none text-brand-text-secondary transition-colors group-hover:text-brand-text-primary {$activeOption?.nombre ===
+						'Mi Cuenta' || $activeOption?.nombre === 'Mis Puntos de Venta'
+						? 'text-brand-text-primary'
+						: ''}"
+				/>
 				<!-- Indicador de pendiente -->
 				{#if cuentaPendiente}
-					<span class="pending-dot" aria-hidden="true"></span>
+					<span
+						class="pointer-events-none absolute top-1.5 right-1.5 size-1.75 animate-pulse rounded-full bg-amber-500 shadow-[0_0_6px_#f59e0b]"
+						aria-hidden="true"
+					></span>
 				{/if}
 			{/snippet}
 
@@ -168,24 +180,35 @@
 			<Dropdown
 				side="right"
 				align="end"
-				title="Configuraciones"
-				aria-label="Panel de configuraciones"
-				class="flex w-full cursor-pointer items-center gap-2 p-2 text-sm text-neutral-400 transition-colors hover:text-white"
+				class="group flex w-full cursor-pointer items-center justify-center p-2 text-sm text-brand-text-secondary hover:text-brand-text-primary"
 			>
 				{#snippet trigger()}
-					<IconSettings size={28} />
+					<IconSettings
+						size={28}
+						class="text-brand-text-secondary transition-colors group-hover:text-brand-text-primary {$activeOption?.nombre ===
+							'Configuración' || $activeOption?.nombre === 'Preferencias'
+							? 'text-brand-text-primary'
+							: ''}"
+					/>
 				{/snippet}
 
 				{#snippet menu()}
 					<DropdownItem
-						onclick={() => onSeleccionarOpcion?.({ nombre: 'Configuración', icono: IconSettings })}
+						onclick={() => {
+							const opcion = { nombre: 'Configuración', icono: IconSettings };
+							activeOption.set(opcion);
+							onSeleccionarOpcion?.(opcion);
+						}}
 					>
 						<IconSettings size={15} stroke={1.5} />
 						Configuración
 					</DropdownItem>
 					<DropdownItem
-						onclick={() =>
-							onSeleccionarOpcion?.({ nombre: 'Preferencias', icono: IconAdjustments })}
+						onclick={() => {
+							const opcion = { nombre: 'Preferencias', icono: IconAdjustments };
+							activeOption.set(opcion);
+							onSeleccionarOpcion?.(opcion);
+						}}
 					>
 						<IconAdjustments size={15} stroke={1.5} />
 						Preferencias
@@ -197,7 +220,7 @@
 </div>
 
 <!-- Modal: Iniciar Sesión -->
-<Modal bind:isOpen={modalLoginOpen} onClose={() => (modalLoginOpen = false)} title="Iniciar Sesión">
+<Modal bind:isOpen={modalLoginOpen} onClose={() => (modalLoginOpen = false)}>
 	<div class="modal-form-wrap">
 		<PanelLogin initialMode="login" onSuccess={() => (modalLoginOpen = false)} />
 	</div>
@@ -213,30 +236,3 @@
 		<PanelLogin initialMode="register" onSuccess={() => (modalRegisterOpen = false)} />
 	</div>
 </Modal>
-
-<style>
-	.pending-dot {
-		position: absolute;
-		top: 6px;
-		right: 6px;
-		width: 7px;
-		height: 7px;
-		border-radius: 50%;
-		background: #f59e0b;
-		box-shadow: 0 0 6px #f59e0b;
-		animation: pulse-pending 2s ease-in-out infinite;
-		pointer-events: none;
-	}
-
-	@keyframes pulse-pending {
-		0%,
-		100% {
-			opacity: 1;
-			transform: scale(1);
-		}
-		50% {
-			opacity: 0.6;
-			transform: scale(0.85);
-		}
-	}
-</style>

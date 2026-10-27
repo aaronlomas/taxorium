@@ -4,7 +4,7 @@
 	import Button from '$lib/components/core/primitives/actions/Button.svelte';
 	import Select from '$lib/components/core/primitives/forms/Select.svelte';
 	import Number from '$lib/components/core/primitives/forms/Number.svelte';
-	import ProductModal from '$lib/components/ui/features/products/ProductModal.svelte';
+	import ProductsModal from '$lib/components/ui/features/products/ProductsModal.svelte';
 	import { productsStore, editingProduct } from '$lib/features/products';
 	import { salesStore } from '$lib/features/sales';
 	import { catalogoStore, afectacionesVentaOptions } from '$lib/features/catalogos';
@@ -25,16 +25,27 @@
 	});
 
 	let prevProducto = '';
+	/**
+	 * Cuando el usuario cambia de producto:
+	 *  1. Se actualizan precio y afectación con los valores del producto.
+	 *  2. Si el usuario cambia la afectación DESPUÉS de seleccionar el producto,
+	 *     ese cambio se conserva al guardar (ya que solo se usa `afectacionIgv`
+	 *     en handleSave).
+	 *
+	 * El effect solo sobreescribe `afectacionIgv` cuando el PRODUCTO cambia,
+	 * no al detectar cambios en `afectacionIgv` independientes.
+	 */
 	$effect(() => {
-		if (String(productoSeleccionado) !== prevProducto) {
-			prevProducto = String(productoSeleccionado);
+		const productoActual = String(productoSeleccionado);
+		if (productoActual !== prevProducto) {
+			prevProducto = productoActual;
 			if (productoSeleccionado) {
-				const producto = $productsStore.find((p) => String(p.id) === String(productoSeleccionado));
+				const producto = $productsStore.find((p) => String(p.id) === productoActual);
 				if (producto) {
 					precioUnitario = String(producto.precio_unitario_venta);
-					// Cada producto nace con su afectación de venta: si el catálogo todavía
-					// no cargó, la línea se agregaría sin código de afectación y el backend
-					// la rechazaría al emitir.
+					// Al cambiar de producto, se asigna la afectación del catálogo
+					// del producto como valor por defecto. El usuario puede luego
+					// cambiarlo libremente sin que este effect lo sobreescriba.
 					afectacionIgv = producto.afectacion_venta || afectacionIgv;
 				}
 			} else {
@@ -117,10 +128,10 @@
 	</div>
 
 	<!-- Footer -->
-	<div class="col-span-2 flex items-center justify-end gap-3 border-t border-neutral-800 p-2">
+	<div class="col-span-2 flex items-center justify-end gap-3 p-2">
 		<Button type="button" variant="outline" onclick={onClose}>Cerrar</Button>
 		<Button type="button" variant="primary" onclick={handleSave}>Aceptar</Button>
 	</div>
 </Modal>
 
-<ProductModal bind:isOpen={isProductModalOpen} onClose={() => (isProductModalOpen = false)} />
+<ProductsModal bind:isOpen={isProductModalOpen} onClose={() => (isProductModalOpen = false)} />

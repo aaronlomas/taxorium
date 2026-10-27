@@ -14,6 +14,7 @@
 	import ResizeBorder from '$lib/components/ui/app-shell/ResizeBorder.svelte';
 
 	let { children } = $props();
+	let themeMode = $state<'dark' | 'light'>('dark');
 
 	// La ruta /print se abre en una WebviewWindow independiente de Tauri.
 	// NO debe heredar el shell de la app (TitleBar, fondo oscuro, ResizeBorder)
@@ -21,6 +22,21 @@
 	const isPrintRoute = $derived($page.url.pathname.startsWith('/print'));
 
 	onMount(async () => {
+		const savedTheme = localStorage.getItem('taxorium-theme');
+		themeMode =
+			savedTheme === 'light' || savedTheme === 'dark'
+				? savedTheme
+				: window.matchMedia('(prefers-color-scheme: dark)').matches
+					? 'dark'
+					: 'light';
+
+		const handleThemeChange = (event: Event) => {
+			const customEvent = event as CustomEvent<{ mode: 'dark' | 'light' }>;
+			themeMode = customEvent.detail.mode;
+		};
+
+		window.addEventListener('taxorium-theme-change', handleThemeChange);
+
 		// La ventana de impresión es standalone — no inicializa nada del sistema.
 		if (isPrintRoute) return;
 
@@ -45,6 +61,20 @@
 			await tenantStore.load();
 		}
 	});
+
+	$effect(() => {
+		if (typeof document === 'undefined') return;
+
+		if (isPrintRoute) {
+			document.documentElement.classList.remove('dark');
+			document.documentElement.classList.remove('light');
+			return;
+		}
+
+		document.documentElement.classList.toggle('dark', themeMode === 'dark');
+		document.documentElement.classList.toggle('light', themeMode === 'light');
+		localStorage.setItem('taxorium-theme', themeMode);
+	});
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
@@ -53,7 +83,7 @@
 	<!-- Ventana de impresión standalone: sin shell, sin fondo oscuro, solo el comprobante -->
 	{@render children()}
 {:else}
-	<div class="flex h-screen w-full flex-col overflow-hidden bg-neutral-950">
+	<div class="flex h-screen w-full flex-col overflow-hidden">
 		<ResizeBorder />
 		<TitleBar />
 		<div class="relative h-full w-full flex-1">
@@ -61,3 +91,4 @@
 		</div>
 	</div>
 {/if}
+

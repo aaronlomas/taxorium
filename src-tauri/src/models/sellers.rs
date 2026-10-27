@@ -1,6 +1,6 @@
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
-use tauri::State;
+use tauri::{AppHandle, Manager, State};
 
 use criptor::crypto::{decrypt_with_password, encrypt_with_password, verify_with_password};
 
@@ -240,20 +240,80 @@ pub fn login_seller(
     core_login_seller(db, payload, &get_device_id())
 }
 
-/// Exposes the decrypted password for a specific seller ID.
-/// Used by the frontend to populate the password cache on startup.
-#[tauri::command]
-pub fn get_seller_password(seller_id: i64, state: State<'_, AppState>) -> Result<String, String> {
-    let db_guard = state.db.lock().map_err(|e| e.to_string())?;
-    let db = db_guard.as_ref().ok_or("Database not initialized.")?;
-
+pub fn core_get_seller_password(
+    db: &Connection,
+    id: i64,
+    device_id: &str,
+) -> Result<String, String> {
     let ciphertext: String = db
         .query_row(
-            "SELECT clave_cifrada FROM vendedores WHERE id = ?1 AND activo = 1",
-            params![seller_id],
+            "SELECT clave_cifrada FROM vendedores WHERE id = ?1",
+            params![id],
             |row| row.get(0),
         )
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| format!("Vendedor no encontrado: {e}"))?;
 
-    decrypt_with_password(&ciphertext, &get_device_id(), SELLER_SALT).map_err(|e| e.to_string())
+    decrypt_with_password(&ciphertext, device_id, SELLER_SALT).map_err(|e| e.to_string())
+}
+
+/// Exposes the decrypted password for a specific seller ID.
+/// Used by the frontend to populate the password cache on demand.
+/// Runs in a background thread via `spawn_blocking` to avoid freezing the UI
+/// during cryptographic key derivation and decryption.
+#[tauri::command]
+pub async fn get_seller_password(app: AppHandle, id: i64) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let app_state = app.state::<AppState>();
+        let db_guard = app_state.db.lock().map_err(|e| e.to_string())?;
+        let db = db_guard.as_ref().ok_or("Database not initialized.")?;
+        core_get_seller_password(db, id, &get_device_id())
+    })
+    .await
+    .map_err(|e| format!("Error en la tarea de desencriptación: {e}"))?
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn setup_test_db() -> Connection {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS vendedores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombres TEXT,
+                apellidos TEXT,
+                usuario TEXT NOT NULL UNIQUE,
+                clave_cifrada TEXT NOT NULL,
+                accesos TEXT,
+                dominio TEXT,
+                activo BOOLEAN NOT NULL DEFAULT 1
+            );",
+            [],
+        )
+        .unwrap();
+        conn
+    }
+
+    #[test]
+    fn test_create_and_get_seller_password() {
+        let conn = setup_test_db();
+        let device_id = "test_machine_uid_123";
+
+        let payload = CreateSellerPayload {
+            nombres: Some("Carlos".into()),
+            apellidos: Some("Gomez".into()),
+            usuario: "cgomez".into(),
+            clave_plana: "MiClaveSecreta123".into(),
+            accesos: Some("sales".into()),
+            dominio: Some("retail".into()),
+        };
+
+        let seller = core_create_seller(&conn, payload, device_id).expect("Should create seller");
+        assert_eq!(seller.usuario, "cgomez");
+
+        let decrypted = core_get_seller_password(&conn, seller.id, device_id)
+            .expect("Should decrypt password");
+        assert_eq!(decrypted, "MiClaveSecreta123");
+    }
 }

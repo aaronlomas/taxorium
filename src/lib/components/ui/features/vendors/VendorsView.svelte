@@ -1,7 +1,7 @@
 <script lang="ts">
-	import TableProduct from './TableProduct.svelte';
+	import VendorsTable from './VendorsTable.svelte';
 </script>
 
 <main class="flex h-full flex-col">
-	<TableProduct />
+	<VendorsTable />
 </main>

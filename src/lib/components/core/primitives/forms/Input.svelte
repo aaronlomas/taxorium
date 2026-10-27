@@ -41,7 +41,7 @@
 
 <div class="grid w-full {containerClass}">
 	{#if label}
-		<label for={id} class="block text-sm text-neutral-400">
+		<label for={id} class="block text-sm text-brand-text-secondary">
 			{label}{#if required}<span class="text-red-500"> *</span>{/if}
 		</label>
 	{/if}
@@ -49,16 +49,16 @@
 	<!-- Base Container -->
 	<div
 		class="
-      grid w-full items-center rounded-sm border border-neutral-800 bg-neutral-900 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500
+      grid w-full items-center rounded-sm border border-brand-border bg-brand-bg-secondary text-sm focus-within:border-brand-border-sky
       {variants[variant]}
-      {error ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500' : ''} 
+      {error ? 'border-red-500' : ''} 
       {disabled ? 'cursor-not-allowed opacity-50' : ''}
       {className}
     "
 	>
 		{#if variant === 'triple' && icon}
 			<div
-				class="flex h-full shrink-0 items-center justify-center border-r border-neutral-800 px-2 text-neutral-400"
+				class="flex h-full shrink-0 items-center justify-center border-r border-brand-border px-2 text-brand-text-secondary"
 			>
 				{@render icon()}
 			</div>
@@ -70,7 +70,7 @@
 			bind:value
 			{required}
 			{disabled}
-			class="border-none bg-transparent px-2 text-sm text-neutral-200 outline-none focus:ring-0 {disabled
+			class="border-none bg-transparent px-2 text-sm leading-none text-brand-text-primary outline-none focus:ring-0 {disabled
 				? 'cursor-not-allowed'
 				: ''}"
 			{...rest}
@@ -78,7 +78,7 @@
 
 		<!-- Action icon (Variants 'double' and 'triple') -->
 		{#if (variant === 'double' || variant === 'triple') && action}
-			<div class="flex items-center justify-center text-neutral-400">
+			<div class="flex items-center justify-center text-brand-text-secondary">
 				{@render action()}
 			</div>
 		{/if}
@@ -88,3 +88,9 @@
 		<span class="mt-1 text-xs text-red-500">{error}</span>
 	{/if}
 </div>
+
+<style>
+	input{
+		height: 30px;
+	}
+</style>

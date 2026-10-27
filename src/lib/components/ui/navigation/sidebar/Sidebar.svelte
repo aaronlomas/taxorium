@@ -72,7 +72,7 @@
 </script>
 
 <aside
-	class="relative grid h-full grid-rows-[1fr_auto_auto] border-r border-neutral-800 bg-neutral-950 text-neutral-300 select-none {seccionActiva
+	class="relative grid h-full grid-rows-[1fr_auto_auto] border-r border-brand-border text-brand-text-primary select-none {seccionActiva
 		? 'grid-cols-[auto_1fr]'
 		: 'grid-cols-[auto]'}"
 	style={seccionActiva ? `width: ${anchoBarraLateral}px;` : 'width: max-content;'}
@@ -92,7 +92,7 @@
 		<div
 			role="separator"
 			aria-orientation="vertical"
-			class="absolute top-0 right-0 z-10 h-full w-1 cursor-ew-resize opacity-0 transition-colors hover:bg-blue-500 hover:opacity-100"
+			class="absolute top-0 right-0 z-10 h-full w-1 cursor-ew-resize opacity-0 hover:bg-blue-500 hover:opacity-100"
 			class:bg-blue-500={estaRedimensionando}
 			class:opacity-100={estaRedimensionando}
 			onmousedown={iniciarRedimension}

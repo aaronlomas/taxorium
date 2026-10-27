@@ -29,6 +29,12 @@ class SellerClient extends ApiClient {
 	async loginSeller(payload: LoginSellerPayload): Promise<Seller> {
 		return this.request<Seller>('api/sellers/login', 'login_seller', { method: 'POST' }, payload);
 	}
+
+	async getSellerPassword(id: number): Promise<string> {
+		return this.request<string>(`api/sellers/${id}/password`, 'get_seller_password', { method: 'GET' }, undefined, {
+			id
+		});
+	}
 }
 
 export const sellerClient = new SellerClient();

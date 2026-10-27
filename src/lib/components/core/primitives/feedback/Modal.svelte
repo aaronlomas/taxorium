@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import Scroll from '$lib/components/core/primitives/Scroll.svelte';
 
 	interface Props {
 		isOpen: boolean;
@@ -84,16 +85,13 @@
 {#if isOpen}
 	<!-- Backdrop -->
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center transition-opacity {variant ===
-		'fullscreen'
-			? 'bg-neutral-950/95 backdrop-blur-md'
-			: 'bg-black/60'}"
+		class="fixed inset-0 z-50 flex items-center justify-center transition-opacity"
 		role="dialog"
 		aria-modal="true"
 	>
 		<!-- Contenedor principal del Modal -->
 		<div
-			class="relative flex size-auto flex-col border border-neutral-800 bg-neutral-950 text-slate-100 shadow-2xl transition-shadow {variant ===
+			class="relative flex size-auto flex-col border border-brand-border bg-brand-bg-primary text-slate-100 shadow-2xl transition-shadow rounded-md {variant ===
 			'fullscreen'
 				? 'max-w-2xl'
 				: 'max-w-4xl'}"
@@ -102,7 +100,7 @@
 			<!-- Barra Superior / Header para arrastrar -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
-				class="flex cursor-grab items-center justify-between border-b border-neutral-800 bg-neutral-900 px-2 py-1 select-none active:cursor-grabbing"
+				class="flex cursor-grab items-center justify-between border-b border-brand-border bg-brand-bg-secondary px-2 py-1 select-none active:cursor-grabbing"
 				onpointerdown={handlePointerDown}
 				onpointermove={handlePointerMove}
 				onpointerup={handlePointerUp}
@@ -113,7 +111,7 @@
 						type="button"
 						onclick={onClose}
 						onpointerdown={(e) => e.stopPropagation()}
-						class="rounded text-white transition-colors hover:text-red-700"
+						class="rounded text-brand-text-primary hover:text-red-700"
 						aria-label="Cerrar modal"
 					>
 						✕
@@ -122,9 +120,8 @@
 			</div>
 
 			<!-- Contenido principal -->
-			<div>
-				{@render children?.()}
-			</div>
+
+			{@render children?.()}
 		</div>
 	</div>
 {/if}

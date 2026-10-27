@@ -18,7 +18,7 @@
 	import { customersStore } from '$lib/features/customers';
 	import type { Customer } from '$lib/features/customers';
 	import CustomersModal from '$lib/components/ui/features/customers/CustomersModal.svelte';
-	import { voucherConfigStore } from '$lib/components/ui/features/sales/vouchers/voucherContext';
+	import { voucherConfigStore } from '$lib/components/ui/features/sales/vouchers/state/voucherContext';
 
 	onMount(() => {
 		catalogoStore.load();
@@ -79,11 +79,11 @@
 	});
 </script>
 
-<div class="grid grid-cols-2 border border-neutral-800 text-sm">
+<div class="grid grid-cols-2 text-sm bg-brand-bg-primary">
 	<!-- COLUMNA 1 -->
 	<!-- configuraciones rápidas para venta -->
 
-	<div class="flex flex-col justify-between border-r border-r-neutral-800 p-2">
+	<div class="flex flex-col justify-between border-r border-r-brand-border p-2">
 		<div>
 			<div class="flex gap-x-2">
 				<Select
@@ -158,7 +158,7 @@
 			/>
 		</div>
 
-		<div class="grid">
+		<div class="grid grid-rows-[auto_auto_auto_auto]">
 			<Fecha
 				id="fechaEmision"
 				label="Fecha de Emisión"

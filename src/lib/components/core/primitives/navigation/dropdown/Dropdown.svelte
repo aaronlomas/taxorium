@@ -133,7 +133,7 @@
 		<div
 			role="menu"
 			tabindex="-1"
-			class="dropdown-menu absolute z-20 flex flex-col border border-neutral-800 bg-neutral-900 text-sm {position} {menuClass}"
+			class="dropdown-menu absolute z-20 flex flex-col border border-brand-border bg-brand-bg-primary text-sm {position} {menuClass}"
 			onmouseenter={() => (contentHovered = true)}
 			onmouseleave={() => (contentHovered = false)}
 			onclick={handleMenuClick}

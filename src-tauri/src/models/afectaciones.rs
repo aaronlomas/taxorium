@@ -10,20 +10,28 @@ pub const TIPOS_AFECTACION_VENTAS: &[AfectacionVenta] = &[
         descripcion: "Gravado - Op. Onerosa (IGV 18%)",
     },
     AfectacionVenta {
+        codigo: "11",
+        descripcion: "Gravado - Retiro (Transferencia Gratuita)",
+    },
+    AfectacionVenta {
         codigo: "20",
         descripcion: "Exonerado - Op. Onerosa (IGV 0%)",
+    },
+    AfectacionVenta {
+        codigo: "21",
+        descripcion: "Exonerado - Transferencia Gratuita",
     },
     AfectacionVenta {
         codigo: "30",
         descripcion: "Inafecto - Op. Onerosa (IGV 0%)",
     },
     AfectacionVenta {
-        codigo: "11",
-        descripcion: "Gravado - Retiro (Transferencia Gratuita)",
-    },
-    AfectacionVenta {
         codigo: "31",
         descripcion: "Inafecto - Retiro (Transferencia Gratuita)",
+    },
+    AfectacionVenta {
+        codigo: "40",
+        descripcion: "Exportación de Bienes o Servicios",
     },
 ];
 

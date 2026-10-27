@@ -12,41 +12,34 @@
 		monedasOptions,
 		tiposComprobanteOptions
 	} from '$lib/features/catalogos';
-	import { customersStore } from '$lib/features/customers';
-	import type { Customer } from '$lib/features/customers';
-	import CustomersModal from '$lib/components/ui/features/customers/CustomersModal.svelte';
+	import { vendorsStore, type Vendor } from '$lib/features/vendors';
+	import VendorsModal from '$lib/components/ui/features/vendors/VendorsModal.svelte';
 	import { purchaseConfigStore } from '$lib/components/ui/features/purchase/purchaseContext';
 
 	onMount(() => {
 		catalogoStore.load();
-		customersStore.load();
+		vendorsStore.load();
 	});
 
-	/**
-	 * Proveedores: se toman los clientes con RUC, que es la unidad con la que se
-	 * registran las compras. A futuro puede migrar a un catálogo propio.
-	 */
 	let proveedoresOptions = $derived(
-		$customersStore
-			.filter((c: Customer) => c.tipo_documento === 'RUC')
-			.map((c: Customer) => ({
-				value: c.id,
-				label: `${c.numero_documento} - ${c.nombre}`
-			}))
+		$vendorsStore.map((v: Vendor) => ({
+			value: v.id,
+			label: `${v.numero_documento} - ${v.nombre}`
+		}))
 	);
 
 	let isModalOpen = $state(false);
-	let isCustomersModalOpen = $state(false);
+	let isVendorsModalOpen = $state(false);
 
 	/** El tipo de cambio solo aplica cuando la moneda es dólares. */
 	const esDolar = $derived($purchaseConfigStore.moneda === 'USD');
 </script>
 
-<div class="grid grid-cols-2 border border-neutral-800 text-sm">
+<div class="grid grid-cols-2 bg-brand-bg-primary text-sm overflow-auto">
 	<!-- COLUMNA 1 -->
 	<!-- configuraciones rápidas para la compra -->
 
-	<div class="flex flex-col justify-between border-r border-r-neutral-800 p-2">
+	<div class="flex flex-col justify-between border-r border-brand-border p-2">
 		<div>
 			<div class="flex gap-x-2">
 				<Select
@@ -67,7 +60,7 @@
 					options={proveedoresOptions}
 					bind:value={$purchaseConfigStore.proveedorId}
 				/>
-				<Button variant="outline" size="md" onclick={() => (isCustomersModalOpen = true)}
+				<Button variant="outline" size="md" onclick={() => (isVendorsModalOpen = true)}
 					>+ Nuevo</Button
 				>
 			</div>
@@ -121,14 +114,14 @@
 			/>
 			<Input
 				id="infoAdicional"
-				label="Referencia / Guía de Remisión"
+				label="N° Referencia"
 				bind:value={$purchaseConfigStore.infoAdicional}
 			/>
 		</div>
 	</div>
 	<PurchaseModal bind:isOpen={isModalOpen} onClose={() => (isModalOpen = false)} />
-	<CustomersModal
-		bind:isOpen={isCustomersModalOpen}
-		onClose={() => (isCustomersModalOpen = false)}
+	<VendorsModal
+		bind:isOpen={isVendorsModalOpen}
+		onClose={() => (isVendorsModalOpen = false)}
 	/>
 </div>

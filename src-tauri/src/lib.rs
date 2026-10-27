@@ -50,6 +50,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             get_device_id,
             config::get_node_config,
@@ -62,6 +63,10 @@ pub fn run() {
             models::customers::create_customer,
             models::customers::update_customer,
             models::customers::delete_customer,
+            models::vendors::get_vendors,
+            models::vendors::create_vendor,
+            models::vendors::update_vendor,
+            models::vendors::delete_vendor,
             models::sellers::get_sellers,
             models::sellers::create_seller,
             models::sellers::update_seller,

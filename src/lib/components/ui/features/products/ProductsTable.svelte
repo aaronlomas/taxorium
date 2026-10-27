@@ -1,22 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import {
-		IconDatabaseImport,
-		IconDatabaseExport,
-		IconPlus,
-		IconTrash,
-		IconEdit
-	} from '@tabler/icons-svelte';
-	import TableFilter, {
-		type CheckItem
-	} from '$lib/components/core/primitives/data/TableFilter.svelte';
-	import TableToolbar from '$lib/components/core/primitives/data/TableToolbar.svelte';
-	import Search from '$lib/components/core/primitives/data/Search.svelte';
-	import Select from '$lib/components/core/primitives/forms/Select.svelte';
-	import Hint from '$lib/components/core/primitives/data/Hint.svelte';
+	import { IconTrash, IconEdit } from '@tabler/icons-svelte';
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/data/Table.svelte';
+	import type { CheckItem } from '$lib/components/core/primitives/data/TableFilter.svelte';
 
-	import ProductModal from './ProductModal.svelte';
+	import ProductControls from './ProductControls.svelte';
+	import ProductsModal from './ProductsModal.svelte';
 	import { productsStore, editingProduct } from '$lib/features/products';
 	import { productClient, type Product } from '$lib/features/products';
 	import { taxoLog } from '$lib/features/taxoLog';
@@ -55,13 +44,6 @@
 	let isModalOpen = $state(false);
 	let searchTerm = $state('');
 	let searchBy = $state('');
-
-	const SEARCH_OPTIONS = [
-		{ value: '', label: 'Todos' },
-		{ value: 'nombre', label: 'Descripción' },
-		{ value: 'categoria', label: 'Categoría' },
-		{ value: 'marca', label: 'Marca' }
-	];
 
 	onMount(() => {
 		productsStore.load();
@@ -153,67 +135,16 @@
 	}
 </script>
 
-<div class="grid h-full grid-rows-[auto_1fr] gap-2 px-2 pb-2 text-sm">
-	<!-- PRIMITIVA TOOLBAR -->
-	<TableToolbar>
-		{#snippet actions()}
-			<Hint text="Agregar Producto" side="bottom" align="start">
-				<button
-					class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
-					onclick={handleAdd}
-				>
-					<IconPlus size={20} />
-				</button>
-			</Hint>
-			<button
-				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
-			>
-				<IconDatabaseImport size={20} />Importar
-			</button>
-			<div class="group relative">
-				<button
-					class="flex cursor-pointer items-center gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
-				>
-					<IconDatabaseExport size={20} />Exportar
-				</button>
-				<div
-					class="absolute top-full z-10 hidden w-48 flex-col overflow-hidden rounded-md border border-neutral-700 bg-neutral-800 shadow-lg group-hover:flex"
-				>
-					<button
-						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
-						onclick={() => handleExportFile('xlsx')}>Excel (.xlsx)</button
-					>
-					<button
-						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
-						onclick={() => handleExportFile('csv-comma')}>CSV (comas)</button
-					>
-					<button
-						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
-						onclick={() => handleExportFile('csv-semicolon')}>CSV (puntos y comas)</button
-					>
-				</div>
-			</div>
-			<TableFilter storageKey="productos" bind:items={columnas} />
-		{/snippet}
+<div class="grid h-full grid-rows-[auto_1fr] gap-1 text-sm">
+	<ProductControls
+		bind:columnas
+		bind:searchTerm
+		bind:searchBy
+		onAdd={handleAdd}
+		onExport={handleExportFile}
+	/>
 
-		{#snippet filters()}
-			<div class="w-30">
-				<Select placeholder="Buscar por:" options={SEARCH_OPTIONS} bind:value={searchBy} />
-			</div>
-			<Search
-				bind:value={searchTerm}
-				placeholder={searchBy === 'nombre'
-					? 'Buscar descripción...'
-					: searchBy === 'categoria'
-						? 'Buscar categoría...'
-						: searchBy === 'marca'
-							? 'Buscar marca...'
-							: 'Buscar producto...'}
-			/>
-		{/snippet}
-	</TableToolbar>
-
-	<ProductModal bind:isOpen={isModalOpen} onClose={() => (isModalOpen = false)} />
+	<ProductsModal bind:isOpen={isModalOpen} onClose={() => (isModalOpen = false)} />
 
 	<!-- TABLA DE PRODUCTOS -->
 	<Table>

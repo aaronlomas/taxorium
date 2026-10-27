@@ -34,6 +34,15 @@ CREATE TABLE IF NOT EXISTS afectaciones_venta (
     descripcion TEXT NOT NULL
 );
 
+INSERT OR IGNORE INTO afectaciones_venta (codigo, descripcion) VALUES
+('10', 'Gravado - Op. Onerosa (IGV 18%)'),
+('11', 'Gravado - Retiro (Transferencia Gratuita)'),
+('20', 'Exonerado - Op. Onerosa (IGV 0%)'),
+('21', 'Exonerado - Transferencia Gratuita'),
+('30', 'Inafecto - Op. Onerosa (IGV 0%)'),
+('31', 'Inafecto - Retiro (Transferencia Gratuita)'),
+('40', 'Exportación de Bienes o Servicios');
+
 CREATE TABLE IF NOT EXISTS afectaciones_compra (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     codigo TEXT NOT NULL UNIQUE,       -- 'GRAVADO_V_GRAVADO', etc.
@@ -90,6 +99,25 @@ CREATE TABLE IF NOT EXISTS clientes (
     activo BOOLEAN NOT NULL DEFAULT 1
 );
 
+CREATE TABLE IF NOT EXISTS proveedores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo_documento TEXT NOT NULL,
+    numero_documento TEXT NOT NULL UNIQUE,
+    nombre TEXT NOT NULL,
+    nombre_comercial TEXT,
+    pais TEXT NOT NULL DEFAULT 'PERU',
+    departamento TEXT,
+    provincia TEXT,
+    distrito TEXT,
+    direccion TEXT,
+    telefono TEXT,
+    correo TEXT,
+    contacto TEXT,
+    cuenta_bancaria TEXT,
+    observaciones TEXT,
+    activo BOOLEAN NOT NULL DEFAULT 1
+);
+
 CREATE TABLE IF NOT EXISTS vendedores (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombres TEXT,
@@ -105,6 +133,7 @@ CREATE TABLE IF NOT EXISTS vendedores (
 CREATE INDEX IF NOT EXISTS idx_productos_codigo_interno ON productos(codigo_interno);
 CREATE INDEX IF NOT EXISTS idx_productos_sede ON productos(codigo_sede);
 CREATE INDEX IF NOT EXISTS idx_clientes_num_doc ON clientes(numero_documento);
+CREATE INDEX IF NOT EXISTS idx_proveedores_num_doc ON proveedores(numero_documento);
 
 CREATE TABLE IF NOT EXISTS tipos_operacion (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

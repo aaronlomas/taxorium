@@ -30,7 +30,7 @@
 </script>
 
 <div
-	class="flex h-8 shrink-0 items-center justify-between border-b border-neutral-900 bg-neutral-950 select-none"
+	class="flex h-8 shrink-0 items-center justify-between border-b border-brand-border bg-brand-bg-primary select-none"
 >
 	<!-- Región de arrastre: cubre toda la barra excepto los botones -->
 	<div data-tauri-drag-region class="flex h-full flex-1 cursor-default items-center gap-2 px-4">
@@ -39,14 +39,14 @@
 		>
 			<span class="text-[9px] font-bold text-white">TX</span>
 		</div>
-		<span class="pointer-events-none text-xs font-medium tracking-wide text-neutral-400">
+		<span class="pointer-events-none text-xs font-medium tracking-wide text-brand-text-secondary">
 			Taxorium
 		</span>
 	</div>
 
 	<div class="flex h-full">
 		<button
-			class="flex h-full cursor-default items-center justify-center px-3.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+			class="flex h-full cursor-default items-center justify-center px-3.5 text-brand-text-secondary transition-colors hover:bg-brand-bg-secondary hover:text-brand-text-hover"
 			onclick={minimizar}
 			aria-label="Minimizar"
 			type="button"
@@ -55,7 +55,7 @@
 			<IconMinus size={16} stroke={1.5} />
 		</button>
 		<button
-			class="flex h-full cursor-default items-center justify-center px-3.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+			class="flex h-full cursor-default items-center justify-center px-3.5 text-brand-text-secondary transition-colors hover:bg-brand-bg-secondary hover:text-brand-text-hover"
 			onclick={alternarMaximizar}
 			aria-label="Maximizar"
 			type="button"
@@ -64,7 +64,7 @@
 			<IconMaximize size={14} stroke={1.5} />
 		</button>
 		<button
-			class="group flex h-full cursor-default items-center justify-center px-4 text-neutral-400 transition-colors hover:bg-red-500 hover:text-white"
+			class="group flex h-full cursor-default items-center justify-center px-4 text-brand-text-secondary transition-colors hover:bg-red-500 hover:text-brand-text-hover"
 			onclick={cerrar}
 			aria-label="Cerrar"
 			type="button"
@@ -73,7 +73,7 @@
 			<IconX
 				size={16}
 				stroke={1.5}
-				class="text-neutral-400 transition-colors group-hover:text-white"
+				class="text-brand-text-secondary transition-colors group-hover:text-brand-text-hover"
 			/>
 		</button>
 	</div>

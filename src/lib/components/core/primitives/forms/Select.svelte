@@ -105,9 +105,9 @@
 
 <svelte:window onclick={handleWindowClick} />
 
-<div class="flex w-full flex-col {containerClass}" bind:this={wrapperElement}>
+<div class="flex w-full flex-col text-brand-text-secondary {containerClass}" bind:this={wrapperElement}>
 	{#if label}
-		<label for={id} class="block text-sm font-medium text-neutral-400">
+		<label for={id} class="block text-sm font-medium">
 			{label}{#if required}<span class="text-red-500"> *</span>{/if}
 		</label>
 	{/if}
@@ -116,8 +116,8 @@
 		{#if editable}
 			<!-- MODO EDITABLE (Input + Botón desplegable) -->
 			<div
-				class="flex w-full items-center justify-between rounded-sm border border-neutral-800 bg-neutral-900 text-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 {error
-					? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500'
+				class="flex h-8 w-full items-center justify-between rounded-sm border border-brand-border text-sm overflow-hidden focus-within:border-brand-border-sky {error
+					? 'border-red-500 focus-within:border-red-500'
 					: ''} {className}"
 			>
 				<input
@@ -133,7 +133,7 @@
 						searchInput = matched ? matched.label : String(value ?? '');
 					}}
 					{placeholder}
-					class="h-9 w-full border-0 bg-transparent text-sm text-neutral-100 placeholder-neutral-500 focus:ring-0 {disabled
+					class="h-8 w-full border-0 bg-brand-bg-secondary text-sm text-brand-text-primary placeholder:text-brand-text-secondary focus:ring-0 {disabled
 						? 'cursor-not-allowed opacity-50'
 						: ''}"
 				/>
@@ -142,7 +142,7 @@
 					tabindex="-1"
 					onclick={toggle}
 					aria-label="Abrir opciones"
-					class="px-2 text-neutral-400 hover:text-neutral-200 focus:outline-none {disabled
+					class="px-2 text-brand-text-secondary bg-brand-bg-secondary h-full hover:text-brand-text-primary focus:outline-none {disabled
 						? 'cursor-not-allowed opacity-50'
 						: ''}"
 				>
@@ -156,15 +156,15 @@
 				{id}
 				{disabled}
 				onclick={toggle}
-				class="flex w-full items-center justify-between rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none {disabled
+				class="flex h-8 w-full items-center justify-between rounded-sm border border-brand-border bg-brand-bg-secondary px-2 py-2 text-sm focus:border-brand-border-sky focus:outline-none {disabled
 					? 'cursor-not-allowed opacity-50'
-					: ''} {error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''} {className}"
+					: ''} {error ? 'border-red-500 focus:border-red-500' : ''} {className}"
 			>
-				<span class="truncate {value ? 'text-neutral-100' : 'text-neutral-500'}">
+				<span class="truncate {value ? 'text-brand-text-primary' : 'text-brand-text-secondary'}">
 					{selectedLabel}
 				</span>
 				<IconChevronDown
-					class="size-4 text-neutral-400 transition-transform {isOpen ? 'rotate-180' : ''}"
+					class="size-4 text-brand-text-secondary transition-transform {isOpen ? 'rotate-180' : ''}"
 				/>
 			</button>
 		{/if}
@@ -172,15 +172,13 @@
 		<!-- LISTA DESPLEGABLE (Compartida por ambas variantes) -->
 		{#if isOpen && filteredOptions.length > 0}
 			<ul
-				class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-sm border border-neutral-700 bg-neutral-900 text-sm shadow-lg focus:outline-none"
+				class="absolute z-10 max-h-60 w-full overflow-auto rounded-sm border border-brand-border bg-brand-bg-primary text-sm shadow-lg focus:outline-none"
 			>
 				{#each filteredOptions as option}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 					<li
-						class="cursor-pointer px-2 py-1.5 hover:bg-neutral-800 {value === option.value
-							? 'bg-blue-600/20 font-medium text-blue-400'
-							: 'text-neutral-200'}"
+						class="cursor-pointer px-2 py-1.5 text-brand-text-secondary hover:bg-brand-bg-secondary"
 						onclick={() => selectOption(option)}
 					>
 						{option.label}

@@ -5,8 +5,8 @@ import {
 	generateVoucherXml,
 	estadoPagoDesdeTipoPago,
 	tipoDocumentoSunat
-} from './voucherGenerator';
-import type { VoucherConfig } from './voucherContext';
+} from '../services/voucherGenerator';
+import type { VoucherConfig } from '../state/voucherContext';
 
 function sampleConfig(overrides: Partial<VoucherConfig> = {}): VoucherConfig {
 	return {
@@ -81,7 +81,8 @@ describe('voucherGenerator', () => {
 		const data = buildVoucherData(sampleConfig(), null, sampleItems(), null);
 		expect(data.total).toBe(118);
 		expect(data.opExoneradas).toBe(18);
-		expect(data.opGravadas).toBe(100);
+		expect(data.opGravadas).toBe(84.75);
+		expect(data.igv).toBe(15.25);
 		expect(data.vuelto).toBe(2);
 		expect(data.numeroCompleto).toMatch(/^B001-\d{8}$/);
 	});

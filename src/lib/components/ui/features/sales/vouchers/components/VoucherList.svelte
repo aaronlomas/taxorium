@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	//ICONOS
+	// ICONOS
 	import {
 		IconDatabaseImport,
 		IconDatabaseExport,
@@ -9,7 +9,7 @@
 		IconDownload,
 		IconBan
 	} from '@tabler/icons-svelte';
-	//PRIMITIVAS
+	// PRIMITIVAS
 	import Hint from '$lib/components/core/primitives/data/Hint.svelte';
 	import TableFilter, {
 		type CheckItem
@@ -18,20 +18,17 @@
 	import Select from '$lib/components/core/primitives/forms/Select.svelte';
 	import Search from '$lib/components/core/primitives/data/Search.svelte';
 	import Table, { row, cell, headCell } from '$lib/components/core/primitives/data/Table.svelte';
-	import Modal from '$lib/components/core/primitives/feedback/Modal.svelte';
-	import InputTextarea from '$lib/components/core/primitives/forms/InputTextarea.svelte';
-	//SERVICIOS
+	// MODALES MODULARIZADOS
+	import VoucherDownloadModal from './VoucherDownloadModal.svelte';
+	import VoucherAnularModal from './VoucherAnularModal.svelte';
+	// SERVICIOS
 	import { invoke } from '@tauri-apps/api/core';
 	import { get } from 'svelte/store';
 	import { tenantStore } from '$lib/features/tenant';
 	import { exportData, type ExportFormat } from '$lib/utilities/formats/export';
 	import { taxoLog } from '$lib/features/taxoLog';
 	import { voucherClient, type Voucher } from '$lib/features/vouchers';
-	import { formatFecha } from '$lib/components/ui/features/sales/vouchers/voucherContext';
-	import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
-	import type { PrintableInvoiceData } from '$lib/components/ui/features/print/invoiceTypes';
-	import { readFile } from '@tauri-apps/plugin-fs';
-	import { configLocalClient } from '$lib/integrations/tauri/deviceConfig';
+	import { formatFecha } from '$lib/components/ui/features/sales/vouchers/state/voucherContext';
 
 	interface ColumnConfig extends CheckItem {
 		key: keyof Voucher;
@@ -59,6 +56,15 @@
 	let searchTerm = $state('');
 	let searchBy = $state('');
 
+	// Modales
+	let isDownloadOpen = $state(false);
+	let downloadVoucher = $state<Voucher | null>(null);
+
+	let isAnularOpen = $state(false);
+	let anularVoucher = $state<Voucher | null>(null);
+
+	let isEmitting = $state<number | null>(null);
+
 	const SEARCH_OPTIONS = [
 		{ value: '', label: 'Todos' },
 		{ value: 'cliente', label: 'Cliente' },
@@ -66,12 +72,18 @@
 		{ value: 'estado', label: 'Estado' }
 	];
 
-	onMount(async () => {
+	async function reloadVouchers() {
 		try {
 			vouchers = await voucherClient.getVouchers();
 		} catch (e) {
 			const msg = e instanceof Error ? e.message : typeof e === 'string' ? e : JSON.stringify(e);
 			taxoLog.error(`Error al cargar los comprobantes: ${msg}`, 'comprobantes');
+		}
+	}
+
+	onMount(async () => {
+		try {
+			await reloadVouchers();
 		} finally {
 			isLoading = false;
 		}
@@ -119,79 +131,15 @@
 		taxoLog.info(`Consultando comprobante ${voucher.numero_comprobante}`, 'comprobantes');
 	}
 
-	async function handleDescargar(voucher: Voucher) {
-		const tenant = get(tenantStore).tenant;
-		if (!tenant) {
-			taxoLog.error('No se encontraron datos de la empresa.', 'comprobantes');
-			return;
-		}
-
-		// Construir PrintableInvoiceData con los datos disponibles en el listado.
-		// Los ítems detallados no se almacenan en la tabla comprobantes (solo el XML firmado),
-		// por lo que se muestra una línea resumen con el total.
-		const CURRENCY_LABEL: Record<string, string> = { PEN: 'SOLES', USD: 'DÓLARES', EUR: 'EUROS' };
-		const printable: PrintableInvoiceData = {
-			formato: 'A4',
-			tipo_comprobante: voucher.numero_comprobante.startsWith('F')
-				? 'FACTURA ELECTRÓNICA'
-				: 'BOLETA DE VENTA ELECTRÓNICA',
-			serie_correlativo: voucher.numero_comprobante,
-			fecha_emision: voucher.fecha_de_emision,
-			tipo_cambio: voucher.tipo_cambio ?? undefined,
-			empresa: {
-				ruc: tenant.ruc,
-				razon_social: tenant.razon_social,
-				direccion: tenant.direccion,
-				ubigeo: tenant.ubigeo ?? '',
-				telefono: tenant.telefono ?? undefined,
-				email: tenant.email ?? undefined
-			},
-			cliente: {
-				tipo_doc: 'DNI',
-				num_doc: '',
-				nombre_o_razon_social: voucher.cliente
-			},
-			items: [
-				{
-					cantidad: 1,
-					unidad: 'NIU',
-					descripcion: `Total gravado comprobante ${voucher.numero_comprobante}`,
-					precio_unitario: voucher.gravado,
-					total: voucher.gravado
-				}
-			],
-			totales: {
-				moneda: voucher.moneda,
-				gravado: voucher.gravado,
-				igv: voucher.igv,
-				total: voucher.total,
-				total_letras: `SON: ${voucher.total.toFixed(2)} ${CURRENCY_LABEL[voucher.moneda] ?? voucher.moneda}`
-			},
-			// La forma de pago no se guarda en la tabla comprobantes, solo su estado.
-			estado_pago: voucher.estado_pago === 'pagado' ? 'Pagado' : 'Pendiente',
-			hash_cpe: voucher.hash_cpe ?? undefined
-		};
-
-		// Abrir en modo viewOnly — el comprobante ya está registrado
-		const base = window.location.origin;
-		const encoded = encodeURIComponent(
-			JSON.stringify({ printable, paperFormat: 'a4', viewOnly: true })
-		);
-		new WebviewWindow(`view-${voucher.numero_comprobante}-${Date.now()}`, {
-			url: `${base}/print?d=${encoded}`,
-			title: `Comprobante — ${voucher.numero_comprobante}`,
-			width: 900,
-			height: 700,
-			center: true,
-			focus: true,
-			decorations: true,
-			resizable: true
-		});
-
-		taxoLog.info(`Abriendo comprobante ${voucher.numero_comprobante}`, 'comprobantes');
+	function handleAbrirDescargas(voucher: Voucher) {
+		downloadVoucher = voucher;
+		isDownloadOpen = true;
 	}
 
-	let isEmitting = $state<number | null>(null);
+	function handleAbrirAnular(voucher: Voucher) {
+		anularVoucher = voucher;
+		isAnularOpen = true;
+	}
 
 	async function handleEmitir(voucher: Voucher) {
 		if (voucher.estado_sunat !== 0) {
@@ -216,7 +164,7 @@
 					clave_sol: tenant.clave_sol,
 					client_id: (tenant as any).sunat_client_id || '25f61db1-0854-4efb-bc54-c1f10cf8db17',
 					client_secret: (tenant as any).sunat_client_secret || 'rvSu0MjYw+hB+vxONyA7jA==',
-					ambiente: 'beta', // Cambiar a 'produccion' luego
+					ambiente: 'beta',
 					voucher_id: voucher.id
 				}
 			});
@@ -226,114 +174,11 @@
 				'comprobantes'
 			);
 
-			// Recargar comprobantes
-			vouchers = await voucherClient.getVouchers();
+			await reloadVouchers();
 		} catch (e) {
 			taxoLog.error(`Error de SUNAT: ${e}`, 'comprobantes');
 		} finally {
 			isEmitting = null;
-		}
-	}
-
-	let isAnulando = $state<number | null>(null);
-
-	// ── Modal de Anulación ─────────────────────────────────────────
-	type AnulacionStep = 'motivo' | 'resultado';
-
-	let anulacionModal = $state<{
-		open: boolean;
-		voucher: Voucher | null;
-		step: AnulacionStep;
-		motivo: string;
-		motivoError: string;
-		resultado: { ok: boolean; mensaje: string } | null;
-		cargando: boolean;
-	}>({ open: false, voucher: null, step: 'motivo', motivo: '', motivoError: '', resultado: null, cargando: false });
-
-	function handleAnular(voucher: Voucher) {
-		anulacionModal = {
-			open: true,
-			voucher,
-			step: 'motivo',
-			motivo: '',
-			motivoError: '',
-			resultado: null,
-			cargando: false
-		};
-	}
-
-	function cerrarAnulacionModal() {
-		anulacionModal.open = false;
-	}
-
-	async function confirmarAnulacion() {
-		if (!anulacionModal.voucher) return;
-		if (!anulacionModal.motivo.trim()) {
-			anulacionModal.motivoError = 'El motivo es obligatorio.';
-			return;
-		}
-		anulacionModal.motivoError = '';
-		anulacionModal.cargando = true;
-		isAnulando = anulacionModal.voucher.id;
-
-		try {
-			const tenant = get(tenantStore).tenant;
-			if (!tenant || !tenant.ruc || !tenant.usuario_sol || !tenant.clave_sol) {
-				throw new Error('Faltan las credenciales SOL de la empresa.');
-			}
-
-			// Leer certificado desde config local
-			let certPath: string;
-			let p12Password: string;
-			try {
-				const cfg = await configLocalClient.getAll();
-				certPath = cfg.certificado_path ?? tenant?.certificado_path ?? '';
-				p12Password = cfg.clave_cert ?? localStorage.getItem('taxorium_cert_pwd') ?? '';
-			} catch {
-				certPath = tenant?.certificado_path ?? '';
-				p12Password = localStorage.getItem('taxorium_cert_pwd') ?? '';
-			}
-			if (!certPath) throw new Error('La empresa no tiene un certificado configurado.');
-
-			const p12Bytes = await readFile(certPath);
-
-			// Enviar Comunicación de Baja (VoidedDocuments) ante SUNAT
-			const correlativoBaja = Math.floor(Date.now() / 1000) % 99999;
-			const res = await invoke<{ ticket: string; codigo: string; descripcion: string }>(
-				'enviar_baja_sunat',
-				{
-					payload: {
-						ruc: tenant.ruc,
-						usuario_sol: tenant.usuario_sol,
-						clave_sol: tenant.clave_sol,
-						client_id: (tenant as any).sunat_client_id || '',
-						client_secret: (tenant as any).sunat_client_secret || '',
-						ambiente: 'beta',
-						p12_bytes: Array.from(p12Bytes),
-						p12_password: p12Password,
-						voucher_id: anulacionModal.voucher.id,
-						motivo: anulacionModal.motivo.trim(),
-						emisor_razon_social: tenant.razon_social,
-						correlativo_baja: correlativoBaja
-					}
-				}
-			);
-			const aceptado = res.codigo === '0';
-			anulacionModal.resultado = {
-				ok: aceptado,
-				mensaje: aceptado
-					? `✓ SUNAT aceptó la Comunicación de Baja. Ticket: ${res.ticket}. ${res.descripcion}`
-					: `✕ SUNAT procesó la baja (código ${res.codigo}): ${res.descripcion}`
-			};
-
-			vouchers = await voucherClient.getVouchers();
-		} catch (e) {
-			const msg = e instanceof Error ? e.message : typeof e === 'string' ? e : JSON.stringify(e);
-			anulacionModal.resultado = { ok: false, mensaje: `Error al anular ante SUNAT: ${msg}` };
-		} finally {
-			anulacionModal.cargando = false;
-			anulacionModal.step = 'resultado';
-			isAnulando = null;
 		}
 	}
 
@@ -359,7 +204,6 @@
 			const labels: Record<string, string> = {
 				PEN: 'Soles (S/.)',
 				USD: 'Dólares ($)',
-				EUR: 'Euros (€)'
 			};
 			return labels[String(val)] ?? String(val);
 		}
@@ -384,34 +228,34 @@
 	}
 </script>
 
-<div class="grid h-full grid-rows-[auto_1fr] gap-2 px-2 pb-2 text-sm">
+<div class="grid h-full grid-rows-[auto_1fr] gap-1 text-sm">
 	<!-- PRIMITIVA TOOLBAR -->
 	<TableToolbar>
 		{#snippet actions()}
 			<button
-				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
+				class="flex cursor-pointer gap-2 rounded-xl bg-brand-bg-secondary px-3 py-1 hover:bg-brand-bg-hover border border-brand-border"
 			>
 				<IconDatabaseImport size={20} />Importar
 			</button>
 			<div class="group relative">
 				<button
-					class="flex cursor-pointer items-center gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
+					class="flex cursor-pointer gap-2 rounded-xl bg-brand-bg-secondary px-3 py-1 hover:bg-brand-bg-hover border border-brand-border"
 				>
 					<IconDatabaseExport size={20} />Exportar
 				</button>
 				<div
-					class="absolute top-full z-10 hidden w-48 flex-col overflow-hidden rounded-md border border-neutral-700 bg-neutral-800 shadow-lg group-hover:flex"
+					class="absolute top-full z-10 hidden w-48 flex-col overflow-hidden rounded-md border border-brand-border bg-brand-bg-secondary shadow-lg group-hover:flex"
 				>
 					<button
-						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
+						class="px-4 py-2 text-left text-sm hover:bg-brand-bg-hover"
 						onclick={() => handleExportFile('xlsx')}>Excel (.xlsx)</button
 					>
 					<button
-						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
+						class="px-4 py-2 text-left text-sm hover:bg-brand-bg-hover"
 						onclick={() => handleExportFile('csv-comma')}>CSV (comas)</button
 					>
 					<button
-						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
+						class="px-4 py-2 text-left text-sm hover:bg-brand-bg-hover"
 						onclick={() => handleExportFile('csv-semicolon')}>CSV (puntos y comas)</button
 					>
 				</div>
@@ -439,7 +283,7 @@
 	<!-- TABLA DE COMPROBANTES -->
 	<Table>
 		{#snippet head()}
-			<tr class="text-blue-400">
+			<tr>
 				{#snippet headIndex()}
 					#
 				{/snippet}
@@ -514,7 +358,8 @@
 										<button
 											class="flex cursor-pointer items-center justify-center rounded-sm border border-emerald-500/40 p-1.5 text-emerald-400 transition-colors hover:bg-emerald-500/10 disabled:opacity-50"
 											onclick={() => handleEmitir(voucher)}
-											disabled={isEmitting === voucher.id || isAnulando === voucher.id}
+											disabled={isEmitting === voucher.id ||
+												(isAnularOpen && anularVoucher?.id === voucher.id)}
 										>
 											{#if isEmitting === voucher.id}
 												<span
@@ -526,19 +371,18 @@
 										</button>
 									</Hint>
 								{:else if (voucher.estado_sunat === 1 && voucher.estado_validez !== 'anulado') || (voucher.estado_sunat === 3 && voucher.codigo_cdr !== '0')}
-									<Hint text={voucher.estado_sunat === 3 ? 'Declarar baja ante SUNAT' : 'Anular comprobante'} side="top">
+									<Hint
+										text={voucher.estado_sunat === 3
+											? 'Declarar baja ante SUNAT'
+											: 'Anular comprobante'}
+										side="top"
+									>
 										<button
 											class="flex cursor-pointer items-center justify-center rounded-sm border border-rose-500/40 p-1.5 text-rose-400 transition-colors hover:bg-rose-500/10 disabled:opacity-50"
-											onclick={() => handleAnular(voucher)}
-											disabled={isEmitting === voucher.id || isAnulando === voucher.id}
+											onclick={() => handleAbrirAnular(voucher)}
+											disabled={isEmitting === voucher.id}
 										>
-											{#if isAnulando === voucher.id}
-												<span
-													class="inline-block size-3.5 animate-spin rounded-full border-2 border-rose-400 border-t-transparent"
-												></span>
-											{:else}
-												<IconBan size={15} />
-											{/if}
+											<IconBan size={15} />
 										</button>
 									</Hint>
 								{/if}
@@ -546,16 +390,16 @@
 									<button
 										class="flex cursor-pointer items-center justify-center rounded-sm border border-blue-500/40 p-1.5 text-blue-400 transition-colors hover:bg-blue-500/10 disabled:opacity-50"
 										onclick={() => handleConsultar(voucher)}
-										disabled={isEmitting === voucher.id || isAnulando === voucher.id}
+										disabled={isEmitting === voucher.id}
 									>
 										<IconEye size={15} />
 									</button>
 								</Hint>
-								<Hint text="Descargar comprobante" side="top">
+								<Hint text="Opciones de descarga (PDF, XML, CDR)" side="top">
 									<button
 										class="flex cursor-pointer items-center justify-center rounded-sm border border-purple-500/40 p-1.5 text-purple-400 transition-colors hover:bg-purple-500/10 disabled:opacity-50"
-										onclick={() => handleDescargar(voucher)}
-										disabled={isEmitting === voucher.id || isAnulando === voucher.id}
+										onclick={() => handleAbrirDescargas(voucher)}
+										disabled={isEmitting === voucher.id}
 									>
 										<IconDownload size={15} />
 									</button>
@@ -571,82 +415,17 @@
 	</Table>
 </div>
 
-<!-- ── Modal de Anulación ─────────────────────────────────────────────── -->
-<Modal
-	bind:isOpen={anulacionModal.open}
-	onClose={cerrarAnulacionModal}
-	title={anulacionModal.step === 'motivo' ? 'Anular Comprobante' : 'Resultado de Anulación'}
-	closable={!anulacionModal.cargando}
->
-	<div class="w-120 p-4">
-		{#if anulacionModal.step === 'motivo'}
-			<!-- Paso 1: Ingresar motivo -->
-			<div class="mb-3 rounded-sm border border-rose-500/30 bg-rose-950/30 px-3 py-2 text-xs text-rose-300">
-				<strong>Atención:</strong> La anulación marcará el comprobante como anulado en el sistema.
-				Ante SUNAT deberá gestionar una <strong>Comunicación de Baja</strong> (dentro de los 7 días)
-				o una <strong>Nota de Crédito</strong> según el tipo de comprobante.
-			</div>
+<!-- Modal de Anulación -->
+<VoucherAnularModal
+	bind:isOpen={isAnularOpen}
+	voucher={anularVoucher}
+	onClose={() => (isAnularOpen = false)}
+	onSuccess={reloadVouchers}
+/>
 
-			{#if anulacionModal.voucher}
-				<p class="mb-3 text-sm text-neutral-400">
-					Comprobante: <span class="font-semibold text-neutral-200">{anulacionModal.voucher.numero_comprobante}</span>
-				</p>
-			{/if}
-
-			<InputTextarea
-				label="Motivo de anulación"
-				bind:value={anulacionModal.motivo}
-				error={anulacionModal.motivoError}
-				placeholder="Describa el motivo de la anulación..."
-				rows={4}
-				required
-				disabled={anulacionModal.cargando}
-			/>
-
-			<div class="mt-4 flex items-center justify-end gap-2">
-				<button
-					type="button"
-					onclick={cerrarAnulacionModal}
-					disabled={anulacionModal.cargando}
-					class="rounded-sm border border-neutral-700 px-4 py-1.5 text-sm text-neutral-300 transition-colors hover:bg-neutral-800 disabled:opacity-50"
-				>
-					Cancelar
-				</button>
-				<button
-					type="button"
-					onclick={confirmarAnulacion}
-					disabled={anulacionModal.cargando}
-					class="flex items-center gap-2 rounded-sm border border-rose-500/50 bg-rose-950/40 px-4 py-1.5 text-sm text-rose-300 transition-colors hover:bg-rose-900/50 disabled:opacity-50"
-				>
-					{#if anulacionModal.cargando}
-						<span class="inline-block size-3.5 animate-spin rounded-full border-2 border-rose-400 border-t-transparent"></span>
-						Procesando...
-					{:else}
-						Confirmar Anulación
-					{/if}
-				</button>
-			</div>
-
-		{:else if anulacionModal.step === 'resultado' && anulacionModal.resultado}
-			<!-- Paso 2: Mostrar resultado -->
-			<div
-				class="mb-4 rounded-sm border px-3 py-3 text-sm {anulacionModal.resultado.ok
-					? 'border-emerald-500/30 bg-emerald-950/30 text-emerald-300'
-					: 'border-red-500/30 bg-red-950/30 text-red-300'}"
-			>
-				<p class="font-semibold">{anulacionModal.resultado.ok ? '✓ Anulación Registrada' : '✕ Error'}</p>
-				<p class="mt-1 text-xs opacity-90">{anulacionModal.resultado.mensaje}</p>
-			</div>
-
-			<div class="flex justify-end">
-				<button
-					type="button"
-					onclick={cerrarAnulacionModal}
-					class="rounded-sm border border-neutral-700 px-4 py-1.5 text-sm text-neutral-300 transition-colors hover:bg-neutral-800"
-				>
-					Aceptar
-				</button>
-			</div>
-		{/if}
-	</div>
-</Modal>
+<!-- Modal de Descargas (Tarea 2 de tasks.md: PDF A4/Ticket, XML, CDR) -->
+<VoucherDownloadModal
+	bind:isOpen={isDownloadOpen}
+	voucher={downloadVoucher}
+	onClose={() => (isDownloadOpen = false)}
+/>

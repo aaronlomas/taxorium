@@ -23,8 +23,9 @@ use crate::models::products::{
     CreateProductPayload, Product,
 };
 use crate::models::sellers::{
-    core_create_seller, core_delete_seller, core_get_sellers, core_login_seller,
-    core_update_seller, CreateSellerPayload, LoginSellerPayload, Seller, UpdateSellerPayload,
+    core_create_seller, core_delete_seller, core_get_seller_password, core_get_sellers,
+    core_login_seller, core_update_seller, CreateSellerPayload, LoginSellerPayload, Seller,
+    UpdateSellerPayload,
 };
 use crate::models::series::{core_get_series, Serie};
 use crate::models::vouchers::{
@@ -52,6 +53,7 @@ pub fn build_router(app: AppHandle) -> Router {
         .route("/api/sellers", get(get_sellers).post(create_seller))
         .route("/api/sellers/login", post(login_seller))
         .route("/api/sellers/:id", put(update_seller).delete(delete_seller))
+        .route("/api/sellers/:id/password", get(get_seller_password))
         .route(
             "/api/products",
             get(get_products_api).post(create_product_api),
@@ -226,6 +228,17 @@ async fn login_seller(
         machine_uid::get().unwrap_or_else(|_| "default_secure_password_123!".to_string());
     let seller = run_db_task(state, move |db| core_login_seller(db, payload, &device_id)).await?;
     Ok(Json(seller))
+}
+
+async fn get_seller_password(
+    state: State<ApiState>,
+    Path(id): Path<i64>,
+) -> Result<Json<String>, (StatusCode, String)> {
+    let device_id =
+        machine_uid::get().unwrap_or_else(|_| "default_secure_password_123!".to_string());
+    let password =
+        run_db_task(state, move |db| core_get_seller_password(db, id, &device_id)).await?;
+    Ok(Json(password))
 }
 
 // --- Products handlers ---

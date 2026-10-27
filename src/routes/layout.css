@@ -1,2 +1,56 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
+/* El elemento raíz del documento es html. En CSS, :root representa a html.
+   Como la app aplica la clase .dark al elemento raíz, los selectores
+   :root.dark y :root:not(.dark) son correctos y coinciden con html.dark / html:not(.dark). */
+:root,
+:root.dark {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	/* BACKGROUND */
+	--bkg-s: #1f1f20;
+	--bkg-p: theme(colors.neutral.900);
+	--bkg-h: theme(colors.neutral.700);
+	--bkg-blue: theme(colors.blue.400);
+	/* TEXT */
+	--txt-p: theme(colors.neutral.300);
+	--txt-s: theme(colors.neutral.400);
+	--txt-sky: theme(colors.blue.400);
+	--txt-h: #ffffff;
+	/* BORDER */
+	--bordr-p: theme(colors.neutral.800);
+	--bordr-sky-p: theme(colors.blue.400);
+}
+
+/* MODO CLARO: la clase .dark no está presente en el elemento raíz */
+:root:not(.dark) {
+	/* BACKGROUND */
+	--bkg-p: #fff;
+	--bkg-s: #e6ebec;
+	--bkg-h: #cedde7;
+	--bkg-blue: theme(colors.blue.400);
+	/* TEXT */
+	--txt-p: #1a1a1a;
+	--txt-s: #666666;
+	--txt-h: #303030;
+	--txt-sky: theme(colors.blue.400);
+	/* BORDER */
+	--bordr-p: #dddddd;
+	--bordr-sky-p: theme(colors.blue.400);
+}
+/* REGISTRO  */
+@theme {
+	/* BACKGROUND */
+	--color-brand-bg-primary: var(--bkg-p);
+	--color-brand-bg-secondary: var(--bkg-s);
+	--color-brand-bg-hover: var(--bkg-h);
+	--color-brand-bg-blue: var(--bkg-blue);
+	/* TEXT */
+	--color-brand-text-primary: var(--txt-p);
+	--color-brand-text-secondary: var(--txt-s);
+	--color-brand-text-hover: var(--txt-h);
+	--color-brand-text-sky: var(--txt-sky);
+	/* BORDER */
+	--color-brand-border: var(--bordr-p);
+	--color-brand-border-sky: var(--bordr-sky-p);
+}

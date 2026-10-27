@@ -7,7 +7,7 @@
 	Compone las interfaces de views/account/ — no contiene lógica propia.
 -->
 <div class="grid h-full grid-rows-[auto_1fr] overflow-hidden">
-	<div class="overflow-scroll p-2">
+	<div class="overflow-scroll">
 		<ProfilePanel />
 	</div>
 </div>

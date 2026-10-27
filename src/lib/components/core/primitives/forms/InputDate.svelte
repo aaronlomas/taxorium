@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+
 	interface Props {
 		label?: string;
 		value?: string;
@@ -15,7 +17,7 @@
 		class: className = ''
 	}: Props = $props();
 
-	$effect(() => {
+	onMount(() => {
 		if (!value) value = today();
 	});
 
@@ -110,33 +112,45 @@
 
 <div class="relative flex w-full flex-col {containerClass}" bind:this={wrapperEl}>
 	{#if label}
-		<label for={id} class="block text-sm font-medium whitespace-nowrap text-neutral-400">
+		<label for={id} class="block text-sm font-medium text-brand-text-secondary">
 			{label}
 		</label>
 	{/if}
 
 	<!-- Input Fecha -->
 	<div
-		class="relative flex w-full rounded-sm border border-neutral-800 bg-neutral-900 text-sm {isOpen
-			? 'border-blue-500 ring-1 ring-blue-500'
+		class="relative flex h-8 w-full rounded-sm border border-brand-border bg-brand-bg-secondary text-sm {isOpen
+			? 'border-brand-border-sky'
 			: ''} {className}"
 	>
-		<span {id} class="flex-1 px-2 py-2 text-neutral-200 select-none">{value}</span>
+		<span
+			{id}
+			class="flex h-full items-center px-2 text-sm leading-none text-brand-text-primary select-none"
+		>
+			{value}
+		</span>
 
 		<button
 			type="button"
 			onclick={toggle}
-			title="Abrir calendario"
-			class="absolute top-0 right-0 bottom-0 flex h-full items-center border-l border-neutral-700 bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white"
+			aria-label="Abrir calendario"
+			class="absolute top-0 right-0 bottom-0 flex h-full items-center border-l border-brand-border bg-none px-2 text-brand-text-secondary hover:bg-brand-bg-hover hover:text-brand-text-primary"
 		>
-			<svg fill="none" stroke="currentColor" class="size-4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2"/></svg>
+			<svg fill="none" stroke="currentColor" class="size-4" viewBox="0 0 24 24" aria-hidden="true"
+				><path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2"
+				/></svg
+			>
 		</button>
 	</div>
 
 	<!-- Calendario desplegable personalizado -->
 	{#if isOpen}
 		<div
-			class="absolute top-full z-50 mt-1 w-64 border border-neutral-700 bg-neutral-900 p-3 shadow-xl"
+			class="absolute top-full right-0 z-50 w-64 border border-brand-border bg-brand-bg-primary p-3 shadow-xl"
 		>
 			<!-- Encabezado: mes/año y navegación -->
 			<div class="mb-2 flex items-center justify-between">
@@ -144,7 +158,7 @@
 					type="button"
 					onclick={prevMonth}
 					aria-label="Mes anterior"
-					class="flex size-6 items-center justify-center text-neutral-400 hover:text-white"
+					class="flex size-6 items-center justify-center text-brand-text-secondary hover:text-brand-text-primary"
 				>
 					<svg
 						fill="none"
@@ -160,7 +174,7 @@
 						/></svg
 					>
 				</button>
-				<span class="text-xs font-semibold text-neutral-200">
+				<span class="text-xs font-semibold text-brand-text-primary">
 					{MONTHS[viewMonth]}
 					{viewYear}
 				</span>
@@ -168,7 +182,7 @@
 					type="button"
 					onclick={nextMonth}
 					aria-label="Mes siguiente"
-					class="flex size-6 items-center justify-center text-neutral-400 hover:text-white"
+					class="flex size-6 items-center justify-center text-brand-text-secondary hover:text-brand-text-primary"
 				>
 					<svg
 						fill="none"
@@ -189,7 +203,7 @@
 			<!-- Días de la semana -->
 			<div class="mb-1 grid grid-cols-7 gap-0.5">
 				{#each DAYS as d}
-					<div class="text-center text-[10px] font-medium text-neutral-500">{d}</div>
+					<div class="text-center text-[10px] font-medium text-brand-text-secondary">{d}</div>
 				{/each}
 			</div>
 
@@ -202,8 +216,10 @@
 						<button
 							type="button"
 							onclick={() => selectDay(cell)}
-							class="flex h-7 w-full items-center justify-center rounded text-xs transition-colors
-								{cell === selectedDay ? 'bg-blue-600 text-white' : 'text-neutral-300 hover:bg-neutral-700'}"
+							class="flex h-7 w-full items-center justify-center rounded text-xs
+								{cell === selectedDay
+								? 'bg-brand-bg-blue text-brand-text-primary'
+								: 'text-brand-text-primary hover:bg-brand-bg-hover'}"
 						>
 							{cell}
 						</button>

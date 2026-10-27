@@ -116,14 +116,10 @@
 	}
 </script>
 
-<div class="grid p-2">
-	<h1 class="p-2 font-bold text-neutral-400">
-		{$editingSeller ? 'Editar Vendedor' : 'Registrar nuevo vendedor o similar'}
-	</h1>
-
+<div class="grid">
 	<form
 		onsubmit={handleSubmit}
-		class="grid grid-cols-2 gap-2 rounded-md border border-neutral-800 p-2"
+		class="grid grid-cols-2 gap-2 bg-brand-bg-primary p-2"
 	>
 		<div class="flex flex-col">
 			<Input label="Nombres" bind:value={nombres} />
@@ -162,7 +158,7 @@
 				{#snippet action()}
 					<button
 						type="button"
-						class="flex items-center justify-center p-2 hover:text-neutral-200 focus:outline-none"
+						class="flex items-center justify-center px-2 hover:text-neutral-200 focus:outline-none"
 						onclick={() => (mostrarPassword = !mostrarPassword)}
 					>
 						{#if mostrarPassword}

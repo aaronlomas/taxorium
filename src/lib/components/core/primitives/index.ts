@@ -1,4 +1,5 @@
 export { default as Button } from './actions/Button.svelte';
+export { default as Check } from './actions/Check.svelte';
 export { default as Input } from './forms/Input.svelte';
 export { default as InputDate } from './forms/InputDate.svelte';
 export { default as Number } from './forms/Number.svelte';
@@ -16,3 +17,5 @@ export { default as Modal } from './feedback/Modal.svelte';
 export { default as Dropdown } from './navigation/dropdown/Dropdown.svelte';
 export { default as DropdownDivider } from './navigation/dropdown/DropdownDivider.svelte';
 export { default as DropdownItem } from './navigation/dropdown/DropdownItem.svelte';
+
+export { default as Scroll } from './Scroll.svelte';

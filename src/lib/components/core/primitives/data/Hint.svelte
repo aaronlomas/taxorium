@@ -82,7 +82,7 @@
 	<span
 		role="tooltip"
 		class="pointer-events-none invisible absolute z-30 w-max max-w-60 rounded-sm border
-			border-neutral-700 bg-neutral-900 px-2 py-1 text-xs whitespace-pre-line text-neutral-300
+			border-brand-border bg-brand-bg-primary italic px-2 py-1 text-xs whitespace-pre-line text-brand-text-secondary
 			opacity-0 shadow-lg transition-opacity delay-(--hint-delay)
 			group-hover:visible group-hover:opacity-100
 			group-focus-visible:visible group-focus-visible:opacity-100

@@ -21,7 +21,7 @@
 
 <Table>
 	{#snippet head()}
-		<tr class="text-sm text-blue-400">
+		<tr>
 			{#snippet headIndex()}
 				#
 			{/snippet}

@@ -91,14 +91,14 @@
 
 <div class="flex w-full flex-col {containerClass}">
 	{#if label}
-		<label for={id} class="block text-sm font-medium text-neutral-400">
+		<label for={id} class="block text-sm font-medium text-brand-text-secondary">
 			{label}
 		</label>
 	{/if}
 
 	<div
-		class="flex w-full overflow-hidden rounded-sm border border-neutral-800 bg-neutral-900 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 {error
-			? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500'
+		class="flex w-full overflow-hidden rounded-sm border border-brand-border bg-brand-bg-secondary focus-within:border-brand-border-sky {error
+			? 'border-red-500 focus-within:border-red-500'
 			: ''} {disabled ? 'cursor-not-allowed opacity-50' : ''}"
 	>
 		<!-- Usamos type="text" con inputmode="decimal" para teclados móviles -->
@@ -110,12 +110,12 @@
 			{disabled}
 			oninput={handleInput}
 			onblur={handleBlur}
-			class="h-full w-full border-none bg-transparent px-3 text-sm text-neutral-200 outline-none focus:ring-0 focus:outline-none {disabled
+			class="h-7.5 w-full border-none bg-transparent px-3 text-sm text-brand-text-primary outline-none focus:ring-0 focus:outline-none {disabled
 				? 'cursor-not-allowed'
 				: ''} {className}"
 		/>
-
-		<div class="flex flex-col border-l border-neutral-700">
+		<!-- Contenedor de botones -->
+		<div class="flex flex-col border-l border-brand-border bg-brand-bg-secondary">
 			<button
 				aria-label="Incrementar"
 				title="Incrementar"
@@ -123,7 +123,7 @@
 				tabindex="-1"
 				{disabled}
 				onclick={increment}
-				class="flex flex-1 items-center justify-center bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white disabled:cursor-not-allowed disabled:hover:bg-neutral-800 disabled:hover:text-neutral-400"
+				class="flex h-full items-center justify-center bg-none text-brand-text-secondary px-2 hover:bg-brand-bg-hover hover:text-brand-text-primary disabled:cursor-not-allowed disabled:hover:bg-brand-bg-secondary disabled:hover:text-brand-text-secondary"
 			>
 				<svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
@@ -136,7 +136,7 @@
 				tabindex="-1"
 				{disabled}
 				onclick={decrement}
-				class="flex flex-1 items-center justify-center border-t border-neutral-700 bg-neutral-800 px-2 text-neutral-400 transition-colors hover:bg-neutral-700 hover:text-white disabled:cursor-not-allowed disabled:hover:bg-neutral-800 disabled:hover:text-neutral-400"
+				class="flex h-full items-center justify-center border-t border-brand-border bg-none px-2 text-brand-text-secondary hover:bg-brand-bg-hover hover:text-brand-text-primary disabled:cursor-not-allowed disabled:hover:bg-brand-bg-secondary disabled:hover:text-brand-text-secondary"
 			>
 				<svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path

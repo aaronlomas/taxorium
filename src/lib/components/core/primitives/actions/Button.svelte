@@ -33,11 +33,12 @@
 
 	// Definición de estilos
 	const variants = {
-		primary: 'border border-blue-500 text-white bg-blue-900 hover:bg-blue-500 whitespace-nowrap',
+		primary:
+			'border-0 text-white bg-blue-900 hover:bg-blue-500 whitespace-nowrap focus-within:border-brand-border-sky hover:shadow-none shadow-[2px_-2px_0px_0px_var(--color-brand-bg-blue)]',
 		secondary: 'text-gray-900 bg-gray-100 hover:bg-gray-200 whitespace-nowrap',
 		danger: 'text-white bg-red-600 hover:bg-red-700 whitespace-nowrap',
 		outline:
-			'border border-neutral-800 bg-neutral-900 text-neutral-300 hover:bg-neutral-800 transition-colors whitespace-nowrap'
+			'border border-brand-border bg-brand-bg-secondary text-brand-text-secondary hover:bg-brand-bg-hover whitespace-nowrap hover:shadow-none shadow-[2px_-2px_0px_0px_var(--color-brand-border)]'
 	};
 
 	const sizes = {
@@ -49,7 +50,7 @@
 
 <button
 	class={[
-		'cursor-pointer rounded-sm',
+		'h-8 cursor-pointer leading-none',
 		// Usar double para botones que requieran un icono a la izquierda
 		double ? 'grid grid-cols-[auto_1fr] items-center' : 'inline-flex items-center justify-center',
 		variants[variant],

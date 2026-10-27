@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { createTypewriterLog } from './utilities/typewriter.ts';
 	import Modal from '$lib/components/core/primitives/feedback/Modal.svelte';
-	import { IconWindowMaximize } from '@tabler/icons-svelte';
+	import { IconWindowMaximize, IconMoon, IconSun, IconBell } from '@tabler/icons-svelte';
 	import { taxoLog, type LogEntry } from '$lib/features/taxoLog';
 
 	// Instanciamos el log animado con velocidad opcional (por defecto 25ms por carácter)
@@ -9,6 +10,7 @@
 
 	let isOpen = $state(false);
 	let listaLog: HTMLDivElement | undefined = $state();
+	let isDark = $state(true);
 
 	const levelClass: Record<LogEntry['level'], string> = {
 		error: 'text-red-400',
@@ -28,6 +30,29 @@
 		return d.toLocaleTimeString('es-PE', { hour12: false });
 	}
 
+	function applyTheme(mode: 'dark' | 'light') {
+		if (typeof document === 'undefined') return;
+
+		const root = document.documentElement;
+		root.classList.toggle('dark', mode === 'dark');
+		root.classList.toggle('light', mode === 'light');
+		localStorage.setItem('taxorium-theme', mode);
+		window.dispatchEvent(new CustomEvent('taxorium-theme-change', { detail: { mode } }));
+		isDark = mode === 'dark';
+	}
+
+	function toggleTheme() {
+		applyTheme(isDark ? 'light' : 'dark');
+	}
+
+	onMount(() => {
+		const savedTheme = localStorage.getItem('taxorium-theme');
+		const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+		const nextMode =
+			savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : prefersDark ? 'dark' : 'light';
+		applyTheme(nextMode);
+	});
+
 	// Mantiene la vista del log siempre al final (mensajes más recientes)
 	$effect(() => {
 		if (totalEntradas >= 0 && isOpen && listaLog) {
@@ -37,7 +62,7 @@
 </script>
 
 <footer
-	class="col-span-2 flex items-center gap-2 border-t border-neutral-800 px-3 font-mono text-xs"
+	class="col-span-2 flex items-center gap-2 border-t border-brand-border px-3 font-mono text-xs text-brand-text-primary"
 >
 	<span>Log:</span>
 	<div class="w-full truncate">
@@ -47,18 +72,43 @@
 					.entry.source}] {$animatedLog.text}<span class="animate-pulse">|</span>
 			</span>
 		{:else}
-			<span class="text-neutral-600">Sin eventos</span>
+			<span class="text-brand-text-secondary">Sin eventos</span>
 		{/if}
 	</div>
-	<button
-		type="button"
-		onclick={() => (isOpen = true)}
-		title="Ver log completo"
-		aria-label="Ver log completo"
-		class="flex shrink-0 cursor-pointer items-center text-neutral-400 hover:border-neutral-700 hover:text-neutral-100"
-	>
-		<IconWindowMaximize size={18} />
-	</button>
+	<!-- BOTONES/CONTROLES/ACCIONES -->
+	<div class="flex h-full items-center gap-x-2">
+		<div>
+			<button
+				type="button"
+				onclick={() => (isOpen = true)}
+				title="Ver log completo"
+				aria-label="Ver log completo"
+				class="flex cursor-pointer items-center text-brand-text-secondary hover:text-brand-text-primary"
+			>
+				<IconWindowMaximize size={18} />
+			</button>
+		</div>
+		<div class="border-l border-brand-border pl-2 gap-x-2 flex">
+			<button
+				type="button"
+				onclick={toggleTheme}
+				class="flex cursor-pointer items-center text-brand-text-secondary hover:text-brand-text-primary"
+			>
+				{#if isDark}
+					<IconSun size={18} />
+				{:else}
+					<IconMoon size={18} />
+				{/if}
+			</button>
+			<button
+				type="button"
+				onclick={toggleTheme}
+				class="flex cursor-pointer items-center text-brand-text-secondary hover:text-brand-text-primary"
+			>
+				<IconBell size={18} />
+			</button>
+		</div>
+	</div>
 </footer>
 
 <!-- VENTANA SECUNDARIA DEL LOG -->

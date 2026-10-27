@@ -15,7 +15,7 @@
 	import {
 		formatFecha,
 		parseFecha
-	} from '$lib/components/ui/features/sales/vouchers/voucherContext';
+	} from '$lib/components/ui/features/sales/vouchers/state/voucherContext';
 	import { voucherClient, type Voucher } from '$lib/features/vouchers';
 	import { invoke } from '@tauri-apps/api/core';
 	import { save } from '@tauri-apps/plugin-dialog';
@@ -150,34 +150,34 @@
 	}
 </script>
 
-<div class="grid h-full grid-rows-[auto_1fr] gap-2 px-2 pb-2 text-sm">
+<div class="grid h-full grid-rows-[auto_1fr] gap-1 text-sm">
 	<!-- PRIMITIVA TOOLBAR -->
 	<TableToolbar>
 		{#snippet actions()}
 			<button
-				class="flex cursor-pointer gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
+				class="flex cursor-pointer gap-2 rounded-xl bg-brand-bg-secondary px-3 py-1 hover:bg-brand-bg-hover"
 			>
 				<IconDatabaseImport size={20} />Importar
 			</button>
 			<div class="group relative">
 				<button
-					class="flex cursor-pointer items-center gap-2 rounded-xl bg-neutral-800 px-3 py-1 hover:bg-neutral-700"
+					class="flex cursor-pointer items-center gap-2 rounded-xl bg-brand-bg-secondary px-3 py-1 hover:bg-brand-bg-hover"
 				>
 					<IconDatabaseExport size={20} />Exportar
 				</button>
 				<div
-					class="absolute top-full z-10 hidden w-48 flex-col overflow-hidden rounded-md border border-neutral-700 bg-neutral-800 shadow-lg group-hover:flex"
+					class="absolute top-full z-10 hidden w-48 flex-col overflow-hidden rounded-md border border-brand-border bg-brand-bg-secondary shadow-lg group-hover:flex"
 				>
 					<button
-						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
+						class="px-4 py-2 text-left text-sm hover:bg-brand-bg-hover"
 						onclick={() => handleExportFile('xlsx')}>Excel (.xlsx)</button
 					>
 					<button
-						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
+						class="px-4 py-2 text-left text-sm hover:bg-brand-bg-hover"
 						onclick={() => handleExportFile('csv-comma')}>CSV (comas)</button
 					>
 					<button
-						class="px-4 py-2 text-left text-sm hover:bg-neutral-700 hover:text-white"
+						class="px-4 py-2 text-left text-sm hover:bg-brand-bg-hover"
 						onclick={() => handleExportFile('csv-semicolon')}>CSV (puntos y comas)</button
 					>
 				</div>

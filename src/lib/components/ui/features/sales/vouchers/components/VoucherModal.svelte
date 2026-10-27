@@ -16,10 +16,14 @@
 	import { icbperStore } from '$lib/features/settings';
 	import { customersStore } from '$lib/features/customers';
 	import { tenantStore } from '$lib/features/tenant';
-	import { voucherConfigStore } from './voucherContext';
-	import { buildVoucherData, type VoucherData, type VoucherFormat } from './voucherGenerator';
-	import { openVoucherPreview } from './pdfGenerator';
-	import type { PaperFormat } from './pdfTemplateConfig';
+	import { voucherConfigStore } from '../state/voucherContext';
+	import {
+		buildVoucherData,
+		type VoucherData,
+		type VoucherFormat
+	} from '../services/voucherGenerator';
+	import { openVoucherPreview } from '../services/pdfGenerator';
+	import type { PaperFormat } from '../services/pdfTemplateConfig';
 	import { voucherClient } from '$lib/features/vouchers';
 	import { readFile } from '@tauri-apps/plugin-fs';
 	import { listen, type UnlistenFn } from '@tauri-apps/api/event';

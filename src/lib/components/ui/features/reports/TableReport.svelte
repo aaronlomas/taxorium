@@ -122,8 +122,7 @@
 
 	const CURRENCY_SYMBOL: Record<string, string> = {
 		PEN: 'S/.',
-		USD: '$',
-		EUR: '€'
+		USD: '$'
 	};
 
 	function formatCellValue(reporte: Reporte, key: keyof Reporte): string {
@@ -154,7 +153,7 @@
 	}
 </script>
 
-<div class="grid h-full grid-rows-[auto_1fr] gap-2 px-2 pb-2 text-sm">
+<div class="grid h-full grid-rows-[auto_1fr] gap-2 text-sm">
 	<!-- PRIMITIVA TOOLBAR -->
 	<TableToolbar>
 		{#snippet actions()}

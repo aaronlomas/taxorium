@@ -10,6 +10,7 @@
 	import { configStore } from '$lib/integrations/tauri/nodeConfig';
 	import PosLogin from '$lib/components/ui/features/auth/setups/PosLogin.svelte';
 	import Log from '$lib/components/log/TaxoLog.svelte';
+	import { activeOption } from '$lib/features/navigation';
 
 	$effect(() => {
 		if ($currentUser) {
@@ -24,37 +25,50 @@
 
 	// Sin pestañas iniciales: el usuario elige qué módulo abrir desde el sidebar.
 	let pestanas = $state<
-		{ id: string; titulo: string; icono: any; colorIcono: string; activo: boolean }[]
+		{ id: string; titulo: string; icono: any; activo: boolean }[]
 	>([]);
 
 	function seleccionarPestana(id: string) {
 		pestanas = pestanas.map((p) => ({ ...p, activo: p.id === id }));
+		const activa = pestanas.find((p) => p.id === id && p.activo);
+		if (activa) {
+			activeOption.set({ nombre: activa.titulo, icono: activa.icono });
+		}
 	}
 
 	function cerrarPestana(id: string) {
 		pestanas = pestanas.filter((p) => p.id !== id);
-		// Si cerramos el activo, activar la última pestaña disponible
 		if (pestanas.length > 0 && !pestanas.some((p) => p.activo)) {
 			pestanas[pestanas.length - 1].activo = true;
+			activeOption.set({
+				nombre: pestanas[pestanas.length - 1].titulo,
+				icono: pestanas[pestanas.length - 1].icono
+			});
+		} else if (pestanas.length === 0) {
+			activeOption.set(null);
+		} else {
+			const activa = pestanas.find((p) => p.activo);
+			if (activa) {
+				activeOption.set({ nombre: activa.titulo, icono: activa.icono });
+			}
 		}
 	}
 
 	function manejarSeleccionSidebar(elemento: ElementoNavegacion) {
+		activeOption.set(elemento);
+
 		const existe = pestanas.find((p) => p.id === elemento.nombre);
 
 		if (existe) {
 			seleccionarPestana(elemento.nombre);
 		} else {
-			// Agregamos la nueva pestaña y la activamos
 			const nuevaPestana = {
 				id: elemento.nombre,
 				titulo: elemento.nombre,
 				icono: elemento.icono,
-				colorIcono: 'text-blue-500', // Color predeterminado
 				activo: true
 			};
 
-			// Desactivamos todas las demás y agregamos la nueva
 			pestanas = [...pestanas.map((p) => ({ ...p, activo: false })), nuevaPestana];
 		}
 	}
@@ -74,17 +88,16 @@
 	<PosLogin />
 {:else}
 	<div
-		class="grid h-full w-full grid-cols-[auto_1fr] grid-rows-[1fr_24px] overflow-hidden bg-neutral-950 font-sans text-neutral-300"
+		class="grid h-full w-full grid-cols-[auto_1fr] grid-rows-[1fr_24px] overflow-hidden font-sans text-neutral-300 bg-brand-bg-primary"
 	>
 		<Sidebar onSeleccionarOpcion={manejarSeleccionSidebar} />
 
-		<div class="flex min-h-0 min-w-0 flex-col bg-neutral-950">
+		<div class="flex min-h-0 min-w-0 flex-col">
 			<TabBar>
 				{#each pestanas as pestana (pestana.id)}
 					<Tab
 						title={pestana.titulo}
 						icon={pestana.icono}
-						iconColor={pestana.colorIcono}
 						active={pestana.activo}
 						onClick={() => seleccionarPestana(pestana.id)}
 						onClose={() => cerrarPestana(pestana.id)}
@@ -93,7 +106,7 @@
 			</TabBar>
 
 			<!-- El área de contenido renderiza dinámicamente según el registro de vistas -->
-			<div class="min-h-0 flex-1 overflow-hidden">
+			<div class="min-h-0 flex-1 overflow-hidden bg-brand-bg-secondary px-1">
 				{#if pestanas.length === 0}
 					<div class="flex h-full items-center justify-center text-sm text-neutral-500">
 						Selecciona una opción para comenzar

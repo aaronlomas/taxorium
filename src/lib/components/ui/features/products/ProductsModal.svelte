@@ -3,6 +3,7 @@
 	import Number from '$lib/components/core/primitives/forms/Number.svelte';
 	import Select from '$lib/components/core/primitives/forms/Select.svelte';
 	import Button from '$lib/components/core/primitives/actions/Button.svelte';
+	import Check from '$lib/components/core/primitives/actions/Check.svelte';
 	import Input from '$lib/components/core/primitives/forms/Input.svelte';
 
 	import { productClient, type CreateProductPayload } from '$lib/features/products';
@@ -236,14 +237,13 @@
 		</div>
 
 		<div class="col-span-2 flex items-center pt-5">
-			<label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-300">
-				<input
-					type="checkbox"
-					bind:checked={hasIcbper}
-					class="h-4 w-4 rounded border-neutral-700 bg-neutral-900 text-blue-600 focus:ring-blue-500 focus:ring-offset-neutral-950"
-				/>
-				ICBPER (bolsa plástica: impuesto fijo por unidad)
-			</label>
+			<Check
+				bind:checked={hasIcbper}
+				label="ICBPER (bolsa plástica: impuesto fijo por unidad)"
+				variant="blue"
+				size="sm"
+				containerClass="text-sm text-brand-text-secondary"
+			/>
 		</div>
 
 		<!-- Fila 5 -->
@@ -271,7 +271,7 @@
 	{/if}
 
 	<!-- Footer -->
-	<div class="col-span-4 flex items-center justify-end gap-3 border-t border-neutral-800 p-2">
+	<div class="col-span-4 flex items-center justify-end gap-3 p-2">
 		<Button type="button" variant="outline" onclick={handleCloseModal}>Cancelar</Button>
 		<Button type="button" variant="primary" onclick={handleSubmit} disabled={loading}>
 			{loading ? 'Guardando...' : $editingProduct ? 'Actualizar' : 'Guardar'}

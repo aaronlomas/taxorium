@@ -12,7 +12,7 @@ function isTauri(): boolean {
 export async function saveVoucherFile(
 	content: Uint8Array | string,
 	defaultName: string,
-	extension: 'pdf' | 'xml'
+	extension: 'pdf' | 'xml' | 'zip' = 'xml'
 ): Promise<string | null> {
 	if (isTauri()) {
 		try {
@@ -33,10 +33,15 @@ export async function saveVoucherFile(
 		}
 	}
 
-	const mime = extension === 'pdf' ? 'application/pdf' : 'application/xml';
+	const mime =
+		extension === 'pdf'
+			? 'application/pdf'
+			: extension === 'zip'
+				? 'application/zip'
+				: 'application/xml';
 	const blob =
 		typeof content === 'string'
-			? new Blob([content], { type: 'text/xml' })
+			? new Blob([content], { type: mime })
 			: new Blob([content as unknown as BlobPart], { type: mime });
 	const url = URL.createObjectURL(blob);
 	const anchor = document.createElement('a');

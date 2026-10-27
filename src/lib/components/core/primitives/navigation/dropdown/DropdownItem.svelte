@@ -14,7 +14,7 @@
 	let { variant = 'default', children, class: className = '', ...rest }: Props = $props();
 
 	const variants = {
-		default: 'hover:bg-neutral-800',
+		default: 'hover:bg-brand-bg-hover',
 		danger: 'hover:bg-red-700'
 	} as const;
 </script>
@@ -22,7 +22,7 @@
 <button
 	type="button"
 	role="menuitem"
-	class="flex w-full cursor-pointer items-center gap-x-2 p-2 text-left whitespace-nowrap {variants[
+	class="flex w-full cursor-pointer items-center gap-x-2 p-2 text-left whitespace-nowrap hover:text-brand-text-hover {variants[
 		variant
 	]} {className}"
 	{...rest}
